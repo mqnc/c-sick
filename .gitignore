@@ -1,0 +1,8 @@
+/.sconsign.dblite
+/build/
+/csickVS/.vs/
+/csickVS/Debug/
+/csickVS/Release/
+/csickVS/x64/
+__pycache__
+*.exe
