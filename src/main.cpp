@@ -9,6 +9,45 @@
 using namespace peg;
 using namespace std;
 
+// utilities for lua stack manipulation
+struct LuaStackPtr{
+	string varName;
+	int stackIndex=0;
+};
+
+void lua_push(lua_State *L, const int value) {lua_pushinteger(L, value);}
+void lua_push(lua_State *L, const string value) {lua_pushstring(L, value.c_str());}
+void lua_push(lua_State *L, const char *value) {lua_pushstring(L, value);}
+void lua_push(lua_State *L, const char *value, size_t len) {lua_pushlstring(L, value, len);}
+void lua_closefield(lua_State *L){ lua_settable(L, -3); }
+
+template<typename TKey, typename TVal>
+void lua_pushfield(lua_State *L, TKey key, TVal value){
+	lua_push(L, key);
+	lua_push(L, value);
+	lua_closefield(L);
+}
+
+template<typename TKey>
+void lua_pushfield(lua_State *L, TKey key, const char *value, size_t len){
+	lua_push(L, key);
+	lua_pushlstring(L, value, len);
+	lua_closefield(L);
+}
+
+void lua_pushfield(lua_State *L, LuaStackPtr ptr){
+	lua_push(L, ptr.varName);
+	lua_pushvalue(L, ptr.stackIndex);
+	lua_closefield(L);
+}
+
+template<typename TKey>
+void lua_opensubtable(lua_State *L, TKey key){
+	lua_push(L, key);
+	lua_newtable(L);
+}
+
+// main
 int Main(vector<string> args)
 {
 
@@ -23,7 +62,7 @@ int Main(vector<string> args)
 		return EXIT_FAILURE;
 	}
 
-	// load grammar from parser script
+	// copy grammar from parser script
 	lua_getglobal(L, "grammar");
 	if(!lua_isstring(L, -1)){
 		cout << "there is no global string variable \"grammar\" in the lua file" << endl;
@@ -39,19 +78,10 @@ int Main(vector<string> args)
 	}
 	auto rules = parser.get_rule_names();
 
-	// wrapper for lua function returns
-	struct LuaReturn{
-		string ruleName; // name of the rule that returned the value
-		unsigned int stackIndex=0; // stack pointer to value
-	};
-
-	// wrapper to invoke lua functions from rules
-
-	// look for default rule
+	// look for default rule in lua parser script
 	bool foundDefault = true;
 	lua_getglobal(L, "default");
 	if(!lua_isfunction(L, -1)){
-		cout << "warning: no default rule found";
 		foundDefault = false;
 	}
 
@@ -64,40 +94,53 @@ int Main(vector<string> args)
 			else{funcName = "";}
 		}
 
-		if(funcName != ""){
+		if(funcName != ""){ // use the specified function or the default function from the lua script
 			parser[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any& dt){
 
 				// find function				
 				lua_getglobal(L, funcName.c_str());
 
 				// push input parameters on stack
-				lua_pushstring(L, rule.c_str()); // name of the rule
-				lua_pushlstring(L, sv.c_str(), sv.length()); // matched string
-				lua_pushinteger(L, sv.line_info().first); // line
-				lua_pushinteger(L, sv.line_info().second); // column
-				lua_pushinteger(L, sv.choice()); // choice
-				lua_newtable(L); // semantic values
-				for(auto& val:sv){
-					lua_pushstring(L, val.get<LuaReturn>().ruleName.c_str()); // key for table indexing
-					lua_pushvalue(L, val.get<LuaReturn>().stackIndex); // stack pointer to actual content
-					lua_settable(L, -3); // add field to table
-				}
-				lua_newtable(L); // tokens
-				for(int i=0; i<sv.tokens.size(); i++){
-					lua_pushinteger(L, i); // key for table indexing
-					lua_pushlstring(L, sv.tokens[i].first, sv.tokens[i].second); // token
-					lua_settable(L, -3); // add field to table
-				}
+				lua_newtable(L);
+					lua_pushfield(L, "rule", rule.c_str());
+					lua_pushfield(L, "matched", sv.c_str(), sv.length());
+					lua_pushfield(L, "line", sv.line_info().first);
+					lua_pushfield(L, "column", sv.line_info().second);
+					lua_pushfield(L, "choice", sv.choice());
+					lua_opensubtable(L, "subnodes"); 
+						for(auto& val:sv){ lua_pushfield(L, val.get<LuaStackPtr>()); }
+					lua_closefield(L);
+					lua_opensubtable(L, "tokens"); 
+						for(int i=0; i<sv.tokens.size(); i++){ lua_pushfield(L, i, sv.tokens[i].first, sv.tokens[i].second); }
+					lua_closefield(L);
 
-				// call function
-				if (lua_pcall(L, 7, 1, 0)){
+				// call lua function
+				if (lua_pcall(L, 1, 1, 0)){
 					cout << "error invoking rule: %s!\n", lua_tostring(L, -1);
 				}
 
 				// return lua value
-				LuaReturn result;
-				result.ruleName = rule;
+				LuaStackPtr result;
+				result.varName = rule;
 				result.stackIndex = lua_gettop(L);
+				return result;
+			};
+		}
+		else{ // function not found, no default function in lua script -> just return last matched token
+			parser[rule.c_str()] = [&L, rule](const SemanticValues& sv, any& dt){
+
+				// return lua value
+				LuaStackPtr result;
+				result.varName = rule;
+
+				if(sv.tokens.size() == 0){
+					lua_push(L, sv.c_str(), sv.length()); // no tokens, return matched string
+					result.stackIndex = lua_gettop(L);
+				}
+				else{
+					lua_push(L, sv.tokens.back().first, sv.tokens.back().second); // return last token
+					result.stackIndex = lua_gettop(L);
+				}
 				return result;
 			};
 		}
@@ -132,7 +175,7 @@ int Main(vector<string> args)
 	// parse string
 	parser.enable_packrat_parsing();
 
-	LuaReturn value;
+	LuaStackPtr value;
 	int indent = 0;
 	any dt = &indent;
 	bool success = parser.parse(" 10 * 5 - 1 ", dt, value);
