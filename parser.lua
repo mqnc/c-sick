@@ -1,4 +1,38 @@
 
+grammar = [==[
+
+	Additive <- (Multitive AddOp)* Multitive
+	AddOp <- '+' / '-'
+	Multitive <- (Primary MulOp)* Primary
+	MulOp <- '*' / '/'
+	Primary <- '(' Additive ')'
+		 / Number
+	Number <- < [0-9]+ >
+	%whitespace <- [ \t]*
+
+]==]
+
+function Number(rule, matched, line, column, choice, subnodes, tokens)
+	print("rule: ", rule)
+	print("match: ", matched)
+	print("line: ", line)
+	print("column: ", column)
+	print("choice: ", choice)
+	print(dump(subnodes))
+	print(dump(tokens))
+	return matched
+end
+
+function default(rule, matched, line, column, choice, subnodes, tokens)
+	print("rule: ", rule)
+	print("line: ", line)
+	print("column: ", column)
+	print("choice: ", choice)
+	print(dump(subnodes))
+	print(dump(tokens))
+	return matched
+end
+
 function dump(o)
    if type(o) == 'table' then
       local s = '{ '
