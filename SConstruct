@@ -5,7 +5,8 @@ if "msvc" in env["TOOLS"]:
 	env.AppendUnique(CXXFLAGS=["/EHsc"])
 	libraries = ""
 elif "clangxx" in env["TOOLS"] or "g++" in env["TOOLS"]:
-	env.AppendUnique(CXXFLAGS=["-std=c++14", "-Wall", "-Wpedantic", "-Wextra"])
+	env.AppendUnique(CXXFLAGS=["-std=c++14"])
+	#env.AppendUnique(CXXFLAGS=["-Wall", "-Wpedantic", "-Wextra"])
 	env.AppendUnique(CXXFLAGS=["-g"])
 	libraries = ["pthread"]
 

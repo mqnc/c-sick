@@ -15,6 +15,7 @@ int Main(vector<string> args)
 	// parser test:
 	//-------------
 	
+	// create grammar
 	const auto syntax = R"(
 		Additive <- (Multitive AddOp)* Multitive
 		AddOp <- '+' / '-'
@@ -26,6 +27,7 @@ int Main(vector<string> args)
 		%whitespace <- [ \t]*
 	)";
 
+	// create parser
 	parser parser(syntax);
 
 	if (!parser){
@@ -33,19 +35,39 @@ int Main(vector<string> args)
 		return EXIT_FAILURE;
 	}
 
+	// create callbacks for debugging
 	auto rules = parser.get_rule_names();
 
 	for(auto r:rules){
-		cout << r << endl;
+		parser[r.c_str()].enter = [r](const char* s, size_t n, any& dt) {
+			auto& indent = *dt.get<int*>();
+			for(int i=0; i<indent; i++){cout << "|  ";}
+			string beginning(s, n);
+			if(beginning.length()>10){beginning = beginning.substr(0,10) + "...";}
+			cout << r << " => \"" << beginning << "\"?" << endl;
+			indent++;
+		};
+
+		parser[r.c_str()].leave = [r](const char* s, size_t n, bool match, any& dt) {
+			auto& indent = *dt.get<int*>();
+			indent--;
+			for(int i=0; i<indent; i++){cout << "|  ";}
+			if(match){cout << "`-> match" << endl;}
+			else{cout << "`-> failed" << endl;}
+		};
 	}
-
-	parser.enable_packrat_parsing(); // Enable packrat parsing.
-
-	int val;
 	parser.log = [&](size_t ln, size_t col, const string& msg) {
 		cout << "(" << ln << "," << col << ") " << msg;
 	};
-	bool success = parser.parse(" 10 * 5 - 1 ", val);
+
+	// parse string
+	parser.enable_packrat_parsing();
+
+	int val;
+
+	int indent = 0;
+	any dt = &indent;
+	bool success = parser.parse(" 10 * 5 - 1 ", dt, val);
 	
 	if(success){
 		cout << "parsing successful" << endl;
