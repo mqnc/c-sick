@@ -12,8 +12,6 @@ using namespace std;
 int Main(vector<string> args)
 {
 
-	for (auto arg : args)cout << arg << endl;
-
 	// parser test:
 	//-------------
 	
@@ -33,6 +31,12 @@ int Main(vector<string> args)
 	if (!parser){
 		cout << "error creating grammar" << endl;
 		return EXIT_FAILURE;
+	}
+
+	auto rules = parser.get_rule_names();
+
+	for(auto r:rules){
+		cout << r << endl;
 	}
 
 	parser.enable_packrat_parsing(); // Enable packrat parsing.
