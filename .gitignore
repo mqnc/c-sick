@@ -6,3 +6,4 @@
 /csickVS/x64/
 __pycache__
 *.exe
+*.pyc
