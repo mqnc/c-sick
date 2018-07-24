@@ -58,7 +58,7 @@ int Main(vector<string> args)
 	// load parser script
 	auto result = luaL_loadfile(L, "parser.lua") || lua_pcall(L, 0, 0, 0);
 	if (result){
-		cout << "error loading parser.lua: %s!\n", lua_tostring(L, -1);
+		cout << "error loading parser.lua: " << lua_tostring(L, -1) << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -107,16 +107,24 @@ int Main(vector<string> args)
 					lua_pushfield(L, "line", sv.line_info().first);
 					lua_pushfield(L, "column", sv.line_info().second);
 					lua_pushfield(L, "choice", sv.choice());
+
 					lua_opensubtable(L, "subnodes"); 
-						for(auto& val:sv){ lua_pushfield(L, val.get<LuaStackPtr>()); }
+					for (size_t i = 0; i != sv.size(); ++i) {
+						lua_push(L, 1 + i);
+						lua_pushvalue(L, sv[i].get<LuaStackPtr>().stackIndex);
+						lua_closefield(L);
+					}
 					lua_closefield(L);
+
 					lua_opensubtable(L, "tokens"); 
-						for(int i=0; i<sv.tokens.size(); i++){ lua_pushfield(L, i, sv.tokens[i].first, sv.tokens[i].second); }
+					for (size_t i = 0; i != sv.tokens.size(); ++i) {
+						lua_pushfield(L, 1 + i, sv.tokens[i].first, sv.tokens[i].second);
+					}
 					lua_closefield(L);
 
 				// call lua function
 				if (lua_pcall(L, 1, 1, 0)){
-					cout << "error invoking rule: %s!\n", lua_tostring(L, -1);
+					cout << "error invoking rule: " << lua_tostring(L, -1) << endl;
 				}
 
 				// return lua value
@@ -181,7 +189,7 @@ int Main(vector<string> args)
 	bool success = parser.parse(" 10 * 5 - 1 ", dt, value);
 	
 	if(success){
-		cout << "parsing successful" << endl;
+		cout << "parsing successful, result = " << lua_tostring(L, value.stackIndex) << endl;
 	}
 	else{
 		cout << "parsing failed" << endl;
