@@ -58,7 +58,7 @@ int Main(vector<string> args)
 	// load parser script
 	auto result = luaL_loadfile(L, "parser.lua") || lua_pcall(L, 0, 0, 0);
 	if (result){
-		cout << "error loading parser.lua: %s!\n", lua_tostring(L, -1);
+		cout << "error loading parser.lua: " << lua_tostring(L, -1) << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -116,7 +116,7 @@ int Main(vector<string> args)
 
 				// call lua function
 				if (lua_pcall(L, 1, 1, 0)){
-					cout << "error invoking rule: %s!\n", lua_tostring(L, -1);
+					cout << "error invoking rule: " << lua_tostring(L, -1) << endl;
 				}
 
 				// return lua value
@@ -181,7 +181,7 @@ int Main(vector<string> args)
 	bool success = parser.parse(" 10 * 5 - 1 ", dt, value);
 	
 	if(success){
-		cout << "parsing successful" << endl;
+		cout << "parsing successful, result = " << lua_tostring(L, value.stackIndex) << endl;
 	}
 	else{
 		cout << "parsing failed" << endl;
