@@ -107,11 +107,19 @@ int Main(vector<string> args)
 					lua_pushfield(L, "line", sv.line_info().first);
 					lua_pushfield(L, "column", sv.line_info().second);
 					lua_pushfield(L, "choice", sv.choice());
+
 					lua_opensubtable(L, "subnodes"); 
-						for(auto& val:sv){ lua_pushfield(L, val.get<LuaStackPtr>()); }
+					for (size_t i = 0; i != sv.size(); ++i) {
+						lua_push(L, 1 + i);
+						lua_pushvalue(L, sv[i].get<LuaStackPtr>().stackIndex);
+						lua_closefield(L);
+					}
 					lua_closefield(L);
+
 					lua_opensubtable(L, "tokens"); 
-						for(int i=0; i<sv.tokens.size(); i++){ lua_pushfield(L, i, sv.tokens[i].first, sv.tokens[i].second); }
+					for (size_t i = 0; i != sv.tokens.size(); ++i) {
+						lua_pushfield(L, 1 + i, sv.tokens[i].first, sv.tokens[i].second);
+					}
 					lua_closefield(L);
 
 				// call lua function
