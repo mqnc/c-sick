@@ -11,7 +11,7 @@ using namespace std;
 
 // utilities for lua stack manipulation
 struct LuaStackPtr{
-	string varName;
+	string varName; // TODO: remove this if not needed in final release
 	int stackIndex=0;
 };
 
@@ -51,16 +51,30 @@ void lua_opensubtable(lua_State *L, TKey key){
 int Main(vector<string> args)
 {
 
+	// check arguments
+	if(args.size()<3){
+		cout << "please provide a parser lua-script and a file to parse" << endl;
+		return EXIT_FAILURE;
+	}
+
 	// init lua
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 
 	// load parser script
-	auto result = luaL_loadfile(L, "parser.lua") || lua_pcall(L, 0, 0, 0);
+	auto result = luaL_loadfile(L, args[1].c_str()) || lua_pcall(L, 0, 0, 0);
 	if (result){
-		cout << "error loading parser.lua: " << lua_tostring(L, -1) << endl;
+		cout << "error loading \"" << args[1] << "\": " << lua_tostring(L, -1) << endl;
 		return EXIT_FAILURE;
 	}
+
+	// load text to parse
+	ifstream textfile {args[2]};
+	string text { istreambuf_iterator<char>(textfile), istreambuf_iterator<char>() };
+	if ("" == text){
+		cout << "error loading \"" << args[2] << "\": file not found or empty" << endl;
+		return EXIT_FAILURE;
+	}		
 
 	// copy grammar from parser script
 	lua_getglobal(L, "grammar");
@@ -186,7 +200,7 @@ int Main(vector<string> args)
 	LuaStackPtr value;
 	int indent = 0;
 	any dt = &indent;
-	bool success = parser.parse(" 10 * 5 - 1 ", dt, value);
+	bool success = parser.parse(text.c_str(), dt, value);
 	
 	if(success){
 		cout << "parsing successful, result = " << lua_tostring(L, value.stackIndex) << endl;
