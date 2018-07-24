@@ -100,7 +100,7 @@ int Main(vector<string> args)
 	}
 
 	// assign in-lua-defined rules
-	for(auto rule:rules){
+	for(const auto& rule:rules){
 		string funcName = rule.c_str();
 		lua_getglobal(L, funcName.c_str()); // put pointer to function on stack
 		if(!lua_isfunction(L, -1)){
@@ -177,6 +177,7 @@ int Main(vector<string> args)
 			for(int i=0; i<indent; i++){cout << "|  ";}
 			string beginning(s, n);
 			if(beginning.length()>10){beginning = beginning.substr(0,10) + "...";}
+			for(auto& c:beginning){if(c == '\n'){c = '\\';}}
 			cout << r << " => \"" << beginning << "\"?" << endl;
 			indent++;
 		};
@@ -185,8 +186,7 @@ int Main(vector<string> args)
 			auto& indent = *dt.get<int*>();
 			indent--;
 			for(int i=0; i<indent; i++){cout << "|  ";}
-			if(match){cout << "`-> match" << endl;}
-			else{cout << "`-> failed" << endl;}
+			cout << "`-> " << (match ? "match" : "failed") << endl;
 		};
 	}
 	parser.log = [&](size_t ln, size_t col, const string& msg) {

@@ -1580,7 +1580,7 @@ inline size_t Holder::parse(const char* s, size_t n, SemanticValues& sv, Context
 
         const auto& rule = *ope_;
         len = rule.parse(s, n, chldsv, c, dt);
-		bool match = success(len);
+        const bool match = success(len);
 
         auto se2 = make_scope_exit([&]() {
             c.pop();
@@ -2605,11 +2605,10 @@ public:
     }
 
     std::vector<std::string> get_rule_names(){
-        std::vector<std::string> rules(grammar_->size());
-        size_t i=0;
-        for (auto& r: *grammar_) {
-            rules[i] = r.first;
-            i++;
+        std::vector<std::string> rules;
+        rules.reserve(grammar_->size());
+        for (auto const& r : *grammar_) {
+            rules.emplace_back(r.first);
         }
         return rules;
     }
