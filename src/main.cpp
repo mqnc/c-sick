@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include "lua/src/lua.hpp"
+#include "luautils.h"
 #include "peglib.h"
 
 #define DEBUG_PARSER
@@ -9,42 +10,17 @@
 using namespace peg;
 using namespace std;
 
-// utilities for lua stack manipulation
-struct LuaStackPtr{
-	string varName; // TODO: remove this if not needed in final release
-	int stackIndex=0;
+// helper for repeating output
+struct repeat{
+	repeat(const char* s_, size_t num_):s(s_), num(num_){}
+	const char* s;
+	size_t num;
 };
-
-void lua_push(lua_State *L, const int value) {lua_pushinteger(L, value);}
-void lua_push(lua_State *L, const string value) {lua_pushstring(L, value.c_str());}
-void lua_push(lua_State *L, const char *value) {lua_pushstring(L, value);}
-void lua_push(lua_State *L, const char *value, size_t len) {lua_pushlstring(L, value, len);}
-void lua_closefield(lua_State *L){ lua_settable(L, -3); }
-
-template<typename TKey, typename TVal>
-void lua_pushfield(lua_State *L, TKey key, TVal value){
-	lua_push(L, key);
-	lua_push(L, value);
-	lua_closefield(L);
-}
-
-template<typename TKey>
-void lua_pushfield(lua_State *L, TKey key, const char *value, size_t len){
-	lua_push(L, key);
-	lua_pushlstring(L, value, len);
-	lua_closefield(L);
-}
-
-void lua_pushfield(lua_State *L, LuaStackPtr ptr){
-	lua_push(L, ptr.varName);
-	lua_pushvalue(L, ptr.stackIndex);
-	lua_closefield(L);
-}
-
-template<typename TKey>
-void lua_opensubtable(lua_State *L, TKey key){
-	lua_push(L, key);
-	lua_newtable(L);
+ostream& operator<< (ostream& stream, const repeat rep){
+	for(int i=0; i<rep.num; ++i){
+		stream << rep.s;
+	}
+	return stream;
 }
 
 // main
@@ -53,7 +29,9 @@ int Main(vector<string> args)
 
 	// check arguments
 	if(args.size()<3){
-		cout << "please provide a parser lua-script and a file to parse" << endl;
+		cout << "usage: " << args[0] << " parser.lua file" << endl
+			<< "\tRead the grammar and reduction rules from parser.lua and" << endl
+			<< "\tparse the given file." << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -64,22 +42,22 @@ int Main(vector<string> args)
 	// load parser script
 	auto result = luaL_loadfile(L, args[1].c_str()) || lua_pcall(L, 0, 0, 0);
 	if (result){
-		cout << "error loading \"" << args[1] << "\": " << lua_tostring(L, -1) << endl;
+		cerr << "error loading \"" << args[1] << "\": " << lua_tostring(L, -1) << endl;
 		return EXIT_FAILURE;
 	}
 
 	// load text to parse
 	ifstream textfile {args[2]};
-	string text { istreambuf_iterator<char>(textfile), istreambuf_iterator<char>() };
-	if ("" == text){
-		cout << "error loading \"" << args[2] << "\": file not found or empty" << endl;
+	if(textfile.fail()){
+		cerr << "error loading \"" << args[2] << "\": file not found" << endl;
 		return EXIT_FAILURE;
-	}		
+    }
+	string text { istreambuf_iterator<char>(textfile), istreambuf_iterator<char>() };	
 
 	// copy grammar from parser script
 	lua_getglobal(L, "grammar");
 	if(!lua_isstring(L, -1)){
-		cout << "there is no global string variable \"grammar\" in the lua file" << endl;
+		cerr << "error parsing grammar: there is no global string variable \"grammar\" in the lua file" << endl;
 		return EXIT_FAILURE;
 	}
 	string grammar = lua_tostring(L, -1);
@@ -87,7 +65,7 @@ int Main(vector<string> args)
 	// create parser
 	parser parser(grammar.c_str());
 	if (!parser){
-		cout << "error creating parser" << endl;
+		cerr << "error creating parser" << endl;
 		return EXIT_FAILURE;
 	}
 	auto rules = parser.get_rule_names();
@@ -111,59 +89,61 @@ int Main(vector<string> args)
 		if(funcName != ""){ // use the specified function or the default function from the lua script
 			parser[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any& dt){
 
+				// indent output of lua function
+				#ifdef DEBUG_PARSER
+					auto& indent = *dt.get<int*>();
+					cout << repeat("|  ", indent-1) << "+-";
+				#endif
+
 				// find function				
 				lua_getglobal(L, funcName.c_str());
 
 				// push input parameters on stack
 				lua_newtable(L);
-					lua_pushfield(L, "rule", rule.c_str());
-					lua_pushfield(L, "matched", sv.c_str(), sv.length());
-					lua_pushfield(L, "line", sv.line_info().first);
-					lua_pushfield(L, "column", sv.line_info().second);
-					lua_pushfield(L, "choice", sv.choice());
+					lua_pushfield(L, "rule",    rule.c_str());
+					lua_pushfield(L, "matched", StringPtr(sv.c_str(), sv.length()));
+					lua_pushfield(L, "line",    sv.line_info().first);
+					lua_pushfield(L, "column",  sv.line_info().second);
+					lua_pushfield(L, "choice",  sv.choice());
 
 					lua_opensubtable(L, "subnodes"); 
-					for (size_t i = 0; i != sv.size(); ++i) {
-						lua_push(L, 1 + i);
-						lua_pushvalue(L, sv[i].get<LuaStackPtr>().stackIndex);
-						lua_closefield(L);
-					}
+						for (size_t i = 0; i != sv.size(); ++i){
+							lua_pushfield(L, 1+i, sv[i].get<LuaStackPtr>());
+						}
 					lua_closefield(L);
 
 					lua_opensubtable(L, "tokens"); 
-					for (size_t i = 0; i != sv.tokens.size(); ++i) {
-						lua_pushfield(L, 1 + i, sv.tokens[i].first, sv.tokens[i].second);
-					}
+						for (size_t i = 0; i != sv.tokens.size(); ++i) {
+							lua_pushfield(L, 1+i, StringPtr(sv.tokens[i].first, sv.tokens[i].second));
+						}
 					lua_closefield(L);
-
+				
 				// call lua function
 				if (lua_pcall(L, 1, 1, 0)){
-					cout << "error invoking rule: " << lua_tostring(L, -1) << endl;
+					cerr << "error invoking rule: " << lua_tostring(L, -1) << endl;
 				}
 
+				// line break after output
+				#ifdef DEBUG_PARSER
+					cout << endl;
+				#endif
+
 				// return lua value
-				LuaStackPtr result;
-				result.varName = rule;
-				result.stackIndex = lua_gettop(L);
-				return result;
+				return LuaStackPtr(lua_gettop(L));
 			};
 		}
 		else{ // function not found, no default function in lua script -> just return last matched token
 			parser[rule.c_str()] = [&L, rule](const SemanticValues& sv, any& dt){
 
-				// return lua value
-				LuaStackPtr result;
-				result.varName = rule;
-
 				if(sv.tokens.size() == 0){
-					lua_push(L, sv.c_str(), sv.length()); // no tokens, return matched string
-					result.stackIndex = lua_gettop(L);
+					lua_push(L, StringPtr(sv.c_str(), sv.length())); // no tokens, return matched string
 				}
 				else{
-					lua_push(L, sv.tokens.back().first, sv.tokens.back().second); // return last token
-					result.stackIndex = lua_gettop(L);
+					lua_push(L, StringPtr(sv.tokens.back().first, sv.tokens.back().second)); // return last token
 				}
-				return result;
+
+				// return lua value
+				return LuaStackPtr(lua_gettop(L));
 			};
 		}
 	}
@@ -174,19 +154,23 @@ int Main(vector<string> args)
 		
 		parser[r.c_str()].enter = [r](const char* s, size_t n, any& dt) {
 			auto& indent = *dt.get<int*>();
-			for(int i=0; i<indent; i++){cout << "|  ";}
 			string beginning(s, n);
-			if(beginning.length()>10){beginning = beginning.substr(0,10) + "...";}
-			for(auto& c:beginning){if(c == '\n'){c = '\\';}}
-			cout << r << " => \"" << beginning << "\"?" << endl;
+			if(beginning.length()>10){
+				beginning = beginning.substr(0,10) + "...";
+			}
+			for(auto& c:beginning){
+				if(c == '\n'){
+					c = '\\';
+				}
+			}
+			cout << repeat("|  ", indent) << r << " => \"" << beginning << "\"?" << endl;
 			indent++;
 		};
 
 		parser[r.c_str()].leave = [r](const char* s, size_t n, bool match, any& dt) {
 			auto& indent = *dt.get<int*>();
 			indent--;
-			for(int i=0; i<indent; i++){cout << "|  ";}
-			cout << "`-> " << (match ? "match" : "failed") << endl;
+			cout << repeat("|  ", indent) << "`-> " << (match ? "match" : "failed") << endl;
 		};
 	}
 	parser.log = [&](size_t ln, size_t col, const string& msg) {
@@ -197,13 +181,14 @@ int Main(vector<string> args)
 	// parse string
 	parser.enable_packrat_parsing();
 
-	LuaStackPtr value;
+	any value;
 	int indent = 0;
 	any dt = &indent;
+
 	bool success = parser.parse(text.c_str(), dt, value);
 	
 	if(success){
-		cout << "parsing successful, result = " << lua_tostring(L, value.stackIndex) << endl;
+		cout << "parsing successful, result = " << lua_tostring(L, value.get<LuaStackPtr>().idx) << endl;
 	}
 	else{
 		cout << "parsing failed" << endl;

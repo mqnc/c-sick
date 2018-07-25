@@ -61,12 +61,12 @@ function MulOp(params)
 end
 
 function Num(params)
-	print("                          ", dump(params))
+	print(dump(params))
 	return params.matched
 end
 
 function default(params)
-	print("                          ", dump(params))
+	print(dump(params))
 	return params.matched
 end
 
