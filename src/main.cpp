@@ -3,25 +3,13 @@
 #include <string>
 #include "lua/src/lua.hpp"
 #include "luautils.h"
+#include "stringutils.h"
 #include "peglib.h"
 
 #define DEBUG_PARSER
 
 using namespace peg;
 using namespace std;
-
-// helper for repeating output
-struct repeat{
-	repeat(const char* s_, size_t num_):s(s_), num(num_){}
-	const char* s;
-	size_t num;
-};
-ostream& operator<< (ostream& stream, const repeat rep){
-	for(int i=0; i<rep.num; ++i){
-		stream << rep.s;
-	}
-	return stream;
-}
 
 // main
 int Main(vector<string> args)
@@ -45,6 +33,13 @@ int Main(vector<string> args)
 		cerr << "error loading \"" << args[1] << "\": " << lua_tostring(L, -1) << endl;
 		return EXIT_FAILURE;
 	}
+
+	// load custom lua utility library
+	result = lua_loadutils(L);
+	if (result){
+		cerr << "error loading lua utils";
+		return EXIT_FAILURE;
+	}	
 
 	// load text to parse
 	ifstream textfile {args[2]};
@@ -89,12 +84,6 @@ int Main(vector<string> args)
 		if(funcName != ""){ // use the specified function or the default function from the lua script
 			parser[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any& dt){
 
-				// indent output of lua function
-				#ifdef DEBUG_PARSER
-					auto& indent = *dt.get<int*>();
-					cout << repeat("|  ", indent-1) << "+-";
-				#endif
-
 				// find function				
 				lua_getglobal(L, funcName.c_str());
 
@@ -123,11 +112,6 @@ int Main(vector<string> args)
 					cerr << "error invoking rule: " << lua_tostring(L, -1) << endl;
 				}
 
-				// line break after output
-				#ifdef DEBUG_PARSER
-					cout << endl;
-				#endif
-
 				// return lua value
 				return LuaStackPtr(lua_gettop(L));
 			};
@@ -154,23 +138,27 @@ int Main(vector<string> args)
 		
 		parser[r.c_str()].enter = [r](const char* s, size_t n, any& dt) {
 			auto& indent = *dt.get<int*>();
-			string beginning(s, n);
-			if(beginning.length()>10){
-				beginning = beginning.substr(0,10) + "...";
-			}
-			for(auto& c:beginning){
-				if(c == '\n'){
-					c = '\\';
-				}
-			}
-			cout << repeat("|  ", indent) << r << " => \"" << beginning << "\"?" << endl;
+			cout << repeat("|  ", indent) << r << " => \"" << shorten(string(s, n), 40) << "\"?" << endl;
 			indent++;
 		};
 
-		parser[r.c_str()].leave = [r](const char* s, size_t n, bool match, any& dt) {
+		parser[r.c_str()].leave = [r, &L](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
 			auto& indent = *dt.get<int*>();
 			indent--;
-			cout << repeat("|  ", indent) << "`-> " << (match ? "match" : "failed") << endl;
+			cout << repeat("|  ", indent) << "`-> ";
+			if(success(matchlen)){
+
+				// display "match", the matched string and the result of the reduction
+				cout << "match: \"" << shorten(string(s, matchlen), 40) << "\" -> ";
+				lua_getglobal(L, "stringify");
+				lua_push(L, value.get<LuaStackPtr>());
+				lua_pcall(L, 1, 1, 0);
+				string output = lua_tostring(L, -1);
+				cout << shorten(output, 40) << endl;
+			}
+			else{
+				cout << "failed" << endl;
+			}
 		};
 	}
 	parser.log = [&](size_t ln, size_t col, const string& msg) {
@@ -207,3 +195,4 @@ int main(int c, char** v){
 #endif
 	return result;
 }
+

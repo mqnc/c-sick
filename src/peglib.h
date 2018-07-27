@@ -1445,19 +1445,19 @@ public:
         return holder_->ope_;
     }
 
-    std::string                                                           name;
-    size_t                                                                id;
-    Action                                                                action;
-    std::function<void (const char* s, size_t n, any& dt)>                enter;
-    std::function<void (const char* s, size_t n, bool match, any& dt)>    leave;
-    std::function<std::string ()>                                         error_message;
-    bool                                                                  ignoreSemanticValue;
-    std::shared_ptr<Ope>                                                  whitespaceOpe;
-    std::shared_ptr<Ope>                                                  wordOpe;
-    bool                                                                  enablePackratParsing;
-    bool                                                                  is_token;
-    bool                                                                  has_token_boundary;
-    Tracer                                                                tracer;
+    std::string                                                                          name;
+    size_t                                                                               id;
+    Action                                                                               action;
+    std::function<void (const char* s, size_t n, any& dt)>                               enter;
+    std::function<void (const char* s, size_t n, size_t matchlen, any& value, any& dt)>  leave;
+    std::function<std::string ()>                                                        error_message;
+    bool                                                                                 ignoreSemanticValue;
+    std::shared_ptr<Ope>                                                                 whitespaceOpe;
+    std::shared_ptr<Ope>                                                                 wordOpe;
+    bool                                                                                 enablePackratParsing;
+    bool                                                                                 is_token;
+    bool                                                                                 has_token_boundary;
+    Tracer                                                                               tracer;
 
 private:
     friend class DefinitionReference;
@@ -1580,18 +1580,9 @@ inline size_t Holder::parse(const char* s, size_t n, SemanticValues& sv, Context
 
         const auto& rule = *ope_;
         len = rule.parse(s, n, chldsv, c, dt);
-        const bool match = success(len);
-
-        auto se2 = make_scope_exit([&]() {
-            c.pop();
-
-            if (outer_->leave) {
-                outer_->leave(s, n, match, dt);
-            }
-        });		
-		
+ 
         // Invoke action
-        if (match) {
+        if (success(len)) {
             chldsv.s_ = s;
             chldsv.n_ = len;
 
@@ -1607,6 +1598,13 @@ inline size_t Holder::parse(const char* s, size_t n, SemanticValues& sv, Context
                 len = static_cast<size_t>(-1);
             }
         }
+
+        c.pop();
+
+        if (outer_->leave) {
+            outer_->leave(s, n, len, a_val, dt);
+        }
+
     });
 
     if (success(len)) {
