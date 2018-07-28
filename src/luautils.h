@@ -37,14 +37,14 @@ inline void lua_closefield(lua_State *L){
 }
 
 template<typename TKey, typename TVal>
-inline void lua_pushfield(lua_State *L, const TKey& key, const TVal& value){
+void lua_pushfield(lua_State *L, const TKey& key, const TVal& value){
 	lua_push(L, key);
 	lua_push(L, value);
 	lua_closefield(L);
 }
 
 template<typename TKey>
-inline void lua_opensubtable(lua_State *L, const TKey& key){
+void lua_opensubtable(lua_State *L, const TKey& key){
 	lua_push(L, key);
 	lua_newtable(L);
 }

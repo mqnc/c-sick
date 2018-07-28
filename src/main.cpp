@@ -83,7 +83,7 @@ int Main(vector<string> args)
 		}
 
 		if(funcName != ""){ // use the specified function or the default function from the lua script
-			parser[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any& dt){
+			parser[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any&){
 
 				// find function
 				lua_getglobal(L, funcName.c_str());
@@ -118,7 +118,7 @@ int Main(vector<string> args)
 			};
 		}
 		else{ // function not found, no default function in lua script -> just return last matched token
-			parser[rule.c_str()] = [&L, rule](const SemanticValues& sv, any& dt){
+			parser[rule.c_str()] = [&L, rule](const SemanticValues& sv, any&){
 
 				if(sv.tokens.size() == 0){
 					lua_push(L, StringPtr(sv.c_str(), sv.length())); // no tokens, return matched string
@@ -143,7 +143,7 @@ int Main(vector<string> args)
 			indent++;
 		};
 
-		parser[r.c_str()].leave = [r, &L](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
+		parser[r.c_str()].leave = [r, &L](const char* s, size_t, size_t matchlen, any& value, any& dt) {
 			auto& indent = *dt.get<int*>();
 			indent--;
 			cout << repeat("|  ", indent) << "`-> ";
