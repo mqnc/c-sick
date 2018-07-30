@@ -1445,19 +1445,19 @@ public:
         return holder_->ope_;
     }
 
-    std::string                    name;
-    size_t                         id;
-    Action                         action;
-    std::function<void (any& dt)>  enter;
-    std::function<void (any& dt)>  leave;
-    std::function<std::string ()>  error_message;
-    bool                           ignoreSemanticValue;
-    std::shared_ptr<Ope>           whitespaceOpe;
-    std::shared_ptr<Ope>           wordOpe;
-    bool                           enablePackratParsing;
-    bool                           is_token;
-    bool                           has_token_boundary;
-    Tracer                         tracer;
+    std::string                                                           name;
+    size_t                                                                id;
+    Action                                                                action;
+    std::function<void (const char* s, size_t n, any& dt)>                enter;
+    std::function<void (const char* s, size_t n, bool match, any& dt)>    leave;
+    std::function<std::string ()>                                         error_message;
+    bool                                                                  ignoreSemanticValue;
+    std::shared_ptr<Ope>                                                  whitespaceOpe;
+    std::shared_ptr<Ope>                                                  wordOpe;
+    bool                                                                  enablePackratParsing;
+    bool                                                                  is_token;
+    bool                                                                  has_token_boundary;
+    Tracer                                                                tracer;
 
 private:
     friend class DefinitionReference;
@@ -1575,22 +1575,23 @@ inline size_t Holder::parse(const char* s, size_t n, SemanticValues& sv, Context
         auto& chldsv = c.push();
 
         if (outer_->enter) {
-            outer_->enter(dt);
+            outer_->enter(s, n, dt);
         }
+
+        const auto& rule = *ope_;
+        len = rule.parse(s, n, chldsv, c, dt);
+        const bool match = success(len);
 
         auto se2 = make_scope_exit([&]() {
             c.pop();
 
             if (outer_->leave) {
-                outer_->leave(dt);
+                outer_->leave(s, n, match, dt);
             }
-        });
-
-        const auto& rule = *ope_;
-        len = rule.parse(s, n, chldsv, c, dt);
-
+        });		
+		
         // Invoke action
-        if (success(len)) {
+        if (match) {
             chldsv.s_ = s;
             chldsv.n_ = len;
 
@@ -2601,6 +2602,15 @@ public:
 
     Definition& operator[](const char* s) {
         return (*grammar_)[s];
+    }
+
+    std::vector<std::string> get_rule_names(){
+        std::vector<std::string> rules;
+        rules.reserve(grammar_->size());
+        for (auto const& r : *grammar_) {
+            rules.emplace_back(r.first);
+        }
+        return rules;
     }
 
     void enable_packrat_parsing() {
