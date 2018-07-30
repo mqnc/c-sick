@@ -89,7 +89,7 @@ int Main(vector<string> args)
 
 				// push input parameters on stack
 				lua_newtable(L);
-					lua_pushfield(L, "rule",    rule.c_str());
+					lua_pushfield(L, "rule",    rule);
 					lua_pushfield(L, "matched", StringPtr(sv.c_str(), sv.length()));
 					lua_pushfield(L, "line",    sv.line_info().first);
 					lua_pushfield(L, "column",  sv.line_info().second);
