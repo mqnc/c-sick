@@ -53,19 +53,18 @@ inline auto lua_loadutils(lua_State *L){
 	const auto utils = R"(
 
 	function stringify(o)
-	   if type(o) == 'table' then
-		  local s = '{ '
-		  for k,v in pairs(o) do
-		     if type(k) ~= 'number' then k = ''..k..'' end
-		     s = s .. '['..k..'] = ' .. stringify(v) .. ','
-		  end
-		  return s .. '} '
-	   else
-		  return tostring(o)
-	   end
+		if type(o) == 'table' then
+			local s = '{ '
+			for k,v in pairs(o) do
+				if type(k) ~= 'number' then k = ''..k..'' end
+				s = s .. '['..k..'] = ' .. stringify(v) .. ','
+			end
+			return s .. '} '
+		else
+			return tostring(o)
+		end
 	end
 
 	)";
 	return luaL_loadstring(L, utils) || lua_pcall(L, 0, 0, 0);
 }
-

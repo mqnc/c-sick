@@ -90,11 +90,11 @@ int Main(vector<string> args)
 
 				// push input parameters on stack
 				lua_newtable(L);
-					lua_pushfield(L, "rule",    rule);
+					lua_pushfield(L, "rule", rule);
 					lua_pushfield(L, "matched", StringPtr(sv.c_str(), sv.length()));
-					lua_pushfield(L, "line",    sv.line_info().first);
-					lua_pushfield(L, "column",  sv.line_info().second);
-					lua_pushfield(L, "choice",  sv.choice());
+					lua_pushfield(L, "line", sv.line_info().first);
+					lua_pushfield(L, "column", sv.line_info().second);
+					lua_pushfield(L, "choice", sv.choice());
 
 					lua_opensubtable(L, "subnodes");
 						for (size_t i = 0; i != sv.size(); ++i){
