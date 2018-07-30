@@ -11,9 +11,9 @@ struct LuaStackPtr{
 };
 
 struct StringPtr{
-	StringPtr(const char* c_, const size_t len_):c(c_),len(len_){}
+	StringPtr(const char* c_, const std::size_t len_):c(c_),len(len_){}
 	const char* c;
-	const size_t len;
+	const std::size_t len;
 };
 
 void lua_push(lua_State *L, const int value){
