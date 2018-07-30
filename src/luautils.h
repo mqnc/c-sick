@@ -20,7 +20,7 @@ void lua_push(lua_State *L, const int value){
 	lua_pushinteger(L, value);
 }
 void lua_push(lua_State *L, const std::string& value){
-	lua_pushstring(L, value.c_str());
+	lua_pushlstring(L, value.data(), value.size());
 }
 void lua_push(lua_State *L, const char *value){
 	lua_pushstring(L, value);
