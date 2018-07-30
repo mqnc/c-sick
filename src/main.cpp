@@ -27,19 +27,19 @@ int Main(vector<string> args)
 	lua_State *L = luaL_newstate();
 	luaL_openlibs(L);
 
-	// load parser script
-	auto result = luaL_loadfile(L, args[1].c_str()) || lua_pcall(L, 0, 0, 0);
-	if (result){
-		cerr << "error loading \"" << args[1] << "\": " << lua_tostring(L, -1) << endl;
-		return EXIT_FAILURE;
-	}
-
 	// load custom lua utility library
 	result = lua_loadutils(L);
 	if (result){
 		cerr << "error loading lua utils";
 		return EXIT_FAILURE;
 	}	
+	
+	// load parser script
+	auto result = luaL_loadfile(L, args[1].c_str()) || lua_pcall(L, 0, 0, 0);
+	if (result){
+		cerr << "error loading \"" << args[1] << "\": " << lua_tostring(L, -1) << endl;
+		return EXIT_FAILURE;
+	}
 
 	// load text to parse
 	ifstream textfile {args[2]};
