@@ -139,7 +139,7 @@ int Main(vector<string> args)
 		
 		parser[r.c_str()].enter = [r](const char* s, size_t n, any& dt) {
 			auto& indent = *dt.get<int*>();
-			cout << repeat("|  ", indent) << r << " => \"" << shorten(string(s, n), DEBUG_STRLEN) << "\"?" << endl;
+			cout << repeat("|  ", indent) << r << " => \"" << shorten(s, n, DEBUG_STRLEN) << "\"?" << endl;
 			indent++;
 		};
 
@@ -150,12 +150,12 @@ int Main(vector<string> args)
 			if(success(matchlen)){
 
 				// display "match", the matched string and the result of the reduction
-				cout << "match: \"" << shorten(string(s, min(matchlen, (size_t)DEBUG_STRLEN-2)), DEBUG_STRLEN) << "\" -> ";
+				cout << "match: \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
 				lua_getglobal(L, "stringify");
 				lua_push(L, value.get<LuaStackPtr>());
 				lua_pcall(L, 1, 1, 0);
 				string output = lua_tostring(L, -1);
-				cout << shorten(output, DEBUG_STRLEN) << endl;
+				cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
 			}
 			else{
 				cout << "failed" << endl;
