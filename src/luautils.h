@@ -25,7 +25,7 @@ void lua_push(lua_State *L, const std::string& value){
 void lua_push(lua_State *L, const char *value){
 	lua_pushstring(L, value);
 }
-void lua_push(lua_State *L, const StringPtr value){
+void lua_push(lua_State *L, const StringPtr& value){
 	lua_pushlstring(L, value.c, value.len);
 }
 void lua_push(lua_State *L, const LuaStackPtr value){
@@ -37,14 +37,14 @@ void lua_closefield(lua_State *L){
 }
 
 template<typename TKey, typename TVal>
-void lua_pushfield(lua_State *L, const TKey key, const TVal value){
+void lua_pushfield(lua_State *L, const TKey& key, const TVal& value){
 	lua_push(L, key);
 	lua_push(L, value);
 	lua_closefield(L);
 }
 
 template<typename TKey>
-void lua_opensubtable(lua_State *L, const TKey key){
+void lua_opensubtable(lua_State *L, const TKey& key){
 	lua_push(L, key);
 	lua_newtable(L);
 }
