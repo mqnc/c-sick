@@ -7,6 +7,7 @@
 #include "peglib.h"
 
 #define DEBUG_PARSER
+#define DEBUG_STRLEN 40 // display that many chars of the parsing text in debug output
 
 using namespace peg;
 using namespace std;
@@ -138,7 +139,7 @@ int Main(vector<string> args)
 		
 		parser[r.c_str()].enter = [r](const char* s, size_t n, any& dt) {
 			auto& indent = *dt.get<int*>();
-			cout << repeat("|  ", indent) << r << " => \"" << shorten(string(s, n), 40) << "\"?" << endl;
+			cout << repeat("|  ", indent) << r << " => \"" << shorten(string(s, n), DEBUG_STRLEN) << "\"?" << endl;
 			indent++;
 		};
 
@@ -149,12 +150,12 @@ int Main(vector<string> args)
 			if(success(matchlen)){
 
 				// display "match", the matched string and the result of the reduction
-				cout << "match: \"" << shorten(string(s, matchlen), 40) << "\" -> ";
+				cout << "match: \"" << shorten(string(s, min(matchlen, (size_t)DEBUG_STRLEN-2)), DEBUG_STRLEN) << "\" -> ";
 				lua_getglobal(L, "stringify");
 				lua_push(L, value.get<LuaStackPtr>());
 				lua_pcall(L, 1, 1, 0);
 				string output = lua_tostring(L, -1);
-				cout << shorten(output, 40) << endl;
+				cout << shorten(output, DEBUG_STRLEN) << endl;
 			}
 			else{
 				cout << "failed" << endl;
