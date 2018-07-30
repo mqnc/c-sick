@@ -11,15 +11,15 @@ struct LuaStackPtr{
 };
 
 struct StringPtr{
-	StringPtr(const char* c_, const std::size_t len_):c(c_),len(len_){}
-	const char* c;
+	StringPtr(const char* const c_, const std::size_t len_):c(c_),len(len_){}
+	const char* const c;
 	const std::size_t len;
 };
 
 void lua_push(lua_State *L, const int value){
 	lua_pushinteger(L, value);
 }
-void lua_push(lua_State *L, const std::string value){
+void lua_push(lua_State *L, const std::string& value){
 	lua_pushstring(L, value.c_str());
 }
 void lua_push(lua_State *L, const char *value){
