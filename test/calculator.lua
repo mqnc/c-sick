@@ -63,6 +63,3 @@ end
 function default(params)
 	return params.matched
 end
-
-
-

@@ -33,8 +33,8 @@ int Main(vector<string> args)
 	if (result){
 		cerr << "error loading lua utils";
 		return EXIT_FAILURE;
-	}		
-	
+	}
+
 	// load parser script
 	result = luaL_loadfile(L, args[1].c_str()) || lua_pcall(L, 0, 0, 0);
 	if (result){
@@ -47,8 +47,8 @@ int Main(vector<string> args)
 	if(textfile.fail()){
 		cerr << "error loading \"" << args[2] << "\": file not found" << endl;
 		return EXIT_FAILURE;
-    }
-	string text { istreambuf_iterator<char>(textfile), istreambuf_iterator<char>() };	
+	}
+	string text { istreambuf_iterator<char>(textfile), istreambuf_iterator<char>() };
 
 	// copy grammar from parser script
 	lua_getglobal(L, "grammar");
@@ -85,7 +85,7 @@ int Main(vector<string> args)
 		if(funcName != ""){ // use the specified function or the default function from the lua script
 			parser[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any& dt){
 
-				// find function				
+				// find function
 				lua_getglobal(L, funcName.c_str());
 
 				// push input parameters on stack
@@ -96,18 +96,18 @@ int Main(vector<string> args)
 					lua_pushfield(L, "column",  sv.line_info().second);
 					lua_pushfield(L, "choice",  sv.choice());
 
-					lua_opensubtable(L, "subnodes"); 
+					lua_opensubtable(L, "subnodes");
 						for (size_t i = 0; i != sv.size(); ++i){
 							lua_pushfield(L, 1+i, sv[i].get<LuaStackPtr>());
 						}
 					lua_closefield(L);
 
-					lua_opensubtable(L, "tokens"); 
+					lua_opensubtable(L, "tokens");
 						for (size_t i = 0; i != sv.tokens.size(); ++i) {
 							lua_pushfield(L, 1+i, StringPtr(sv.tokens[i].first, sv.tokens[i].second));
 						}
 					lua_closefield(L);
-				
+
 				// call lua function
 				if (lua_pcall(L, 1, 1, 0)){
 					cerr << "error invoking rule: " << lua_tostring(L, -1) << endl;
@@ -136,7 +136,7 @@ int Main(vector<string> args)
 	// assign callbacks for parser debugging
 	#ifdef DEBUG_PARSER
 	for(auto r:rules){
-		
+
 		parser[r.c_str()].enter = [r](const char* s, size_t n, any& dt) {
 			auto& indent = *dt.get<int*>();
 			cout << repeat("|  ", indent) << r << " => \"" << shorten(s, n, DEBUG_STRLEN) << "\"?" << endl;
@@ -175,7 +175,7 @@ int Main(vector<string> args)
 	any dt = &indent;
 
 	bool success = parser.parse(text.c_str(), dt, value);
-	
+
 	if(success){
 		cout << "parsing successful, result = " << lua_tostring(L, value.get<LuaStackPtr>().idx) << endl;
 	}
@@ -196,4 +196,3 @@ int main(int c, char** v){
 #endif
 	return result;
 }
-
