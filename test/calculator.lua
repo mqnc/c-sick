@@ -60,10 +60,6 @@ function MulOp(params)
 	end
 end
 
-function Num(params)
-	return params.matched
-end
-
 function default(params)
 	return params.matched
 end
