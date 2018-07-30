@@ -6,7 +6,7 @@
 
 // utilities for lua stack manipulation
 struct LuaStackPtr{
-	LuaStackPtr(const int idx_):idx(idx_){}
+	explicit LuaStackPtr(const int idx_):idx(idx_){}
 	const int idx;
 };
 
