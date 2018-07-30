@@ -53,16 +53,16 @@ inline auto lua_loadutils(lua_State *L){
 	const auto utils = R"(
 
 	function stringify(o)
-		if type(o) == 'table' then
-			local s = '{ '
-			for k,v in pairs(o) do
-				if type(k) ~= 'number' then k = ''..k..'' end
-				s = s .. '['..k..'] = ' .. stringify(v) .. ','
-			end
-			return s .. '} '
-		else
-			return tostring(o)
+		if "table" ~= type(o) then
+				return tostring(o)
 		end
+
+		local res = {}
+		for k, v in pairs(o) do
+				local val = {"[", k, "]=", stringify(v)}
+				res[1 + #res] = table.concat(val)
+		end
+		return "{" .. table.concat(res, ", ") .. "}"
 	end
 
 	)";
