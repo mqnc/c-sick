@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
 #include <string>
 
 // helper for repeating output
@@ -10,7 +10,7 @@ struct repeat{
 	const char* s;
 	size_t num;
 };
-ostream& operator<< (ostream& stream, const repeat rep){
+std::ostream& operator<< (std::ostream& stream, const repeat rep){
 	for(int i=0; i<rep.num; ++i){
 		stream << rep.s;
 	}
@@ -18,8 +18,8 @@ ostream& operator<< (ostream& stream, const repeat rep){
 }
 
 // shorten string and remove line breaks and tabs
-string shorten(const string& txt, const size_t numchars){
-	string result = txt;
+std::string shorten(const std::string& txt, const size_t numchars){
+	std::string result = txt;
 
 	// shorten
 	if(result.length()>numchars-3){

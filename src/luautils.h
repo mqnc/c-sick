@@ -4,8 +4,6 @@
 #include <string>
 #include "lua/src/lua.hpp"
 
-using namespace std;
-
 // utilities for lua stack manipulation
 struct LuaStackPtr{
 	LuaStackPtr(const int idx_):idx(idx_){}
@@ -21,7 +19,7 @@ struct StringPtr{
 void lua_push(lua_State *L, const int value){
 	lua_pushinteger(L, value);
 }
-void lua_push(lua_State *L, const string value){
+void lua_push(lua_State *L, const std::string value){
 	lua_pushstring(L, value.c_str());
 }
 void lua_push(lua_State *L, const char *value){
