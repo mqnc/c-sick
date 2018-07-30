@@ -155,6 +155,7 @@ int Main(vector<string> args)
 				lua_push(L, value.get<LuaStackPtr>());
 				lua_pcall(L, 1, 1, 0);
 				string output = lua_tostring(L, -1);
+				lua_pop(L, 1);
 				cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
 			}
 			else{
