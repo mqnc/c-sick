@@ -12,6 +12,63 @@
 using namespace peg;
 using namespace std;
 
+int makeParser(lua_State *L){
+
+	// read grammar
+	const char* grammar = lua_tostring(L, 1)
+	parser parser(grammar);
+
+	// read action table ( https://stackoverflow.com/questions/6137684/iterate-through-lua-table )
+	lua_pushvalue(L, 2);
+	lua_pushnil(L);
+	while (lua_next(L, -2))
+	{
+		lua_pushvalue(L, -2);
+		const char* rule = lua_tostring(L, -1);
+		const char* value = lua_topointer(L, -2);
+		lua_pop(L, 2);
+
+		parser[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any& dt){
+
+			// find function
+			lua_getglobal(L, funcName.c_str());
+
+			// push input parameters on stack
+			lua_newtable(L);
+				lua_pushfield(L, "rule", rule);
+				lua_pushfield(L, "matched", StringPtr(sv.c_str(), sv.length()));
+				lua_pushfield(L, "line", sv.line_info().first);
+				lua_pushfield(L, "column", sv.line_info().second);
+				lua_pushfield(L, "choice", sv.choice());
+
+				lua_opensubtable(L, "values");
+					for (size_t i = 0; i != sv.size(); ++i){
+						lua_pushfield(L, 1+i, sv[i].get<LuaStackPtr>());
+					}
+				lua_closefield(L);
+
+				lua_opensubtable(L, "tokens");
+					for (size_t i = 0; i != sv.tokens.size(); ++i) {
+						lua_pushfield(L, 1+i, StringPtr(sv.tokens[i].first, sv.tokens[i].second));
+					}
+				lua_closefield(L);
+
+			// call lua function
+			if (lua_pcall(L, 1, 1, 0)){
+				cerr << "error invoking rule: " << lua_tostring(L, -1) << endl;
+			}
+
+			// return lua value
+			return LuaStackPtr(lua_gettop(L));
+		};
+
+
+	}
+	lua_pop(L, 1);
+
+	string grammar = lua_tostring(L, 1);
+
+
 // main
 int Main(vector<string> args)
 {
@@ -96,7 +153,7 @@ int Main(vector<string> args)
 					lua_pushfield(L, "column", sv.line_info().second);
 					lua_pushfield(L, "choice", sv.choice());
 
-					lua_opensubtable(L, "subnodes");
+					lua_opensubtable(L, "values");
 						for (size_t i = 0; i != sv.size(); ++i){
 							lua_pushfield(L, 1+i, sv[i].get<LuaStackPtr>());
 						}
