@@ -12,26 +12,6 @@ struct StringPtr{
 };
 
 namespace lua {
-	class value;
-	class subscript_value;
-}
-
-inline void lua_push(lua_State *L, const int value){
-	lua_pushinteger(L, value);
-}
-inline void lua_push(lua_State *L, const std::string& value){
-	lua_pushlstring(L, value.data(), value.size());
-}
-inline void lua_push(lua_State *L, const char *value){
-	lua_pushstring(L, value);
-}
-inline void lua_push(lua_State *L, const StringPtr& value){
-	lua_pushlstring(L, value.c, value.len);
-}
-void lua_push(lua_State* L, const lua::value& value);
-void lua_push(lua_State* L, const lua::subscript_value& value);
-
-namespace lua {
 	namespace detail {
 		template<typename Func>
 		void invoke_with_arg(Func)
@@ -43,6 +23,8 @@ namespace lua {
 			return invoke_with_arg(std::move(func), std::forward<Args>(args)...);
 		}
 	}
+
+	class subscript_value;
 
 	/**
 	 * I represent a value of an arbitrary type on the Lua stack.
@@ -56,6 +38,25 @@ namespace lua {
 			lua_gettable(&L, LUA_REGISTRYINDEX);
 		}
 
+		static void push(lua_State *L, const int value){
+			lua_pushinteger(L, value);
+		}
+
+		static void push(lua_State *L, const std::string& value){
+			lua_pushlstring(L, value.data(), value.size());
+		}
+
+		static void push(lua_State *L, const char *value){
+			lua_pushstring(L, value);
+		}
+
+		static void push(lua_State *L, const StringPtr& value){
+			lua_pushlstring(L, value.c, value.len);
+		}
+
+		static void push(lua_State* L, const lua::value& value);
+		static void push(lua_State* L, const lua::subscript_value& value);
+
 	public:
 		/**
 		 * An arbitrary value.
@@ -64,7 +65,7 @@ namespace lua {
 		value(lua_State& L, const TValue& val)
 		: m_L(L)
 		{
-			lua_push(&L, val);
+			push(&L, val);
 			set_registry_slot();
 		}
 
@@ -136,7 +137,7 @@ namespace lua {
 		template<typename TKey>
 		value gettable(const TKey& key) const {
 			push();
-			lua_push(&m_L, key);
+			push(&m_L, key);
 			lua_gettable(&m_L, -2);
 			value result(m_L);
 			lua_pop(&m_L, 1);
@@ -149,8 +150,8 @@ namespace lua {
 		template<typename TKey, typename TValue>
 		const value& settable(const TKey& key, const TValue& value) const {
 			push();
-			lua_push(&m_L, key);
-			lua_push(&m_L, value);
+			push(&m_L, key);
+			push(&m_L, value);
 			lua_settable(&m_L, -3);
 			lua_pop(&m_L, 1);
 			return *this;
@@ -167,7 +168,7 @@ namespace lua {
 			push();
 			detail::invoke_with_arg(
 				[this](const auto& arg) {
-					lua_push(&m_L, arg);
+					push(&m_L, arg);
 				},
 				args...
 			);
@@ -247,18 +248,18 @@ namespace lua {
 		set_registry_slot();
 	}
 
+	void value::push(lua_State*, const lua::value& value) {
+		value.push();
+	}
+
+	void value::push(lua_State*, const lua::subscript_value& value) {
+		value.push();
+	}
+
 	template<typename TKey>
 	subscript_value value::operator[](const TKey& key) const {
 		return subscript_value(*this, key);
 	}
-}
-
-inline void lua_push(lua_State*, const lua::value& value) {
-	value.push();
-}
-
-inline void lua_push(lua_State*, const lua::subscript_value& value) {
-	value.push();
 }
 
 inline auto lua_loadutils(lua_State *L){
