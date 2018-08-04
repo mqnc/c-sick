@@ -243,11 +243,11 @@ namespace lua {
 		const value m_key;
 	};
 
-	void value::push(const value& value) {
+	inline void value::push(const value& value) {
 		value.push();
 	}
 
-	void value::push(const subscript_value& value) {
+	inline void value::push(const subscript_value& value) {
 		value.push();
 	}
 
