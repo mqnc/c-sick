@@ -7,10 +7,11 @@ function rule(r)
 end
 
 rule("Add <- (Num '+')* Num")
+rule("Num <- [0-9]+")
 
 actions["Add"] = function(params)
 	res = 0
-	for term in params.subnodes do
+	for term in params.values do
 		res = res + term
 	end
 	return res
@@ -20,6 +21,9 @@ function default(params)
     return params.matched
 end
 
-parser = new peglib.parser(table.concat(grammar, "\n"), actions, default)
+--parser = new peglib.parser(table.concat(grammar, "\n"), actions, default)
+--value = parser.parse(sys.stdin)
 
-value = parser.parse(sys.stdin)
+pp = parser(table.concat(grammar, "\n"), actions, default)
+
+parse(pp, "3+4+15")
