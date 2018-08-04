@@ -25,20 +25,23 @@ int Main(vector<string> args)
 	}
 
 	// init lua
-	lua_State *L = luaL_newstate();
-	luaL_openlibs(L);
+	// Since the parser state holds Lua values, it's important that the Lua VM and lua::scope
+	// remain until after the parser is destroyed. Using a unique_ptr ensures that Lua outlives
+	// any variables created later in this function.
+	std::unique_ptr<lua_State, void(&)(lua_State*)> L(luaL_newstate(), lua_close);
+	luaL_openlibs(L.get());
 
 	// load custom lua utility library
-	auto result = lua_loadutils(L);
+	auto result = lua_loadutils(L.get());
 	if (result){
 		cerr << "error loading lua utils";
 		return EXIT_FAILURE;
 	}
 
 	// load parser script
-	result = luaL_loadfile(L, args[1].c_str()) || lua_pcall(L, 0, 0, 0);
+	result = luaL_loadfile(L.get(), args[1].c_str()) || lua_pcall(L.get(), 0, 0, 0);
 	if (result){
-		cerr << "error loading \"" << args[1] << "\": " << lua_tostring(L, -1) << endl;
+		cerr << "error loading \"" << args[1] << "\": " << lua_tostring(L.get(), -1) << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -51,12 +54,12 @@ int Main(vector<string> args)
 	string text { istreambuf_iterator<char>(textfile), istreambuf_iterator<char>() };
 
 	// copy grammar from parser script
-	lua_getglobal(L, "grammar");
-	if(!lua_isstring(L, -1)){
+	lua_getglobal(L.get(), "grammar");
+	if(!lua_isstring(L.get(), -1)){
 		cerr << "error parsing grammar: there is no global string variable \"grammar\" in the lua file" << endl;
 		return EXIT_FAILURE;
 	}
-	string grammar = lua_tostring(L, -1);
+	string grammar = lua_tostring(L.get(), -1);
 
 	// create parser
 	parser parser(grammar.c_str());
@@ -68,16 +71,16 @@ int Main(vector<string> args)
 
 	// look for default rule in lua parser script
 	bool foundDefault = true;
-	lua_getglobal(L, "default");
-	if(!lua_isfunction(L, -1)){
+	lua_getglobal(L.get(), "default");
+	if(!lua_isfunction(L.get(), -1)){
 		foundDefault = false;
 	}
 
 	// assign in-lua-defined rules
 	for(const auto& rule:rules){
 		string funcName = rule.c_str();
-		lua_getglobal(L, funcName.c_str()); // put pointer to function on stack
-		if(!lua_isfunction(L, -1)){
+		lua_getglobal(L.get(), funcName.c_str()); // put pointer to function on stack
+		if(!lua_isfunction(L.get(), -1)){
 			if(foundDefault){funcName = "default";}
 			else{funcName = "";}
 		}
@@ -95,7 +98,7 @@ int Main(vector<string> args)
 
 				const lua::value subnodes = lua::newtable(*L);
 				for (size_t i = 0; i != sv.size(); ++i){
-					subnodes[1 + i] = sv[i].get<LuaStackPtr>();
+					subnodes[1 + i] = sv[i].get<lua::value>();
 				}
 				params["subnodes"] = subnodes;
 
@@ -109,20 +112,20 @@ int Main(vector<string> args)
 				const lua::value func(lua::globals(*L)[funcName.c_str()]);
 
 				// call lua function and return lua value.
-				return func(params).slot();
+				return func(params);
 			};
 		}
 		else{ // function not found, no default function in lua script -> just return last matched token
 			parser[rule.c_str()] = [&L](const SemanticValues& sv, any&){
 				if(sv.tokens.size() == 0){
-					lua_pushlstring(L, sv.c_str(), sv.length()); // no tokens, return matched string
+					lua_pushlstring(L.get(), sv.c_str(), sv.length()); // no tokens, return matched string
 				}
 				else {
-					lua_pushlstring(L, sv.tokens.back().first, sv.tokens.back().second); // return last token
+					lua_pushlstring(L.get(), sv.tokens.back().first, sv.tokens.back().second); // return last token
 				}
 
 				// return lua value
-				return LuaStackPtr(lua_gettop(L));
+				return lua::value(*L);
 			};
 		}
 	}
@@ -146,7 +149,7 @@ int Main(vector<string> args)
 				// display "match", the matched string and the result of the reduction
 				cout << "match: \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
 				const lua::value stringify(lua::globals(*L)["stringify"]);
-				const string output = stringify(value.get<LuaStackPtr>()).tostring();
+				const string output = stringify(value.get<lua::value>()).tostring();
 				cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
 			}
 			else{
@@ -169,14 +172,11 @@ int Main(vector<string> args)
 	bool success = parser.parse(text.c_str(), dt, value);
 
 	if(success){
-		cout << "parsing successful, result = " << lua_tostring(L, value.get<LuaStackPtr>().idx) << endl;
+		cout << "parsing successful, result = " << value.get<lua::value>().tostring() << endl;
 	}
 	else{
 		cout << "parsing failed" << endl;
 	}
-
-	// end lua
-	lua_close(L);
 
 	return EXIT_SUCCESS;
 }

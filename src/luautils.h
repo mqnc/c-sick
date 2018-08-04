@@ -5,11 +5,6 @@
 #include "lua/src/lua.hpp"
 
 // utilities for lua stack manipulation
-struct LuaStackPtr{
-	explicit LuaStackPtr(const int idx_):idx(idx_){}
-	const int idx;
-};
-
 struct StringPtr{
 	StringPtr(const char* const c_, const std::size_t len_):c(c_),len(len_){}
 	const char* const c;
@@ -32,9 +27,6 @@ inline void lua_push(lua_State *L, const char *value){
 }
 inline void lua_push(lua_State *L, const StringPtr& value){
 	lua_pushlstring(L, value.c, value.len);
-}
-inline void lua_push(lua_State *L, const LuaStackPtr value){
-	lua_pushvalue(L, value.idx);
 }
 void lua_push(lua_State* L, const lua::value& value);
 void lua_push(lua_State* L, const lua::subscript_value& value);
@@ -124,14 +116,6 @@ namespace lua {
 			key();
 			get_registry(m_L);
 			return *this;
-		}
-
-		/**
-		 * Return a LuaStackPtr for this value.
-		 */
-		LuaStackPtr slot() const {
-			push();
-			return LuaStackPtr(lua_gettop(&m_L));
 		}
 
 		/**
