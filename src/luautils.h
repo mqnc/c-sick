@@ -24,89 +24,97 @@ namespace lua {
 		}
 	}
 
+	class scope {
+	public:
+		static lua_State* s_L;
+
+		scope(lua_State* L)
+		: m_prev(s_L)
+		{
+			s_L = L;
+		}
+
+		~scope()
+		{
+			s_L = m_prev;
+		}
+
+	private:
+		lua_State* m_prev;
+	};
+	lua_State* scope::s_L = nullptr;
+
 	class subscript_value;
 
 	/**
 	 * I represent a value of an arbitrary type on the Lua stack.
 	 */
 	class value {
-		static void set_registry(lua_State& L) {
-			lua_settable(&L, LUA_REGISTRYINDEX);
+		static void set_registry() {
+			lua_settable(scope::s_L, LUA_REGISTRYINDEX);
 		}
 
-		static void get_registry(lua_State& L) {
-			lua_gettable(&L, LUA_REGISTRYINDEX);
+		static void get_registry() {
+			lua_gettable(scope::s_L, LUA_REGISTRYINDEX);
 		}
 
-		static void push(lua_State *L, const int value){
-			lua_pushinteger(L, value);
+		static void push(const int value){
+			lua_pushinteger(scope::s_L, value);
 		}
 
-		static void push(lua_State *L, const std::string& value){
-			lua_pushlstring(L, value.data(), value.size());
+		static void push(const std::string& value){
+			lua_pushlstring(scope::s_L, value.data(), value.size());
 		}
 
-		static void push(lua_State *L, const char *value){
-			lua_pushstring(L, value);
+		static void push(const char *value){
+			lua_pushstring(scope::s_L, value);
 		}
 
-		static void push(lua_State *L, const StringPtr& value){
-			lua_pushlstring(L, value.c, value.len);
+		static void push(const StringPtr& value){
+			lua_pushlstring(scope::s_L, value.c, value.len);
 		}
 
-		static void push(lua_State* L, const lua::value& value);
-		static void push(lua_State* L, const lua::subscript_value& value);
+		static void push(const value& value);
+		static void push(const subscript_value& value);
 
 	public:
 		/**
-		 * An arbitrary value.
-		 */
-		template<typename TValue>
-		value(lua_State& L, const TValue& val)
-		: m_L(L)
-		{
-			push(&L, val);
-			set_registry_slot();
-		}
-
-		/**
 		 * Create a value for the current top of the stack.
 		 */
-		explicit value(lua_State& L)
-		: m_L(L)
+		value()
 		{
 			set_registry_slot();
 		}
-
-		/**
-		 * Duplicate the given value.
-		 */
-		explicit value(const subscript_value& val);
 
 		/**
 		 * Duplicate the given value.
 		 */
 		value(const value& val)
-		: m_L(val.m_L)
 		{
 			val.push();
 			set_registry_slot();
 		}
 
-		~value() {
-			lua_pushnil(&m_L);
+		/**
+		 * An arbitrary value.
+		 */
+		template<typename TValue>
+		explicit value(const TValue& val)
+		{
+			push(val);
 			set_registry_slot();
 		}
 
-		lua_State& state() const {
-			return m_L;
+		~value() {
+			lua_pushnil(scope::s_L);
+			set_registry_slot();
 		}
 
 		/**
 		 * Push this value's registry key.
 		 */
 		const value& key() const {
-			lua_pushlightuserdata(&m_L, const_cast<value*>(this));
+			lua_pushlightuserdata(scope::s_L, const_cast<value*>(this));
 			return *this;
 		}
 
@@ -115,7 +123,7 @@ namespace lua {
 		 */
 		const value& push() const {
 			key();
-			get_registry(m_L);
+			get_registry();
 			return *this;
 		}
 
@@ -125,9 +133,9 @@ namespace lua {
 		std::string tostring() const {
 			push();
 			std::size_t len;
-			const char* s = lua_tolstring(&m_L, -1, &len);
+			const char* s = lua_tolstring(scope::s_L, -1, &len);
 			std::string result(s, len);
-			lua_pop(&m_L, 1);
+			lua_pop(scope::s_L, 1);
 			return result;
 		}
 
@@ -137,10 +145,10 @@ namespace lua {
 		template<typename TKey>
 		value gettable(const TKey& key) const {
 			push();
-			push(&m_L, key);
-			lua_gettable(&m_L, -2);
-			value result(m_L);
-			lua_pop(&m_L, 1);
+			push(key);
+			lua_gettable(scope::s_L, -2);
+			value result;
+			lua_pop(scope::s_L, 1);
 			return result;
 		}
 
@@ -150,10 +158,10 @@ namespace lua {
 		template<typename TKey, typename TValue>
 		const value& settable(const TKey& key, const TValue& value) const {
 			push();
-			push(&m_L, key);
-			push(&m_L, value);
-			lua_settable(&m_L, -3);
-			lua_pop(&m_L, 1);
+			push(key);
+			push(value);
+			lua_settable(scope::s_L, -3);
+			lua_pop(scope::s_L, 1);
 			return *this;
 		}
 
@@ -168,12 +176,12 @@ namespace lua {
 			push();
 			detail::invoke_with_arg(
 				[this](const auto& arg) {
-					push(&m_L, arg);
+					push(arg);
 				},
 				args...
 			);
-			lua_pcall(&m_L, sizeof...(Args), 1, 0);
-			return value(m_L);
+			lua_pcall(scope::s_L, sizeof...(Args), 1, 0);
+			return value();
 		}
 
 	private:
@@ -183,21 +191,19 @@ namespace lua {
 		 */
 		void set_registry_slot() {
 			key();
-			lua_rotate(&m_L, -2, 1);
-			set_registry(m_L);
+			lua_rotate(scope::s_L, -2, 1);
+			set_registry();
 		}
-
-		lua_State& m_L;
 	};
 
-	inline value globals(lua_State& L) {
-		lua_pushglobaltable(&L);
-		return value(L);
+	inline value globals() {
+		lua_pushglobaltable(scope::s_L);
+		return value();
 	}
 
-	inline value newtable(lua_State& L) {
-		lua_newtable(&L);
-		return value(L);
+	inline value newtable() {
+		lua_newtable(scope::s_L);
+		return value();
 	}
 
 	/**
@@ -208,12 +214,8 @@ namespace lua {
 		template<typename TKey>
 		subscript_value(const value& table, const TKey& key)
 		: m_table(table)
-		, m_key(table.state(), key)
+		, m_key(key)
 		{}
-
-		lua_State& state() const {
-			return m_table.state();
-		}
 
 		/**
 		 * Push the value contained in this table slot.
@@ -221,9 +223,9 @@ namespace lua {
 		const subscript_value& push() const {
 			m_table.push();
 			m_key.push();
-			lua_gettable(&state(), -2);
-			lua_rotate(&state(), -2, 1);
-			lua_pop(&state(), 1);
+			lua_gettable(scope::s_L, -2);
+			lua_rotate(scope::s_L, -2, 1);
+			lua_pop(scope::s_L, 1);
 			return *this;
 		}
 
@@ -241,18 +243,11 @@ namespace lua {
 		const value m_key;
 	};
 
-	value::value(const subscript_value& val)
-	: m_L(val.state())
-	{
-		val.push();
-		set_registry_slot();
-	}
-
-	void value::push(lua_State*, const lua::value& value) {
+	void value::push(const value& value) {
 		value.push();
 	}
 
-	void value::push(lua_State*, const lua::subscript_value& value) {
+	void value::push(const subscript_value& value) {
 		value.push();
 	}
 

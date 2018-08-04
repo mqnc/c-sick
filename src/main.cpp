@@ -29,6 +29,7 @@ int Main(vector<string> args)
 	// remain until after the parser is destroyed. Using a unique_ptr ensures that Lua outlives
 	// any variables created later in this function.
 	std::unique_ptr<lua_State, void(&)(lua_State*)> L(luaL_newstate(), lua_close);
+	lua::scope luascope(L.get());
 	luaL_openlibs(L.get());
 
 	// load custom lua utility library
@@ -86,30 +87,30 @@ int Main(vector<string> args)
 		}
 
 		if(funcName != ""){ // use the specified function or the default function from the lua script
-			parser[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any&){
+			parser[rule.c_str()] = [rule, funcName](const SemanticValues& sv, any&){
 
 				// push input parameters on stack
-				const lua::value params = lua::newtable(*L);
+				const lua::value params = lua::newtable();
 				params["choice"] = sv.choice();
 				params["column"] = sv.line_info().second;
 				params["line"] = sv.line_info().first;
 				params["matched"] = StringPtr(sv.c_str(), sv.length());
 				params["rule"] = rule;
 
-				const lua::value subnodes = lua::newtable(*L);
+				const lua::value subnodes = lua::newtable();
 				for (size_t i = 0; i != sv.size(); ++i){
 					subnodes[1 + i] = sv[i].get<lua::value>();
 				}
 				params["subnodes"] = subnodes;
 
-				const lua::value tokens = lua::newtable(*L);
+				const lua::value tokens = lua::newtable();
 				for (size_t i = 0; i != sv.tokens.size(); ++i) {
 					tokens[1 + i] = StringPtr(sv.tokens[i].first, sv.tokens[i].second);
 				}
 				params["tokens"] = tokens;
 
 				// find function
-				const lua::value func(lua::globals(*L)[funcName.c_str()]);
+				const lua::value func(lua::globals()[funcName.c_str()]);
 
 				// call lua function and return lua value.
 				return func(params);
@@ -125,7 +126,7 @@ int Main(vector<string> args)
 				}
 
 				// return lua value
-				return lua::value(*L);
+				return lua::value();
 			};
 		}
 	}
@@ -140,7 +141,7 @@ int Main(vector<string> args)
 			indent++;
 		};
 
-		parser[r.c_str()].leave = [r, &L](const char* s, size_t, size_t matchlen, any& value, any& dt) {
+		parser[r.c_str()].leave = [r](const char* s, size_t, size_t matchlen, any& value, any& dt) {
 			auto& indent = *dt.get<int*>();
 			indent--;
 			cout << repeat("|  ", indent) << "`-> ";
@@ -148,7 +149,7 @@ int Main(vector<string> args)
 
 				// display "match", the matched string and the result of the reduction
 				cout << "match: \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
-				const lua::value stringify(lua::globals(*L)["stringify"]);
+				const lua::value stringify(lua::globals()["stringify"]);
 				const string output = stringify(value.get<lua::value>()).tostring();
 				cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
 			}
