@@ -16,6 +16,11 @@ struct StringPtr{
 	const std::size_t len;
 };
 
+namespace lua {
+	class value;
+	class subscript_value;
+}
+
 inline void lua_push(lua_State *L, const int value){
 	lua_pushinteger(L, value);
 }
@@ -31,12 +36,8 @@ inline void lua_push(lua_State *L, const StringPtr& value){
 inline void lua_push(lua_State *L, const LuaStackPtr value){
 	lua_pushvalue(L, value.idx);
 }
-
-namespace lua {
-	class value;
-}
-
 void lua_push(lua_State* L, const lua::value& value);
+void lua_push(lua_State* L, const lua::subscript_value& value);
 
 namespace lua {
 	namespace detail {
@@ -50,8 +51,6 @@ namespace lua {
 			return invoke_with_arg(std::move(func), std::forward<Args>(args)...);
 		}
 	}
-
-	class subscript_value;
 
 	/**
 	 * I represent a value of an arbitrary type on the Lua stack.
@@ -74,7 +73,7 @@ namespace lua {
 		: m_L(L)
 		{
 			lua_push(&L, val);
-			settable();
+			set_registry_slot();
 		}
 
 		/**
@@ -83,8 +82,13 @@ namespace lua {
 		explicit value(lua_State& L)
 		: m_L(L)
 		{
-			settable();
+			set_registry_slot();
 		}
+
+		/**
+		 * Duplicate the given value.
+		 */
+		explicit value(const subscript_value& val);
 
 		/**
 		 * Duplicate the given value.
@@ -93,12 +97,12 @@ namespace lua {
 		: m_L(val.m_L)
 		{
 			val.push();
-			settable();
+			set_registry_slot();
 		}
 
 		~value() {
 			lua_pushnil(&m_L);
-			settable();
+			set_registry_slot();
 		}
 
 		lua_State& state() const {
@@ -108,16 +112,18 @@ namespace lua {
 		/**
 		 * Push this value's registry key.
 		 */
-		void key() const {
+		const value& key() const {
 			lua_pushlightuserdata(&m_L, const_cast<value*>(this));
+			return *this;
 		}
 
 		/**
 		 * Push this value.
 		 */
-		void push() const {
+		const value& push() const {
 			key();
 			get_registry(m_L);
+			return *this;
 		}
 
 		/**
@@ -141,10 +147,23 @@ namespace lua {
 		}
 
 		/**
+		 * If this value represents a table, get the given slot.
+		 */
+		template<typename TKey>
+		value gettable(const TKey& key) const {
+			push();
+			lua_push(&m_L, key);
+			lua_gettable(&m_L, -2);
+			value result(m_L);
+			lua_pop(&m_L, 1);
+			return result;
+		}
+
+		/**
 		 * If this value represents a table, set the given slot.
 		 */
 		template<typename TKey, typename TValue>
-		const value& set(const TKey& key, const TValue& value) const {
+		const value& settable(const TKey& key, const TValue& value) const {
 			push();
 			lua_push(&m_L, key);
 			lua_push(&m_L, value);
@@ -173,7 +192,11 @@ namespace lua {
 		}
 
 	private:
-		void settable() {
+		/**
+		 * Set our slot in the registry to the value at the top of
+		 * the stack.
+		 */
+		void set_registry_slot() {
 			key();
 			lua_rotate(&m_L, -2, 1);
 			set_registry(m_L);
@@ -182,8 +205,8 @@ namespace lua {
 		lua_State& m_L;
 	};
 
-	inline value getglobal(lua_State& L, const char* name) {
-		lua_getglobal(&L, name);
+	inline value globals(lua_State& L) {
+		lua_pushglobaltable(&L);
 		return value(L);
 	}
 
@@ -203,9 +226,28 @@ namespace lua {
 		, m_key(table.state(), key)
 		{}
 
+		lua_State& state() const {
+			return m_table.state();
+		}
+
+		/**
+		 * Push the value contained in this table slot.
+		 */
+		const subscript_value& push() const {
+			m_table.push();
+			m_key.push();
+			lua_gettable(&state(), -2);
+			lua_rotate(&state(), -2, 1);
+			lua_pop(&state(), 1);
+			return *this;
+		}
+
+		/**
+		 * @param value Value to assign to this table slot.
+		 */
 		template<typename TValue>
 		const subscript_value& operator=(const TValue& value) const {
-			m_table.set(m_key, value);
+			m_table.settable(m_key, value);
 			return *this;
 		}
 
@@ -214,6 +256,13 @@ namespace lua {
 		const value m_key;
 	};
 
+	value::value(const subscript_value& val)
+	: m_L(val.state())
+	{
+		val.push();
+		set_registry_slot();
+	}
+
 	template<typename TKey>
 	subscript_value value::operator[](const TKey& key) const {
 		return subscript_value(*this, key);
@@ -221,6 +270,10 @@ namespace lua {
 }
 
 inline void lua_push(lua_State*, const lua::value& value) {
+	value.push();
+}
+
+inline void lua_push(lua_State*, const lua::subscript_value& value) {
 	value.push();
 }
 

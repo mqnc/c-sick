@@ -106,14 +106,14 @@ int Main(vector<string> args)
 				params["tokens"] = tokens;
 
 				// find function
-				const lua::value func = lua::getglobal(*L, funcName.c_str());
+				const lua::value func(lua::globals(*L)[funcName.c_str()]);
 
 				// call lua function and return lua value.
 				return func(params).slot();
 			};
 		}
 		else{ // function not found, no default function in lua script -> just return last matched token
-			parser[rule.c_str()] = [&L, rule](const SemanticValues& sv, any&){
+			parser[rule.c_str()] = [&L](const SemanticValues& sv, any&){
 				if(sv.tokens.size() == 0){
 					lua_pushlstring(L, sv.c_str(), sv.length()); // no tokens, return matched string
 				}
@@ -145,7 +145,7 @@ int Main(vector<string> args)
 
 				// display "match", the matched string and the result of the reduction
 				cout << "match: \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
-				const lua::value stringify = lua::getglobal(*L, "stringify");
+				const lua::value stringify(lua::globals(*L)["stringify"]);
 				const string output = stringify(value.get<LuaStackPtr>()).tostring();
 				cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
 			}
