@@ -25,8 +25,12 @@ namespace lua {
 	}
 
 	class scope {
-	public:
 		static lua_State* s_L;
+
+	public:
+		static lua_State* state() {
+			return s_L;
+		}
 
 		scope(lua_State* L)
 		: m_prev(s_L)
@@ -51,27 +55,27 @@ namespace lua {
 	 */
 	class value {
 		static void set_registry() {
-			lua_settable(scope::s_L, LUA_REGISTRYINDEX);
+			lua_settable(scope::state(), LUA_REGISTRYINDEX);
 		}
 
 		static void get_registry() {
-			lua_gettable(scope::s_L, LUA_REGISTRYINDEX);
+			lua_gettable(scope::state(), LUA_REGISTRYINDEX);
 		}
 
 		static void push(const int value){
-			lua_pushinteger(scope::s_L, value);
+			lua_pushinteger(scope::state(), value);
 		}
 
 		static void push(const std::string& value){
-			lua_pushlstring(scope::s_L, value.data(), value.size());
+			lua_pushlstring(scope::state(), value.data(), value.size());
 		}
 
 		static void push(const char *value){
-			lua_pushstring(scope::s_L, value);
+			lua_pushstring(scope::state(), value);
 		}
 
 		static void push(const StringPtr& value){
-			lua_pushlstring(scope::s_L, value.c, value.len);
+			lua_pushlstring(scope::state(), value.c, value.len);
 		}
 
 		static void push(const value& value);
@@ -106,7 +110,7 @@ namespace lua {
 		}
 
 		~value() {
-			lua_pushnil(scope::s_L);
+			lua_pushnil(scope::state());
 			set_registry_slot();
 		}
 
@@ -114,7 +118,7 @@ namespace lua {
 		 * Push this value's registry key.
 		 */
 		const value& key() const {
-			lua_pushlightuserdata(scope::s_L, const_cast<value*>(this));
+			lua_pushlightuserdata(scope::state(), const_cast<value*>(this));
 			return *this;
 		}
 
@@ -133,9 +137,9 @@ namespace lua {
 		std::string tostring() const {
 			push();
 			std::size_t len;
-			const char* s = lua_tolstring(scope::s_L, -1, &len);
+			const char* s = lua_tolstring(scope::state(), -1, &len);
 			std::string result(s, len);
-			lua_pop(scope::s_L, 1);
+			lua_pop(scope::state(), 1);
 			return result;
 		}
 
@@ -146,9 +150,9 @@ namespace lua {
 		value gettable(const TKey& key) const {
 			push();
 			push(key);
-			lua_gettable(scope::s_L, -2);
+			lua_gettable(scope::state(), -2);
 			value result;
-			lua_pop(scope::s_L, 1);
+			lua_pop(scope::state(), 1);
 			return result;
 		}
 
@@ -160,8 +164,8 @@ namespace lua {
 			push();
 			push(key);
 			push(value);
-			lua_settable(scope::s_L, -3);
-			lua_pop(scope::s_L, 1);
+			lua_settable(scope::state(), -3);
+			lua_pop(scope::state(), 1);
 			return *this;
 		}
 
@@ -180,7 +184,7 @@ namespace lua {
 				},
 				args...
 			);
-			lua_pcall(scope::s_L, sizeof...(Args), 1, 0);
+			lua_pcall(scope::state(), sizeof...(Args), 1, 0);
 			return value();
 		}
 
@@ -191,18 +195,18 @@ namespace lua {
 		 */
 		void set_registry_slot() {
 			key();
-			lua_rotate(scope::s_L, -2, 1);
+			lua_rotate(scope::state(), -2, 1);
 			set_registry();
 		}
 	};
 
 	inline value globals() {
-		lua_pushglobaltable(scope::s_L);
+		lua_pushglobaltable(scope::state());
 		return value();
 	}
 
 	inline value newtable() {
-		lua_newtable(scope::s_L);
+		lua_newtable(scope::state());
 		return value();
 	}
 
@@ -223,9 +227,9 @@ namespace lua {
 		const subscript_value& push() const {
 			m_table.push();
 			m_key.push();
-			lua_gettable(scope::s_L, -2);
-			lua_rotate(scope::s_L, -2, 1);
-			lua_pop(scope::s_L, 1);
+			lua_gettable(scope::state(), -2);
+			lua_rotate(scope::state(), -2, 1);
+			lua_pop(scope::state(), 1);
 			return *this;
 		}
 
