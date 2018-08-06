@@ -7,12 +7,13 @@
 
 // helper for repeating output
 struct repeat{
-	repeat(const char* s_, size_t num_):s(s_), num(num_){}
+	repeat(const char* s_, std::size_t num_):s(s_), num(num_){}
 	const char* s;
-	size_t num;
+	std::size_t num;
 };
 std::ostream& operator<< (std::ostream& stream, const repeat& rep){
-	for(size_t i=0; i<rep.num; ++i){
+
+	for (std::size_t i = 0; i < rep.num; ++i){
 		stream << rep.s;
 	}
 	return stream;

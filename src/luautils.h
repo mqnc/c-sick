@@ -5,64 +5,276 @@
 #include "lua/src/lua.hpp"
 
 // utilities for lua stack manipulation
-struct LuaStackPtr{
-	explicit LuaStackPtr(const int idx_):idx(idx_){}
-	const int idx;
-};
-
 struct StringPtr{
 	StringPtr(const char* const c_, const std::size_t len_):c(c_),len(len_){}
 	const char* const c;
 	const std::size_t len;
 };
 
-inline void lua_push(lua_State *L, const int value){
-	lua_pushinteger(L, value);
-}
-inline void lua_push(lua_State *L, const std::string& value){
-	lua_pushlstring(L, value.data(), value.size());
-}
-inline void lua_push(lua_State *L, const char *value){
-	lua_pushstring(L, value);
-}
-inline void lua_push(lua_State *L, const StringPtr& value){
-	lua_pushlstring(L, value.c, value.len);
-}
-inline void lua_push(lua_State *L, const LuaStackPtr value){
-	lua_pushvalue(L, value.idx);
-}
+namespace lua {
+	namespace detail {
+		template<typename Func>
+		void invoke_with_arg(Func)
+		{}
 
-inline void lua_closefield(lua_State *L){
-	lua_settable(L, -3);
-}
+		template<typename Func, typename Arg0, typename... Args>
+		void invoke_with_arg(Func func, Arg0&& arg0, Args&&... args) {
+			func(std::forward<Arg0>(arg0));
+			return invoke_with_arg(std::move(func), std::forward<Args>(args)...);
+		}
+	}
 
-template<typename TKey, typename TVal>
-inline void lua_pushfield(lua_State *L, const TKey& key, const TVal& value){
-	lua_push(L, key);
-	lua_push(L, value);
-	lua_closefield(L);
-}
+	class scope {
+		static lua_State* s_L;
 
-template<typename TKey>
-inline void lua_opensubtable(lua_State *L, const TKey& key){
-	lua_push(L, key);
-	lua_newtable(L);
+	public:
+		static lua_State* state() {
+			return s_L;
+		}
+
+		scope(lua_State* L)
+		: m_prev(s_L)
+		{
+			s_L = L;
+		}
+
+		~scope()
+		{
+			s_L = m_prev;
+		}
+
+	private:
+		lua_State* m_prev;
+	};
+	lua_State* scope::s_L = nullptr;
+
+	class subscript_value;
+
+	/**
+	 * I represent a value of an arbitrary type on the Lua stack.
+	 */
+	class value {
+		static void set_registry() {
+			lua_settable(scope::state(), LUA_REGISTRYINDEX);
+		}
+
+		static void get_registry() {
+			lua_gettable(scope::state(), LUA_REGISTRYINDEX);
+		}
+
+		static void push(const int value){
+			lua_pushinteger(scope::state(), value);
+		}
+
+		static void push(const std::string& value){
+			lua_pushlstring(scope::state(), value.data(), value.size());
+		}
+
+		static void push(const char *value){
+			lua_pushstring(scope::state(), value);
+		}
+
+		static void push(const StringPtr& value){
+			lua_pushlstring(scope::state(), value.c, value.len);
+		}
+
+		static void push(const value& value);
+		static void push(const subscript_value& value);
+
+	public:
+		/**
+		 * Create a value for the current top of the stack.
+		 */
+		value()
+		{
+			set_registry_slot();
+		}
+
+		/**
+		 * Duplicate the given value.
+		 */
+		value(const value& val)
+		{
+			val.push();
+			set_registry_slot();
+		}
+
+		/**
+		 * An arbitrary value.
+		 */
+		template<typename TValue>
+		explicit value(const TValue& val)
+		{
+			push(val);
+			set_registry_slot();
+		}
+
+		~value() {
+			lua_pushnil(scope::state());
+			set_registry_slot();
+		}
+
+		/**
+		 * Push this value's registry key.
+		 */
+		const value& key() const {
+			lua_pushlightuserdata(scope::state(), const_cast<value*>(this));
+			return *this;
+		}
+
+		/**
+		 * Push this value.
+		 */
+		const value& push() const {
+			key();
+			get_registry();
+			return *this;
+		}
+
+		/**
+		 * Return a string representation for this value.
+		 */
+		std::string tostring() const {
+			push();
+			std::size_t len;
+			const char* s = lua_tolstring(scope::state(), -1, &len);
+			std::string result(s, len);
+			lua_pop(scope::state(), 1);
+			return result;
+		}
+
+		/**
+		 * If this value represents a table, get the given slot.
+		 */
+		template<typename TKey>
+		value gettable(const TKey& key) const {
+			push();
+			push(key);
+			lua_gettable(scope::state(), -2);
+			value result;
+			lua_pop(scope::state(), 1);
+			return result;
+		}
+
+		/**
+		 * If this value represents a table, set the given slot.
+		 */
+		template<typename TKey, typename TValue>
+		const value& settable(const TKey& key, const TValue& value) const {
+			push();
+			push(key);
+			push(value);
+			lua_settable(scope::state(), -3);
+			lua_pop(scope::state(), 1);
+			return *this;
+		}
+
+		template<typename TKey>
+		subscript_value operator[](const TKey& key) const;
+
+		/**
+		 * If this value is callable, call it with the given arguments.
+		 */
+		template<typename... Args>
+		value operator()(const Args&... args) const {
+			push();
+			detail::invoke_with_arg(
+				[this](const auto& arg) {
+					push(arg);
+				},
+				args...
+			);
+			lua_pcall(scope::state(), sizeof...(Args), 1, 0);
+			return value();
+		}
+
+	private:
+		/**
+		 * Set our slot in the registry to the value at the top of
+		 * the stack.
+		 */
+		void set_registry_slot() {
+			key();
+			lua_rotate(scope::state(), -2, 1);
+			set_registry();
+		}
+	};
+
+	inline value globals() {
+		lua_pushglobaltable(scope::state());
+		return value();
+	}
+
+	inline value newtable() {
+		lua_newtable(scope::state());
+		return value();
+	}
+
+	/**
+	 * I represent an individual Lua table slot and allow assignment to it.
+	 */
+	class subscript_value {
+	public:
+		template<typename TKey>
+		subscript_value(const value& table, const TKey& key)
+		: m_table(table)
+		, m_key(key)
+		{}
+
+		/**
+		 * Push the value contained in this table slot.
+		 */
+		const subscript_value& push() const {
+			m_table.push();
+			m_key.push();
+			lua_gettable(scope::state(), -2);
+			lua_rotate(scope::state(), -2, 1);
+			lua_pop(scope::state(), 1);
+			return *this;
+		}
+
+		/**
+		 * @param value Value to assign to this table slot.
+		 */
+		template<typename TValue>
+		const subscript_value& operator=(const TValue& value) const {
+			m_table.settable(m_key, value);
+			return *this;
+		}
+
+	private:
+		const value& m_table;
+		const value m_key;
+	};
+
+	inline void value::push(const value& value) {
+		value.push();
+	}
+
+	inline void value::push(const subscript_value& value) {
+		value.push();
+	}
+
+	template<typename TKey>
+	subscript_value value::operator[](const TKey& key) const {
+		return subscript_value(*this, key);
+	}
 }
 
 inline auto lua_loadutils(lua_State *L){
 	const auto utils = R"(
 
 	function stringify(o)
-		if type(o) == 'table' then
-			local s = '{ '
-			for k,v in pairs(o) do
-				if type(k) ~= 'number' then k = ''..k..'' end
-				s = s .. '['..k..'] = ' .. stringify(v) .. ','
-			end
-			return s .. '} '
-		else
-			return tostring(o)
+		if "table" ~= type(o) then
+				return tostring(o)
 		end
+
+		local res = {}
+		for k, v in pairs(o) do
+				local val = {"[", k, "]=", stringify(v)}
+				res[1 + #res] = table.concat(val)
+		end
+		return "{" .. table.concat(res, ", ") .. "}"
 	end
 
 	)";

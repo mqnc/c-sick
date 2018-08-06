@@ -19,40 +19,31 @@ void registerReductionRule(parser *pegParser, lua_State *L, const string& rule, 
 
 	(*pegParser)[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any& dt){
 
-		cout << funcName << endl;
+		// push input parameters on stack
+		const lua::value params = lua::newtable();
+		params["choice"] = sv.choice();
+		params["column"] = sv.line_info().second;
+		params["line"] = sv.line_info().first;
+		params["matched"] = StringPtr(sv.c_str(), sv.length());
+		params["rule"] = rule;
+
+		const lua::value subnodes = lua::newtable();
+		for (size_t i = 0; i != sv.size(); ++i){
+			subnodes[1 + i] = sv[i].get<lua::value>();
+		}
+		params["subnodes"] = subnodes;
+
+		const lua::value tokens = lua::newtable();
+		for (size_t i = 0; i != sv.tokens.size(); ++i) {
+			tokens[1 + i] = StringPtr(sv.tokens[i].first, sv.tokens[i].second);
+		}
+		params["tokens"] = tokens;
 
 		// find function
-		lua_getglobal(L, funcName.c_str()); // <- crashes
+		const lua::value func(lua::globals()[funcName.c_str()]);
 
-		cout << lua_isfunction(L, -1) << endl;
-
-		// push input parameters on stack
-		lua_newtable(L);
-			lua_pushfield(L, "rule", rule);
-			lua_pushfield(L, "matched", StringPtr(sv.c_str(), sv.length()));
-			lua_pushfield(L, "line", sv.line_info().first);
-			lua_pushfield(L, "column", sv.line_info().second);
-			lua_pushfield(L, "choice", sv.choice());
-
-			lua_opensubtable(L, "values");
-				for (size_t i = 0; i != sv.size(); ++i){
-					lua_pushfield(L, 1+i, sv[i].get<LuaStackPtr>());
-				}
-			lua_closefield(L);
-
-			lua_opensubtable(L, "tokens");
-				for (size_t i = 0; i != sv.tokens.size(); ++i) {
-					lua_pushfield(L, 1+i, StringPtr(sv.tokens[i].first, sv.tokens[i].second));
-				}
-			lua_closefield(L);
-
-		// call lua function
-		if (lua_pcall(L, 1, 1, 0)){
-			cerr << "error invoking rule: " << lua_tostring(L, -1) << endl;
-		}
-
-		// return lua value
-		return LuaStackPtr(lua_gettop(L));
+		// call lua function and return lua value.
+		return func(params);
 	};
 }
 
@@ -112,11 +103,8 @@ int makeParser(lua_State *L){
 
 				// display "match", the matched string and the result of the reduction
 				cout << "match: \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
-				lua_getglobal(L, "stringify");
-				lua_push(L, value.get<LuaStackPtr>());
-				lua_pcall(L, 1, 1, 0);
-				string output = lua_tostring(L, -1);
-				lua_pop(L, 1);
+				const lua::value stringify(lua::globals()["stringify"]);
+				const string output = stringify(value.get<lua::value>()).tostring();
 				cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
 			}
 			else{
@@ -149,7 +137,7 @@ int parse(lua_State *L){
 	bool success = pegParser->parse(text.c_str(), dt, value);
 
 	if(success){
-		cout << "parsing successful, result = " << lua_tostring(L, value.get<LuaStackPtr>().idx) << endl;
+		cout << "parsing successful, result = " << value.get<lua::value>().tostring() << endl;
 	}
 	else{
 		cout << "parsing failed" << endl;
@@ -172,28 +160,32 @@ int Main(vector<string> args)
 	}
 
 	// init lua
-	lua_State *L = luaL_newstate();
-	luaL_openlibs(L);
+	// Since the parser state holds Lua values, it's important that the Lua VM and lua::scope
+	// remain until after the parser is destroyed. Using a unique_ptr ensures that Lua outlives
+	// any variables created later in this function.
+	std::unique_ptr<lua_State, void(&)(lua_State*)> L(luaL_newstate(), lua_close);
+	lua::scope luascope(L.get());
+	luaL_openlibs(L.get());
 
 	// load custom lua utility library
-	auto result = lua_loadutils(L);
+	auto result = lua_loadutils(L.get());
 	if (result){
 		cerr << "error loading lua utils";
 		return EXIT_FAILURE;
 	}
 
 	// register makeParser as parser in lua
-	lua_pushcfunction(L, makeParser);
-    lua_setglobal(L, "parser");
+	lua_pushcfunction(L.get(), makeParser);
+    lua_setglobal(L.get(), "parser");
 
 	// retister parse in lua
-	lua_pushcfunction(L, parse);
-    lua_setglobal(L, "parse");
+	lua_pushcfunction(L.get(), parse);
+    lua_setglobal(L.get(), "parse");
 
 	// load parser script
-	result = luaL_loadfile(L, args[1].c_str()) || lua_pcall(L, 0, 0, 0);
+	result = luaL_loadfile(L.get(), args[1].c_str()) || lua_pcall(L.get(), 0, 0, 0);
 	if (result){
-		cerr << "error loading \"" << args[1] << "\": " << lua_tostring(L, -1) << endl;
+		cerr << "error loading \"" << args[1] << "\": " << lua_tostring(L.get(), -1) << endl;
 		return EXIT_FAILURE;
 	}
 /*
@@ -205,9 +197,6 @@ int Main(vector<string> args)
 	}
 	string text { istreambuf_iterator<char>(textfile), istreambuf_iterator<char>() };
 */
-
-	// end lua
-	lua_close(L);
 
 	return EXIT_SUCCESS;
 }

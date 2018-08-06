@@ -61,5 +61,6 @@ function MulOp(params)
 end
 
 function default(params)
+	print(stringify(params))
 	return params.matched
 end
