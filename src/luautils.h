@@ -38,8 +38,7 @@ namespace lua {
 			s_L = L;
 		}
 
-		~scope()
-		{
+		~scope() {
 			s_L = m_prev;
 		}
 
@@ -105,7 +104,10 @@ namespace lua {
 			lua_pushlstring(scope::state(), value.c, value.len);
 		}
 
-		static void push(const value& value);
+		static void push(const value& value) {
+			value.push();
+		}
+
 		static void push(const subscript_value& value);
 
 	public:
@@ -155,11 +157,10 @@ namespace lua {
 		}
 
 		/**
-		 * Set our slot in the registry to the value at the top of
-		 * the stack.
+		 * Assign the value at the top of the stack to this object.
 		 */
 		value& assign() {
-			lua_rawsetp(scope::state(), LUA_REGISTRYINDEX, const_cast<value*>(this));
+			lua_rawsetp(scope::state(), LUA_REGISTRYINDEX, this);
 			return *this;
 		}
 
@@ -209,14 +210,14 @@ namespace lua {
 		}
 
 		template<typename TKey>
-		subscript_value operator[](const TKey& key) const;
+		subscript_value operator [](const TKey& key) const;
 
 		/**
 		 * If this value is callable, call it with the given arguments.
 		 * @throw lua::exception on error.
 		 */
 		template<typename... Args>
-		value operator()(const Args&... args) const {
+		value operator ()(const Args&... args) const {
 			push();
 			detail::invoke_with_arg(
 				[this](const auto& arg) {
@@ -230,16 +231,6 @@ namespace lua {
 			return pop();
 		}
 	};
-
-	inline value globals() {
-		lua_pushglobaltable(scope::state());
-		return value::pop();
-	}
-
-	inline value newtable() {
-		lua_newtable(scope::state());
-		return value::pop();
-	}
 
 	/**
 	 * I represent an individual Lua table slot and allow assignment to it.
@@ -268,7 +259,7 @@ namespace lua {
 		 * @param value Value to assign to this table slot.
 		 */
 		template<typename TValue>
-		const subscript_value& operator=(const TValue& value) const {
+		const subscript_value& operator =(const TValue& value) const {
 			m_table.settable(m_key, value);
 			return *this;
 		}
@@ -278,17 +269,23 @@ namespace lua {
 		const value m_key;
 	};
 
-	inline void value::push(const value& value) {
-		value.push();
-	}
-
 	inline void value::push(const subscript_value& value) {
 		value.push();
 	}
 
 	template<typename TKey>
-	subscript_value value::operator[](const TKey& key) const {
+	subscript_value value::operator [](const TKey& key) const {
 		return subscript_value(*this, key);
+	}
+
+	inline value globals() {
+		lua_pushglobaltable(scope::state());
+		return value::pop();
+	}
+
+	inline value newtable() {
+		lua_newtable(scope::state());
+		return value::pop();
 	}
 }
 
