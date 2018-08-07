@@ -6,12 +6,10 @@
 #include "stringutils.h"
 #include "peglib.h"
 
-#define DEBUG_PARSER // display each step of the parsing process
 #define DEBUG_STRLEN 40 // display that many chars of the parsing text in debug output
 
 using namespace peg;
 using namespace std;
-
 
 void registerReductionRule(parser& pegParser, const string& rule, const lua::value& reduce){
 	// rule = the name of the PEG definition that invoked the reduction rule (NAME <- A / B / C)
@@ -44,80 +42,19 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 	};
 }
 
-int makeParser(lua_State *L){
-
-	// read grammar
-	const char* grammar = lua_tostring(L, 1);
-	parser *pegParser = new parser(grammar);
-
-	// read default action
-	lua_pushvalue(L, 3); // copy the function handle to top
-	const lua::value defaultReduce = lua::value::pop();
-
-	// read actions table
-	lua_pushvalue(L, 2);
-	const lua::value actions = lua::value::pop();
-
-	// register actions for all PEG definitions
-	const auto rules = pegParser->get_rule_names();
-	for (const auto& rule : rules) {
-		const lua::value reduce(actions[rule]);
-		if (!reduce.isnil()) {
-			registerReductionRule(*pegParser, rule, reduce);
-		}
-		else {
-			registerReductionRule(*pegParser, rule, defaultReduce);
-		}
-	}
-
-	// configure parser
-	pegParser->enable_packrat_parsing();
-
-	// assign callbacks for parser debugging
-	#ifdef DEBUG_PARSER
-	for(auto& rule:rules){
-
-		(*pegParser)[rule.c_str()].enter = [rule](const char* s, size_t n, any& dt) {
-			auto& indent = *dt.get<int*>();
-			cout << repeat("|  ", indent) << rule << " => \"" << shorten(s, n, DEBUG_STRLEN) << "\"?" << endl;
-			indent++;
-		};
-
-		(*pegParser)[rule.c_str()].leave = [rule](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
-			auto& indent = *dt.get<int*>();
-			indent--;
-			cout << repeat("|  ", indent) << "`-> ";
-			if(success(matchlen)){
-
-				// display "match", the matched string and the result of the reduction
-				cout << "match: \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
-				const lua::value stringify(lua::globals()["stringify"]);
-				const string output = stringify(value.get<lua::value>()).tostring();
-				cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
-			}
-			else{
-				cout << "failed" << endl;
-			}
-		};
-	}
-	pegParser->log = [](size_t ln, size_t col, const string& msg) {
-		cout << "(" << ln << "," << col << ") " << msg;
-	};
-	#endif
-
-
-	// return parser
-	lua_pushlightuserdata (L, pegParser);
-
-	return 1;
-}
-
 
 int parse(lua_State *L){
 
-	parser *pegParser = (parser*)lua_touserdata(L, 1); // pointer to parser
-	string text = lua_tostring(L, 2); // text to parse
+	lua_pushvalue(L, 1);
+	const lua::value self = lua::value::pop();
 
+	// pointer to parser
+	parser *pegParser = (parser*) self.touserdata();
+
+	// text to parse
+	string text = lua_tostring(L, 2);
+
+	// do parsing
 	any value;
 	int indent = 0;
 	any dt = &indent;
@@ -132,6 +69,105 @@ int parse(lua_State *L){
 	}
 
 	return 0;
+}
+
+
+int makeParser(lua_State *L){
+
+	lua_pushvalue(L, 1);
+	const lua::value options = lua::value::pop();
+
+	// TODO: these error checks need to be more specific and default values have to be created
+
+	// read grammar
+	lua::value grammar(options["grammar"]);
+	if(grammar.isnil()){
+		cerr << "no grammar defined" << endl;
+		return 0;
+	}
+
+	// read default actions
+	lua::value defaultReduce(options["default"]);
+	if(defaultReduce.isnil()){
+		cerr << "no default reduction action defined" << endl;
+		return 0;
+	}
+
+	// read specific reduction actions
+	lua::value actions(options["actions"]);
+	if(actions.isnil()){
+		cerr << "no reduction actions defined" << endl;
+		return 0;
+	}
+
+	// packrat mode
+	bool packrat = false;
+	lua::value lvpackrat(options["packrat"]);
+	if(!lvpackrat.isnil()){
+		packrat = lvpackrat.toboolean();
+	}
+
+	// debug output during parsing
+	bool debug = false;
+	lua::value lvdebug(options["debuglog"]);
+	if(!lvdebug.isnil()){
+		debug = lvdebug.toboolean();
+	}
+
+	// create parser
+	parser *pegParser = new parser(grammar.tostring().c_str());
+	if(packrat){
+		pegParser->enable_packrat_parsing();
+	}
+
+	// register actions for all PEG definitions
+	const auto rules = pegParser->get_rule_names();
+	for (const auto& rule : rules) {
+		const lua::value reduce(actions[rule]);
+		if (!reduce.isnil()) {
+			registerReductionRule(*pegParser, rule, reduce);
+		}
+		else {
+			registerReductionRule(*pegParser, rule, defaultReduce);
+		}
+	}
+
+	// assign callbacks for parser debugging
+	if(debug){
+		for(auto& rule:rules){
+
+			(*pegParser)[rule.c_str()].enter = [rule](const char* s, size_t n, any& dt) {
+				auto& indent = *dt.get<int*>();
+				cout << repeat("|  ", indent) << rule << " => \"" << shorten(s, n, DEBUG_STRLEN) << "\"?" << endl;
+				indent++;
+			};
+
+			(*pegParser)[rule.c_str()].leave = [rule](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
+				auto& indent = *dt.get<int*>();
+				indent--;
+				cout << repeat("|  ", indent) << "`-> ";
+				if(success(matchlen)){
+
+					// display "match", the matched string and the result of the reduction
+					cout << "match: \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
+					const lua::value stringify(lua::globals()["stringify"]);
+					const string output = stringify(value.get<lua::value>()).tostring();
+					cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
+				}
+				else{
+					cout << "failed" << endl;
+				}
+			};
+		}
+		pegParser->log = [](size_t ln, size_t col, const string& msg) {
+			cout << "(" << ln << "," << col << ") " << msg;
+		};
+	}
+
+	// return parser
+	lua_pushlightuserdata (L, pegParser);
+
+	return 1;
 }
 
 
@@ -161,15 +197,15 @@ int Main(vector<string> args)
 		cerr << "error loading lua utils";
 		return EXIT_FAILURE;
 	}
-	
-	// register makeParser as parser in lua
+
+	// register makeParser as pegparser in lua
 	lua_pushcfunction(L.get(), makeParser);
-    lua_setglobal(L.get(), "parser");
+    lua_setglobal(L.get(), "pegparser");
 
 	// register parse in lua
 	lua_pushcfunction(L.get(), parse);
     lua_setglobal(L.get(), "parse");
-	
+
 	// load parser script
 	result = luaL_loadfile(L.get(), args[1].c_str()) || lua_pcall(L.get(), 0, 0, 0);
 	if (result){

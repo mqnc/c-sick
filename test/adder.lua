@@ -24,6 +24,11 @@ end
 --parser = new peglib.parser(table.concat(grammar, "\n"), actions, default)
 --value = parser.parse(sys.stdin)
 
-pp = parser(table.concat(grammar, "\n"), actions, default)
+pp = pegparser{
+	grammar = table.concat(grammar, "\n"),
+	actions = actions,
+	default = default,
+	packrat = true,
+	debuglog = true}
 
 parse(pp, "3+4+15")
