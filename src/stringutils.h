@@ -10,7 +10,8 @@ struct repeat{
 	const char* s;
 	size_t num;
 };
-std::ostream& operator<< (std::ostream& stream, const repeat& rep){
+
+inline std::ostream& operator <<(std::ostream& stream, const repeat& rep) {
 	for(int i=0; i<rep.num; ++i){
 		stream << rep.s;
 	}
@@ -18,7 +19,7 @@ std::ostream& operator<< (std::ostream& stream, const repeat& rep){
 }
 
 // shorten string and remove line breaks and tabs
-std::string shorten(const char* s, std::size_t len, std::size_t maxlen){
+inline std::string shorten(const char* s, std::size_t len, std::size_t maxlen) {
 	std::string result(s, len<maxlen?len:maxlen);
 
 	// shorten
