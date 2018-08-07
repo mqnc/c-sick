@@ -15,7 +15,7 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 	// rule = the name of the PEG definition that invoked the reduction rule (NAME <- A / B / C)
 	// reduce = a lua handle of the associated reduce function
 
-	pegParser[rule.c_str()] = [rule, reduce](const SemanticValues& sv, any& dt){
+	pegParser[rule.c_str()] = [rule, reduce](const SemanticValues& sv, any&) {
 
 		// push input parameters on stack
 		const lua::value params = lua::newtable();
@@ -143,7 +143,7 @@ int makeParser(lua_State *L){
 				indent++;
 			};
 
-			(*pegParser)[rule.c_str()].leave = [rule](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
+			(*pegParser)[rule.c_str()].leave = [rule](const char* s, size_t, size_t matchlen, any& value, any& dt) {
 				auto& indent = *dt.get<int*>();
 				indent--;
 				cout << repeat("|  ", indent) << "`-> ";

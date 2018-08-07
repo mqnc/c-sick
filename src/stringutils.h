@@ -3,7 +3,6 @@
 
 #include <ostream>
 #include <string>
-#include <sstream>
 
 // helper for repeating output
 struct repeat{
@@ -38,11 +37,4 @@ std::string shorten(const char* s, std::size_t len, std::size_t maxlen){
 	}
 
 	return result;
-}
-
-// convert a pointer to a string
-std::string ptr2str(const void* ptr){
-	std::stringstream ss;
-	ss << ptr;
-	return ss.str();
 }
