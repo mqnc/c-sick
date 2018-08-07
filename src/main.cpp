@@ -1,10 +1,14 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include "lua/src/lua.hpp"
 #include "luautils.h"
 #include "stringutils.h"
+
 #include "peglib.h"
+
+#include "lua/src/lua.hpp"
+
+#include <exception>
+#include <fstream>
+#include <iostream>
+#include <string>
 
 #define DEBUG_PARSER
 #define DEBUG_STRLEN 40 // display that many chars of the parsing text in debug output
@@ -112,8 +116,13 @@ int Main(vector<string> args)
 				// find function
 				const lua::value func(lua::globals()[funcName.c_str()]);
 
-				// call lua function and return lua value.
-				return func(params);
+				try {
+					// call lua function and return lua value.
+					return func(params);
+				} catch (lua::exception&) {
+					// Wrap the Lua exception as a runtime_error.
+					throw std::runtime_error(lua::value::pop().tostring());
+				}
 			};
 		}
 		else{ // function not found, no default function in lua script -> just return last matched token

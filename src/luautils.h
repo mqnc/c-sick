@@ -76,6 +76,13 @@ namespace lua {
 		int m_n;
 	};
 
+	/**
+	 * An exception indicating that a Lua error is at the top of the
+	 * stack.
+	 */
+	class exception {
+	};
+
 	class subscript_value;
 
 	/**
@@ -206,6 +213,7 @@ namespace lua {
 
 		/**
 		 * If this value is callable, call it with the given arguments.
+		 * @throw lua::exception on error.
 		 */
 		template<typename... Args>
 		value operator()(const Args&... args) const {
@@ -216,7 +224,9 @@ namespace lua {
 				},
 				args...
 			);
-			lua_pcall(scope::state(), sizeof...(Args), 1, 0);
+			if (LUA_OK != lua_pcall(scope::state(), sizeof...(Args), 1, 0)) {
+				throw exception();
+			}
 			return pop();
 		}
 	};
