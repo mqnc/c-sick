@@ -126,7 +126,7 @@ int Main(vector<string> args)
 				}
 
 				// return lua value
-				return lua::value();
+				return lua::value::pop();
 			};
 		}
 	}

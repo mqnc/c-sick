@@ -113,10 +113,17 @@ namespace lua {
 		/**
 		 * Create a value for the current top of the stack.
 		 */
-		value()
-		{
-			set_registry_slot();
+		static value pop() {
+			value result;
+			result.set_registry_slot();
+			return result;
 		}
+
+		/**
+		 * A nil value.
+		 */
+		value()
+		{}
 
 		/**
 		 * Duplicate the given value.
@@ -188,7 +195,7 @@ namespace lua {
 			stack_scope ss;
 			push(key);
 			lua_gettable(scope::state(), -2);
-			return value();
+			return pop();
 		}
 
 		/**
@@ -220,7 +227,7 @@ namespace lua {
 				args...
 			);
 			lua_pcall(scope::state(), sizeof...(Args), 1, 0);
-			return value();
+			return pop();
 		}
 
 	private:
@@ -237,12 +244,12 @@ namespace lua {
 
 	inline value globals() {
 		lua_pushglobaltable(scope::state());
-		return value();
+		return value::pop();
 	}
 
 	inline value newtable() {
 		lua_newtable(scope::state());
-		return value();
+		return value::pop();
 	}
 
 	/**
