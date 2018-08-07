@@ -11,7 +11,7 @@ rule("Num <- [0-9]+")
 
 actions["Add"] = function(params)
 	res = 0
-	for term in params.values do
+	for i,term in pairs(params.values) do
 		res = res + term
 	end
 	return res

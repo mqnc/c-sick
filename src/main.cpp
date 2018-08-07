@@ -13,11 +13,11 @@ using namespace peg;
 using namespace std;
 
 
-void registerReductionRule(parser *pegParser, lua_State *L, const string& rule, const string& funcName){
+void registerReductionRule(parser& pegParser, const string& rule, const lua::value& reduce){
 	// rule = the name of the PEG definition that invoked the reduction rule (NAME <- A / B / C)
-	// funcName = the name of the associated action in lua's globals registry
+	// reduce = a lua handle of the associated reduce function
 
-	(*pegParser)[rule.c_str()] = [&L, rule, funcName](const SemanticValues& sv, any& dt){
+	pegParser[rule.c_str()] = [rule, reduce](const SemanticValues& sv, any& dt){
 
 		// push input parameters on stack
 		const lua::value params = lua::newtable();
@@ -27,11 +27,11 @@ void registerReductionRule(parser *pegParser, lua_State *L, const string& rule, 
 		params["matched"] = StringPtr(sv.c_str(), sv.length());
 		params["rule"] = rule;
 
-		const lua::value subnodes = lua::newtable();
+		const lua::value values = lua::newtable();
 		for (size_t i = 0; i != sv.size(); ++i){
-			subnodes[1 + i] = sv[i].get<lua::value>();
+			values[1 + i] = sv[i].get<lua::value>();
 		}
-		params["subnodes"] = subnodes;
+		params["values"] = values;
 
 		const lua::value tokens = lua::newtable();
 		for (size_t i = 0; i != sv.tokens.size(); ++i) {
@@ -39,11 +39,8 @@ void registerReductionRule(parser *pegParser, lua_State *L, const string& rule, 
 		}
 		params["tokens"] = tokens;
 
-		// find function
-		const lua::value func(lua::globals()[funcName.c_str()]);
-
 		// call lua function and return lua value.
-		return func(params);
+		return reduce(params);
 	};
 }
 
@@ -53,37 +50,28 @@ int makeParser(lua_State *L){
 	const char* grammar = lua_tostring(L, 1);
 	parser *pegParser = new parser(grammar);
 
-
 	// read default action
-
 	lua_pushvalue(L, 3); // copy the function handle to top
-	string defaultFuncName = ptr2str(lua_topointer(L, -1)); // use the address of the function as its name
-	lua_setglobal(L, defaultFuncName.c_str()); // store function in lua globals (pops from stack)
+	const lua::value defaultReduce = lua::value::pop();
 
-	auto rules = pegParser->get_rule_names();
-	for(auto& rule:rules){ // register default action for all PEG definitions
-		registerReductionRule(pegParser, L, rule, defaultFuncName);
-	}
-
-
-	// read action table ( https://stackoverflow.com/questions/6137684/iterate-through-lua-table )
+	// read actions table
 	lua_pushvalue(L, 2);
-	lua_pushnil(L);
-	while (lua_next(L, -2))
-	{
-		lua_pushvalue(L, -2);
-		string rule = lua_tostring(L, -1); // = key
-		string funcName = ptr2str(lua_topointer(L, -2)); // = value (use the address of the function as its name)
-		lua_pop(L, 1); // pop key
-		lua_setglobal(L, funcName.c_str()); // store function in lua globals (pops from stack)
-		registerReductionRule(pegParser, L, rule, funcName);
-	}
-	lua_pop(L, 1);
+	const lua::value actions = lua::value::pop();
 
+	// register actions for all PEG definitions
+	const auto rules = pegParser->get_rule_names();
+	for (const auto& rule : rules) {
+		const lua::value reduce(actions[rule]);
+		if (!reduce.isnil()) {
+			registerReductionRule(*pegParser, rule, reduce);
+		}
+		else {
+			registerReductionRule(*pegParser, rule, defaultReduce);
+		}
+	}
 
 	// configure parser
 	pegParser->enable_packrat_parsing();
-
 
 	// assign callbacks for parser debugging
 	#ifdef DEBUG_PARSER
@@ -95,7 +83,7 @@ int makeParser(lua_State *L){
 			indent++;
 		};
 
-		(*pegParser)[rule.c_str()].leave = [rule, &L](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
+		(*pegParser)[rule.c_str()].leave = [rule](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
 			auto& indent = *dt.get<int*>();
 			indent--;
 			cout << repeat("|  ", indent) << "`-> ";
@@ -112,7 +100,7 @@ int makeParser(lua_State *L){
 			}
 		};
 	}
-	pegParser->log = [&](size_t ln, size_t col, const string& msg) {
+	pegParser->log = [](size_t ln, size_t col, const string& msg) {
 		cout << "(" << ln << "," << col << ") " << msg;
 	};
 	#endif
@@ -173,15 +161,15 @@ int Main(vector<string> args)
 		cerr << "error loading lua utils";
 		return EXIT_FAILURE;
 	}
-
+	
 	// register makeParser as parser in lua
 	lua_pushcfunction(L.get(), makeParser);
     lua_setglobal(L.get(), "parser");
 
-	// retister parse in lua
+	// register parse in lua
 	lua_pushcfunction(L.get(), parse);
     lua_setglobal(L.get(), "parse");
-
+	
 	// load parser script
 	result = luaL_loadfile(L.get(), args[1].c_str()) || lua_pcall(L.get(), 0, 0, 0);
 	if (result){
