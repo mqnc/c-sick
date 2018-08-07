@@ -48,6 +48,34 @@ namespace lua {
 	};
 	lua_State* scope::s_L = nullptr;
 
+	/**
+	 * I clean up the stack on scope exit.
+	 */
+	class stack_scope {
+	public:
+		explicit stack_scope(int n = 1)
+		: m_n(n)
+		{}
+
+		stack_scope(const stack_scope&) = delete;
+		stack_scope& operator =(const stack_scope&) = delete;
+
+		~stack_scope() {
+			lua_pop(scope::state(), m_n);
+		}
+
+		void increase(int n = 1) {
+			m_n += n;
+		}
+
+		void decrease(int n = 1) {
+			m_n -= n;
+		}
+
+	private:
+		int m_n;
+	};
+
 	class subscript_value;
 
 	/**
@@ -132,15 +160,23 @@ namespace lua {
 		}
 
 		/**
+		 * Whether this value is nil.
+		 */
+		bool isnil() const {
+			push();
+			stack_scope ss;
+			return lua_isnil(scope::state(), -1);
+		}
+
+		/**
 		 * Return a string representation for this value.
 		 */
 		std::string tostring() const {
 			push();
+			stack_scope ss;
 			std::size_t len;
 			const char* s = lua_tolstring(scope::state(), -1, &len);
-			std::string result(s, len);
-			lua_pop(scope::state(), 1);
-			return result;
+			return std::string(s, len);
 		}
 
 		/**
@@ -149,11 +185,10 @@ namespace lua {
 		template<typename TKey>
 		value gettable(const TKey& key) const {
 			push();
+			stack_scope ss;
 			push(key);
 			lua_gettable(scope::state(), -2);
-			value result;
-			lua_pop(scope::state(), 1);
-			return result;
+			return value();
 		}
 
 		/**
@@ -162,10 +197,10 @@ namespace lua {
 		template<typename TKey, typename TValue>
 		const value& settable(const TKey& key, const TValue& value) const {
 			push();
+			stack_scope ss;
 			push(key);
 			push(value);
 			lua_settable(scope::state(), -3);
-			lua_pop(scope::state(), 1);
 			return *this;
 		}
 
@@ -226,10 +261,10 @@ namespace lua {
 		 */
 		const subscript_value& push() const {
 			m_table.push();
+			stack_scope ss;
 			m_key.push();
 			lua_gettable(scope::state(), -2);
 			lua_rotate(scope::state(), -2, 1);
-			lua_pop(scope::state(), 1);
 			return *this;
 		}
 
