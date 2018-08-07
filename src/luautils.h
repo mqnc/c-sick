@@ -82,14 +82,6 @@ namespace lua {
 	 * I represent a value of an arbitrary type on the Lua stack.
 	 */
 	class value {
-		static void set_registry() {
-			lua_settable(scope::state(), LUA_REGISTRYINDEX);
-		}
-
-		static void get_registry() {
-			lua_gettable(scope::state(), LUA_REGISTRYINDEX);
-		}
-
 		static void push(const int value){
 			lua_pushinteger(scope::state(), value);
 		}
@@ -114,9 +106,7 @@ namespace lua {
 		 * Create a value for the current top of the stack.
 		 */
 		static value pop() {
-			value result;
-			result.set_registry_slot();
-			return result;
+			return value().assign();
 		}
 
 		/**
@@ -131,7 +121,7 @@ namespace lua {
 		value(const value& val)
 		{
 			val.push();
-			set_registry_slot();
+			assign();
 		}
 
 		/**
@@ -141,28 +131,28 @@ namespace lua {
 		explicit value(const TValue& val)
 		{
 			push(val);
-			set_registry_slot();
+			assign();
 		}
 
 		~value() {
 			lua_pushnil(scope::state());
-			set_registry_slot();
-		}
-
-		/**
-		 * Push this value's registry key.
-		 */
-		const value& key() const {
-			lua_pushlightuserdata(scope::state(), const_cast<value*>(this));
-			return *this;
+			assign();
 		}
 
 		/**
 		 * Push this value.
 		 */
 		const value& push() const {
-			key();
-			get_registry();
+			lua_rawgetp(scope::state(), LUA_REGISTRYINDEX, const_cast<value*>(this));
+			return *this;
+		}
+
+		/**
+		 * Set our slot in the registry to the value at the top of
+		 * the stack.
+		 */
+		value& assign() {
+			lua_rawsetp(scope::state(), LUA_REGISTRYINDEX, const_cast<value*>(this));
 			return *this;
 		}
 
@@ -228,17 +218,6 @@ namespace lua {
 			);
 			lua_pcall(scope::state(), sizeof...(Args), 1, 0);
 			return pop();
-		}
-
-	private:
-		/**
-		 * Set our slot in the registry to the value at the top of
-		 * the stack.
-		 */
-		void set_registry_slot() {
-			key();
-			lua_rotate(scope::state(), -2, 1);
-			set_registry();
 		}
 	};
 
