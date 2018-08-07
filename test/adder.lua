@@ -31,4 +31,5 @@ pp = pegparser{
 	packrat = true,
 	debuglog = true}
 
-parse(pp, "3+4+15")
+print(stringify(pp))
+pp.parse(pp, "3+4+15")

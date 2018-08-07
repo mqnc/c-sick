@@ -48,8 +48,11 @@ int parse(lua_State *L){
 	lua_pushvalue(L, 1);
 	const lua::value self = lua::value::pop();
 
+	cout << self.tostring();
+	/*
 	// pointer to parser
-	parser *pegParser = (parser*) self.touserdata();
+	lua::value hparser(self["hanlde"]);
+	parser *pegParser = (parser*) hparser.touserdata();
 
 	// text to parse
 	string text = lua_tostring(L, 2);
@@ -67,7 +70,7 @@ int parse(lua_State *L){
 	else{
 		cout << "parsing failed" << endl;
 	}
-
+	*/
 	return 0;
 }
 
@@ -164,8 +167,11 @@ int makeParser(lua_State *L){
 		};
 	}
 
-	// return parser
-	lua_pushlightuserdata (L, pegParser);
+	// return parser object
+	const lua::value parserObj = lua::newtable();
+	parserObj["handle"] = (void*) pegParser;
+	parserObj["parse"] = parse;
+	parserObj.push();
 
 	return 1;
 }
@@ -201,10 +207,6 @@ int Main(vector<string> args)
 	// register makeParser as pegparser in lua
 	lua_pushcfunction(L.get(), makeParser);
     lua_setglobal(L.get(), "pegparser");
-
-	// register parse in lua
-	lua_pushcfunction(L.get(), parse);
-    lua_setglobal(L.get(), "parse");
 
 	// load parser script
 	result = luaL_loadfile(L.get(), args[1].c_str()) || lua_pcall(L.get(), 0, 0, 0);
