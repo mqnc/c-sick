@@ -1,1 +1,1 @@
-program test\calculator.lua test\calculation.txt
+program test\adder.lua test\calculation.txt

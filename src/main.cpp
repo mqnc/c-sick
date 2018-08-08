@@ -48,10 +48,8 @@ int parse(lua_State *L){
 	lua_pushvalue(L, 1);
 	const lua::value self = lua::value::pop();
 
-	cout << self.tostring();
-	/*
 	// pointer to parser
-	lua::value hparser(self["hanlde"]);
+	lua::value hparser(self["handle"]);
 	parser *pegParser = (parser*) hparser.touserdata();
 
 	// text to parse
@@ -70,7 +68,7 @@ int parse(lua_State *L){
 	else{
 		cout << "parsing failed" << endl;
 	}
-	*/
+
 	return 0;
 }
 
