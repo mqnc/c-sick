@@ -295,6 +295,32 @@ namespace lua {
 		lua_newtable(scope::state());
 		return value::pop();
 	}
+
+	/**
+	 * Invoke a C++ function from Lua. The Lua state is made available to
+	 * the function via lua::scope. The function receives its arguments on
+	 * the stack and returns a single lua::value.
+	 */
+	template<lua::value(&f)()>
+	int invoke(lua_State* L) {
+		try {
+			const scope luascope(L);
+			f().push();
+			return 1;
+		} catch (lua::exception&) {
+			return lua_error(L);
+		}
+	}
+
+	/**
+	 * This is intended to be used by functions invoked using
+	 * lua::invoke(). It takes an error message and does not return.
+	 */
+	template<typename T>
+	void error(const T& msg) {
+		value(msg).push();
+		throw exception();
+	}
 }
 
 inline auto lua_loadutils(lua_State *L){
