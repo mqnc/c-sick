@@ -119,6 +119,14 @@ namespace lua {
 		}
 
 		/**
+		 * Create a value for the given stack slot.
+		 */
+		static value at(const int index = -1) {
+			lua_pushvalue(scope::state(), index);
+			return pop();
+		}
+
+		/**
 		 * A nil value.
 		 */
 		value()
