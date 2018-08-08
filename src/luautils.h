@@ -358,6 +358,68 @@ namespace lua {
 		value(msg).push();
 		throw exception();
 	}
+
+	/**
+	 * A Lua method and its name in the metatable.
+	 */
+	struct method {
+		const char* name;
+		int (&f)(lua_State*);
+	};
+
+	/**
+	 * I represent a Lua metatable and provide methods for accessing
+	 * the contained userdata.
+	 */
+	template<const char* Name, typename T>
+	class metatable {
+		static int finalize(lua_State* L) {
+			T* const t = touserdata(L);
+			const scope luascope(L);
+			t->~T();
+			return 0;
+		}
+
+	public:
+		/**
+		 * Create a new instance for this template specialisation.
+		 * The userdata remains at the top of the stack.
+		 *
+		 * @return The new instance.
+		 */
+		template<std::size_t N, typename... Args>
+		static T* newuserdata(const method (&methods)[N], Args&&... args) {
+			lua_State* const L = scope::state();
+
+			T* const t = static_cast<T*>(lua_newuserdata(L, sizeof(T)));
+
+			if (luaL_newmetatable(L, Name)) {
+				lua_pushcfunction(L, finalize);
+				lua_setfield(L, -2, "__gc");
+				lua_newtable(L);
+				for (const auto& m : methods) {
+					lua_pushcfunction(L, m.f);
+					lua_setfield(L, -2, m.name);
+				}
+				lua_setfield(L, -2, "__index");
+			}
+			lua_setmetatable(L, -2);
+
+			return new (t) T(std::forward<Args>(args)...);
+		}
+
+		/**
+		 * If the value is a userdata whose metatable matches this
+		 * template specialisation, return the instance pointer.
+		 * Otherwise, raises a Lua error and does not return.
+		 *
+		 * @param index The index of the value to check.
+		 * @return The instance pointer if valid.
+		 */
+		static T* touserdata(lua_State* const L, int index = -1) {
+			return static_cast<T*>(luaL_checkudata(L, index, Name));
+		}
+	};
 }
 
 inline auto lua_loadutils(lua_State *L){
