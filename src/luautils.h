@@ -263,6 +263,12 @@ namespace lua {
 			return *this;
 		}
 
+		template<typename TKey>
+		subscript_value operator [](const TKey& key) const {
+			push();
+			return value::pop()[key];
+		}
+
 		/**
 		 * @param value Value to assign to this table slot.
 		 */
