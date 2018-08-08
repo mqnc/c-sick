@@ -43,9 +43,7 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 }
 
 
-int parse(lua_State *L){
-	lua::scope luascope(L);
-
+lua::value parse() {
 	const lua::value self = lua::value::at(1);
 
 	// pointer to parser
@@ -53,7 +51,7 @@ int parse(lua_State *L){
 	parser *pegParser = (parser*) hparser.touserdata();
 
 	// text to parse
-	string text = lua_tostring(L, 2);
+	string text = lua_tostring(lua::scope::state(), 2);
 
 	// do parsing
 	any value;
@@ -69,13 +67,12 @@ int parse(lua_State *L){
 		cout << "parsing failed" << endl;
 	}
 
-	return 0;
+	return value.get<lua::value>();
 }
 
 
-int makeParser(lua_State *L){
-	lua::scope luascope(L);
 
+lua::value makeParser() {
 	const lua::value options = lua::value::at(1);
 
 	// TODO: these error checks need to be more specific and default values have to be created
@@ -83,22 +80,19 @@ int makeParser(lua_State *L){
 	// read grammar
 	lua::value grammar(options["grammar"]);
 	if(grammar.isnil()){
-		cerr << "no grammar defined" << endl;
-		return 0;
+		lua::error("no grammar defined");
 	}
 
 	// read default actions
 	lua::value defaultReduce(options["default"]);
 	if(defaultReduce.isnil()){
-		cerr << "no default reduction action defined" << endl;
-		return 0;
+		lua::error("no default reduction action defined");
 	}
 
 	// read specific reduction actions
 	lua::value actions(options["actions"]);
 	if(actions.isnil()){
-		cerr << "no reduction actions defined" << endl;
-		return 0;
+		lua::error("no reduction actions defined");
 	}
 
 	// packrat mode
@@ -168,10 +162,9 @@ int makeParser(lua_State *L){
 	// return parser object
 	const lua::value parserObj = lua::newtable();
 	parserObj["handle"] = (void*) pegParser;
-	parserObj["parse"] = parse;
-	parserObj.push();
+	parserObj["parse"] = lua::invoke<parse>;
 
-	return 1;
+	return parserObj;
 }
 
 
@@ -203,8 +196,7 @@ int Main(vector<string> args)
 	}
 
 	// register makeParser as pegparser in lua
-	lua_pushcfunction(L.get(), makeParser);
-    lua_setglobal(L.get(), "pegparser");
+	lua::globals()["pegparser"] = lua::invoke<makeParser>;
 
 	// load parser script
 	result = luaL_loadfile(L.get(), args[1].c_str()) || lua_pcall(L.get(), 0, 0, 0);

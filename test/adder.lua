@@ -32,4 +32,5 @@ pp = pegparser{
 	debuglog = true}
 
 print(stringify(pp))
-pp.parse(pp, "3+4+15")
+result = pp:parse("3+4+15")
+print("parsed", result)
