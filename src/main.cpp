@@ -46,8 +46,7 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 int parse(lua_State *L){
 	lua::scope luascope(L);
 
-	lua_pushvalue(L, 1);
-	const lua::value self = lua::value::pop();
+	const lua::value self = lua::value::at(1);
 
 	// pointer to parser
 	lua::value hparser(self["handle"]);
@@ -77,8 +76,7 @@ int parse(lua_State *L){
 int makeParser(lua_State *L){
 	lua::scope luascope(L);
 
-	lua_pushvalue(L, 1);
-	const lua::value options = lua::value::pop();
+	const lua::value options = lua::value::at(1);
 
 	// TODO: these error checks need to be more specific and default values have to be created
 
