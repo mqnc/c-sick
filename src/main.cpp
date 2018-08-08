@@ -44,6 +44,7 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 
 
 int parse(lua_State *L){
+	lua::scope luascope(L);
 
 	lua_pushvalue(L, 1);
 	const lua::value self = lua::value::pop();
@@ -74,6 +75,7 @@ int parse(lua_State *L){
 
 
 int makeParser(lua_State *L){
+	lua::scope luascope(L);
 
 	lua_pushvalue(L, 1);
 	const lua::value options = lua::value::pop();
