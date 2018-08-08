@@ -112,10 +112,6 @@ namespace lua {
 			lua_pushlstring(scope::state(), value.c, value.len);
 		}
 
-		static void push(void* value){
-			lua_pushlightuserdata(scope::state(), value);
-		}
-
 		static void push(const lua_CFunction value){
 			lua_pushcfunction(scope::state(), value);
 		}
@@ -216,15 +212,6 @@ namespace lua {
 			const char* s = lua_tolstring(scope::state(), -1, &len);
 			return std::string(s, len);
 		}
-
-		/**
-		 * Return a userdata representation for this value.
-		 */
-		void* touserdata() const {
-			push();
-			stack_scope ss;
-			return lua_touserdata(scope::state(), -1);
-                }
 
 		/**
 		 * Return a C string representation for this value.

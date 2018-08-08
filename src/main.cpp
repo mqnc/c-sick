@@ -44,11 +44,8 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 
 
 lua::value parse() {
-	const lua::value self = lua::value::at(1);
-
 	// pointer to parser
-	lua::value hparser(self["handle"]);
-	parser *pegParser = (parser*) hparser.touserdata();
+	parser *pegParser = static_cast<parser*>(luaL_checkudata(lua::scope::state(), 1, "pegparser"));
 
 	// text to parse
 	const char* const text = lua_tostring(lua::scope::state(), 2);
@@ -70,7 +67,13 @@ lua::value parse() {
 	return value.get<lua::value>();
 }
 
+lua::value destroyParser() {
+	// pointer to parser
+	parser *pegParser = static_cast<parser*>(luaL_checkudata(lua::scope::state(), 1, "pegparser"));
+	pegParser->~parser();
 
+	return lua::value();
+}
 
 lua::value makeParser() {
 	const lua::value options = lua::value::at(1);
@@ -110,7 +113,8 @@ lua::value makeParser() {
 	}
 
 	// create parser
-	parser *pegParser = new parser(grammar.tocstring());
+	parser *pegParser = static_cast<parser*>(lua_newuserdata(lua::scope::state(), sizeof(parser)));
+	new (pegParser) parser(grammar.tocstring());
 	if(packrat){
 		pegParser->enable_packrat_parsing();
 	}
@@ -159,12 +163,19 @@ lua::value makeParser() {
 		};
 	}
 
-	// return parser object
-	const lua::value parserObj = lua::newtable();
-	parserObj["handle"] = (void*) pegParser;
-	parserObj["parse"] = lua::invoke<parse>;
+	// Create pegparser metatable.
+	if (luaL_newmetatable(lua::scope::state(), "pegparser")) {
+		const lua::value indextable = lua::newtable();
+		indextable["parse"] = lua::invoke<parse>;
 
-	return parserObj;
+		const lua::value metatable = lua::value::at(-1);
+		metatable["__gc"] = lua::invoke<destroyParser>;
+		metatable["__index"] = indextable;
+	}
+	lua_setmetatable(lua::scope::state(), -2);
+
+	// return parser object
+	return lua::value::pop();
 }
 
 
