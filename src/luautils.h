@@ -38,8 +38,7 @@ namespace lua {
 			s_L = L;
 		}
 
-		~scope()
-		{
+		~scope() {
 			s_L = m_prev;
 		}
 
@@ -76,20 +75,19 @@ namespace lua {
 		int m_n;
 	};
 
+	/**
+	 * An exception indicating that a Lua error is at the top of the
+	 * stack.
+	 */
+	class exception {
+	};
+
 	class subscript_value;
 
 	/**
 	 * I represent a value of an arbitrary type on the Lua stack.
 	 */
 	class value {
-		static void set_registry() {
-			lua_settable(scope::state(), LUA_REGISTRYINDEX);
-		}
-
-		static void get_registry() {
-			lua_gettable(scope::state(), LUA_REGISTRYINDEX);
-		}
-
 		static void push(const bool value){
 			lua_pushboolean(scope::state(), value);
 		}
@@ -122,7 +120,10 @@ namespace lua {
 			lua_pushcfunction(scope::state(), value);
 		}
 
-		static void push(const value& value);
+		static void push(const value& value) {
+			value.push();
+		}
+
 		static void push(const subscript_value& value);
 
 	public:
@@ -130,9 +131,15 @@ namespace lua {
 		 * Create a value for the current top of the stack.
 		 */
 		static value pop() {
-			value result;
-			result.set_registry_slot();
-			return result;
+			return value().assign();
+		}
+
+		/**
+		 * Create a value for the given stack slot.
+		 */
+		static value at(const int index = -1) {
+			lua_pushvalue(scope::state(), index);
+			return pop();
 		}
 
 		/**
@@ -147,7 +154,7 @@ namespace lua {
 		value(const value& val)
 		{
 			val.push();
-			set_registry_slot();
+			assign();
 		}
 
 		/**
@@ -157,28 +164,27 @@ namespace lua {
 		explicit value(const TValue& val)
 		{
 			push(val);
-			set_registry_slot();
+			assign();
 		}
 
 		~value() {
 			lua_pushnil(scope::state());
-			set_registry_slot();
-		}
-
-		/**
-		 * Push this value's registry key.
-		 */
-		const value& key() const {
-			lua_pushlightuserdata(scope::state(), const_cast<value*>(this));
-			return *this;
+			assign();
 		}
 
 		/**
 		 * Push this value.
 		 */
 		const value& push() const {
-			key();
-			get_registry();
+			lua_rawgetp(scope::state(), LUA_REGISTRYINDEX, const_cast<value*>(this));
+			return *this;
+		}
+
+		/**
+		 * Assign the value at the top of the stack to this object.
+		 */
+		value& assign() {
+			lua_rawsetp(scope::state(), LUA_REGISTRYINDEX, this);
 			return *this;
 		}
 
@@ -246,13 +252,14 @@ namespace lua {
 		}
 
 		template<typename TKey>
-		subscript_value operator[](const TKey& key) const;
+		subscript_value operator [](const TKey& key) const;
 
 		/**
 		 * If this value is callable, call it with the given arguments.
+		 * @throw lua::exception on error.
 		 */
 		template<typename... Args>
-		value operator()(const Args&... args) const {
+		value operator ()(const Args&... args) const {
 			push();
 			detail::invoke_with_arg(
 				[this](const auto& arg) {
@@ -260,31 +267,12 @@ namespace lua {
 				},
 				args...
 			);
-			lua_pcall(scope::state(), sizeof...(Args), 1, 0);
+			if (LUA_OK != lua_pcall(scope::state(), sizeof...(Args), 1, 0)) {
+				throw exception();
+			}
 			return pop();
 		}
-
-	private:
-		/**
-		 * Set our slot in the registry to the value at the top of
-		 * the stack.
-		 */
-		void set_registry_slot() {
-			key();
-			lua_rotate(scope::state(), -2, 1);
-			set_registry();
-		}
 	};
-
-	inline value globals() {
-		lua_pushglobaltable(scope::state());
-		return value::pop();
-	}
-
-	inline value newtable() {
-		lua_newtable(scope::state());
-		return value::pop();
-	}
 
 	/**
 	 * I represent an individual Lua table slot and allow assignment to it.
@@ -313,7 +301,7 @@ namespace lua {
 		 * @param value Value to assign to this table slot.
 		 */
 		template<typename TValue>
-		const subscript_value& operator=(const TValue& value) const {
+		const subscript_value& operator =(const TValue& value) const {
 			m_table.settable(m_key, value);
 			return *this;
 		}
@@ -323,17 +311,23 @@ namespace lua {
 		const value m_key;
 	};
 
-	inline void value::push(const value& value) {
-		value.push();
-	}
-
 	inline void value::push(const subscript_value& value) {
 		value.push();
 	}
 
 	template<typename TKey>
-	subscript_value value::operator[](const TKey& key) const {
+	subscript_value value::operator [](const TKey& key) const {
 		return subscript_value(*this, key);
+	}
+
+	inline value globals() {
+		lua_pushglobaltable(scope::state());
+		return value::pop();
+	}
+
+	inline value newtable() {
+		lua_newtable(scope::state());
+		return value::pop();
 	}
 }
 
