@@ -373,6 +373,18 @@ namespace lua {
 	 */
 	template<const char* Name, typename T>
 	class metatable {
+		/**
+		 * If the value is a userdata whose metatable matches this
+		 * template specialisation, return the instance pointer.
+		 * Otherwise, raises a Lua error and does not return.
+		 *
+		 * @param index The index of the value to check.
+		 * @return The instance pointer if valid.
+		 */
+		static T* touserdata(lua_State* const L, int index = -1) {
+			return static_cast<T*>(luaL_checkudata(L, index, Name));
+		}
+
 		static int finalize(lua_State* L) {
 			T* const t = touserdata(L);
 			const scope luascope(L);
@@ -408,16 +420,16 @@ namespace lua {
 			return new (t) T(std::forward<Args>(args)...);
 		}
 
-		/**
-		 * If the value is a userdata whose metatable matches this
-		 * template specialisation, return the instance pointer.
-		 * Otherwise, raises a Lua error and does not return.
-		 *
-		 * @param index The index of the value to check.
-		 * @return The instance pointer if valid.
-		 */
-		static T* touserdata(lua_State* const L, int index = -1) {
-			return static_cast<T*>(luaL_checkudata(L, index, Name));
+		template<value (T::*f)()>
+		static int mem_fn(lua_State* const L) {
+			T* const t = touserdata(L, 1);
+			try {
+				const scope luascope(L);
+				(t->*f)().push();
+				return 1;
+			} catch (exception&) {
+				return lua_error(L);
+			}
 		}
 	};
 }
