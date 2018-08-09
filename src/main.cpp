@@ -51,14 +51,14 @@ lua::value parse() {
 	parser *pegParser = (parser*) hparser.touserdata();
 
 	// text to parse
-	string text = lua_tostring(lua::scope::state(), 2);
+	const char* const text = lua_tostring(lua::scope::state(), 2);
 
 	// do parsing
 	any value;
 	int indent = 0;
 	any dt = &indent;
 
-	bool success = pegParser->parse(text.c_str(), dt, value);
+	bool success = pegParser->parse(text, dt, value);
 
 	if(success){
 		cout << "parsing successful, result = " << value.get<lua::value>().tostring() << endl;
@@ -110,7 +110,7 @@ lua::value makeParser() {
 	}
 
 	// create parser
-	parser *pegParser = new parser(grammar.tostring().c_str());
+	parser *pegParser = new parser(grammar.tocstring());
 	if(packrat){
 		pegParser->enable_packrat_parsing();
 	}
