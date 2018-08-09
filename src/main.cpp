@@ -64,10 +64,10 @@ int Main(vector<string> args)
 		cerr << "error parsing grammar: there is no global string variable \"grammar\" in the lua file" << endl;
 		return EXIT_FAILURE;
 	}
-	string grammar = lua_tostring(L.get(), -1);
+	const char* const grammar = lua_tostring(L.get(), -1);
 
 	// create parser
-	parser parser(grammar.c_str());
+	parser parser(grammar);
 	if (!parser){
 		cerr << "error creating parser" << endl;
 		return EXIT_FAILURE;
@@ -83,7 +83,7 @@ int Main(vector<string> args)
 
 	// assign in-lua-defined rules
 	for(const auto& rule:rules){
-		string funcName = rule.c_str();
+		string funcName = rule;
 		lua_getglobal(L.get(), funcName.c_str()); // put pointer to function on stack
 		if(!lua_isfunction(L.get(), -1)){
 			if(foundDefault){funcName = "default";}
@@ -114,7 +114,7 @@ int Main(vector<string> args)
 				params["tokens"] = tokens;
 
 				// find function
-				const lua::value func(lua::globals()[funcName.c_str()]);
+				const lua::value func(lua::globals()[funcName]);
 
 				try {
 					// call lua function and return lua value.

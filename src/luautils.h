@@ -193,6 +193,15 @@ namespace lua {
 		}
 
 		/**
+		 * Return a C string representation for this value.
+		 */
+		const char* tocstring() const {
+			push();
+			stack_scope ss;
+			return lua_tostring(scope::state(), -1);
+		}
+
+		/**
 		 * If this value represents a table, get the given slot.
 		 */
 		template<typename TKey>
@@ -307,13 +316,13 @@ namespace lua {
 	 * the function via lua::scope. The function receives its arguments on
 	 * the stack and returns a single lua::value.
 	 */
-	template<lua::value(&f)()>
+	template<value (&f)()>
 	int invoke(lua_State* L) {
 		try {
 			const scope luascope(L);
 			f().push();
 			return 1;
-		} catch (lua::exception&) {
+		} catch (exception&) {
 			return lua_error(L);
 		}
 	}
