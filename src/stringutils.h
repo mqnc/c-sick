@@ -6,9 +6,9 @@
 
 // helper for repeating output
 struct repeat{
-	repeat(const char* s_, size_t num_):s(s_), num(num_){}
+	repeat(const char* s_, std::size_t num_):s(s_), num(num_){}
 	const char* s;
-	size_t num;
+	std::size_t num;
 };
 
 inline std::ostream& operator <<(std::ostream& stream, const repeat& rep) {
