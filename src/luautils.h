@@ -4,6 +4,7 @@
 #include <string>
 #include "lua/src/lua.hpp"
 
+
 // utilities for lua stack manipulation
 struct StringPtr{
 	StringPtr(const char* const c_, const std::size_t len_):c(c_),len(len_){}
@@ -45,7 +46,7 @@ namespace lua {
 	private:
 		lua_State* m_prev;
 	};
-	lua_State* scope::s_L = nullptr;
+	// lua_State* lua::scope::s_L = nullptr;
 
 	/**
 	 * I clean up the stack on scope exit.

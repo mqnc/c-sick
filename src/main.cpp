@@ -7,6 +7,8 @@
 #include "peglib.h"
 #include "parser.h"
 
+lua_State* lua::scope::s_L = nullptr;
+
 using namespace peg;
 using namespace std;
 
