@@ -117,6 +117,9 @@
     <ClCompile Include="..\src\lua\src\lzio.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\parser.cpp">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\lua\src\lua.hpp">

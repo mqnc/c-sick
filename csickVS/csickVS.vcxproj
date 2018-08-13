@@ -149,6 +149,7 @@
     <ClCompile Include="..\src\lua\src\lvm.c" />
     <ClCompile Include="..\src\lua\src\lzio.c" />
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\luautils.h" />
