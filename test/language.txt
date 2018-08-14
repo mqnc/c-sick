@@ -1,0 +1,100 @@
+
+
+function main() :=
+
+	// comment
+
+	/* multiline
+	   comment */
+
+	\* multiline \* nestable *\ comment *\
+
+	// assignment
+	var a:=5 // auto
+	val b:=3 // const auto
+	// single "=" is never valid in order to avoid confusion between assignment and comparison
+	var c:=7; var d:=8 // ";" and linebreak are equal
+	var c:= ... // line continuation
+		17
+
+	if a<b then
+		print(a, "<", b)
+	elseif a==b then
+		print(a, "==", b)
+	else
+		print(a, ">", b)
+	end
+
+	switch a
+		case 1 do
+			print("a is 1")
+			// implicit break
+		case 2 do
+			print("a is 2")
+			fall // prevents break
+		default
+			print("a is 2 or other")
+	end
+
+	while a<10 do
+		a++
+	end
+
+	repeat
+		a++
+	until a==20
+
+	repeat
+		a++
+	while a<30 // can be distinguished from nested while loop by the lack of "do" before linebreak
+
+	for i<=5 do // 0 1 2 3 4 5
+		print(i)
+	end
+
+	for 1<=i<5 do // 1 2 3 4
+		print(i)
+	end
+
+	for 5>i>=0 do // 4 3 2 1 0
+		print(i)
+	end
+
+	for 1<=i<10, i*=2 do // 1 2 4 8
+		print(i)
+	end
+
+	for i in {2, 3, 5, 7, 11} do
+		print(i)
+	end
+
+end
+
+
+function fun0 :=
+end
+
+function fun1() :=
+end
+
+function fun2(int x) :=
+end
+
+function fun3(int x=0) :=
+end
+
+function fun4(int x=0, int y) :=
+end
+
+function fun5 ->(int q) :=
+end
+
+function fun6 ->(int q=0) :=
+end
+
+function fun7 ->(int q=0, int r) :=
+end
+
+function fun8 (int a, int b)->(int q, int r) :=
+end
+
