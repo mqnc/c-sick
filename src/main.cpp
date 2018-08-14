@@ -1,15 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 #include "lua/src/lua.hpp"
 #include "luautils.h"
-#include "stringutils.h"
-#include "peglib.h"
 #include "parser.h"
 
 lua_State* lua::scope::s_L = nullptr;
 
-using namespace peg;
 using namespace std;
 
 // main
