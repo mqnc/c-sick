@@ -395,12 +395,11 @@ namespace lua {
 	public:
 		/**
 		 * Create a new instance for this template specialisation.
-		 * The userdata remains at the top of the stack.
 		 *
 		 * @return The new instance.
 		 */
 		template<std::size_t N, typename... Args>
-		static T* newuserdata(const method (&methods)[N], Args&&... args) {
+		static value newuserdata(const method (&methods)[N], Args&&... args) {
 			lua_State* const L = scope::state();
 
 			T* const t = static_cast<T*>(lua_newuserdata(L, sizeof(T)));
@@ -416,8 +415,10 @@ namespace lua {
 				lua_setfield(L, -2, "__index");
 			}
 			lua_setmetatable(L, -2);
+			const value result = lua::value::pop();
 
-			return new (t) T(std::forward<Args>(args)...);
+			new (t) T(std::forward<Args>(args)...);
+			return result;
 		}
 
 		template<value (T::*f)()>
