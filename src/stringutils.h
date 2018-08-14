@@ -12,7 +12,7 @@ struct repeat{
 };
 
 inline std::ostream& operator <<(std::ostream& stream, const repeat& rep) {
-	for(int i=0; i<rep.num; ++i){
+	for(std::size_t i=0; i<rep.num; ++i){
 		stream << rep.s;
 	}
 	return stream;
