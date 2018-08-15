@@ -2,6 +2,7 @@
 #include "parser.h"
 
 #include <iostream>
+#include <memory>
 #include <string>
 #include "lua/src/lua.hpp"
 #include "stringutils.h"
@@ -11,6 +12,18 @@
 
 using namespace peg;
 using namespace std;
+
+namespace {
+	class pegparser {
+	public:
+		pegparser();
+
+		lua::value parse();
+
+	private:
+		std::unique_ptr<parser> m_parser;
+	};
+}
 
 void registerReductionRule(parser& pegParser, const string& rule, const lua::value& reduce){
 	// rule = the name of the PEG definition that invoked the reduction rule (NAME <- A / B / C)
@@ -44,10 +57,7 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 }
 
 
-lua::value parse() {
-	// pointer to parser
-	parser *pegParser = static_cast<parser*>(luaL_checkudata(lua::scope::state(), 1, "pegparser"));
-
+lua::value pegparser::parse() {
 	// text to parse
 	const char* const text = lua_tostring(lua::scope::state(), 2);
 
@@ -56,7 +66,7 @@ lua::value parse() {
 	int indent = 0;
 	any dt = &indent;
 
-	bool success = pegParser->parse(text, dt, value);
+	bool success = m_parser->parse(text, dt, value);
 
 	if(success){
 		cout << "parsing successful, result = " << value.get<lua::value>().tostring() << endl;
@@ -68,15 +78,7 @@ lua::value parse() {
 	return value.get<lua::value>();
 }
 
-lua::value destroyParser() {
-	// pointer to parser
-	parser *pegParser = static_cast<parser*>(luaL_checkudata(lua::scope::state(), 1, "pegparser"));
-	pegParser->~parser();
-
-	return lua::value();
-}
-
-lua::value makeParser() {
+pegparser::pegparser() {
 	const lua::value options = lua::value::at(1);
 
 	// TODO: these error checks need to be more specific and default values have to be created
@@ -114,21 +116,20 @@ lua::value makeParser() {
 	}
 
 	// create parser
-	parser *pegParser = static_cast<parser*>(lua_newuserdata(lua::scope::state(), sizeof(parser)));
-	new (pegParser) parser(grammar.tocstring());
-	if(packrat){
-		pegParser->enable_packrat_parsing();
+	m_parser = std::make_unique<parser>(grammar.tocstring());
+	if (packrat) {
+		m_parser->enable_packrat_parsing();
 	}
 
 	// register actions for all PEG definitions
-	const auto rules = pegParser->get_rule_names();
+	const auto rules = m_parser->get_rule_names();
 	for (const auto& rule : rules) {
 		const lua::value reduce(actions[rule]);
 		if (!reduce.isnil()) {
-			registerReductionRule(*pegParser, rule, reduce);
+			registerReductionRule(*m_parser, rule, reduce);
 		}
 		else {
-			registerReductionRule(*pegParser, rule, defaultReduce);
+			registerReductionRule(*m_parser, rule, defaultReduce);
 		}
 	}
 
@@ -136,13 +137,13 @@ lua::value makeParser() {
 	if(debug){
 		for(auto& rule:rules){
 
-			(*pegParser)[rule.c_str()].enter = [rule](const char* s, size_t n, any& dt) {
+			(*m_parser)[rule.c_str()].enter = [rule](const char* s, size_t n, any& dt) {
 				auto& indent = *dt.get<int*>();
 				cout << repeat("|  ", indent) << rule << " => \"" << shorten(s, n, DEBUG_STRLEN) << "\"?" << endl;
 				indent++;
 			};
 
-			(*pegParser)[rule.c_str()].leave = [rule](const char* s, size_t, size_t matchlen, any& value, any& dt) {
+			(*m_parser)[rule.c_str()].leave = [rule](const char* s, size_t, size_t matchlen, any& value, any& dt) {
 				auto& indent = *dt.get<int*>();
 				indent--;
 				cout << repeat("|  ", indent) << "`-> ";
@@ -159,22 +160,19 @@ lua::value makeParser() {
 				}
 			};
 		}
-		pegParser->log = [](size_t ln, size_t col, const string& msg) {
+		m_parser->log = [](size_t ln, size_t col, const string& msg) {
 			cout << "(" << ln << "," << col << ") " << msg;
 		};
 	}
+}
 
-	// Create pegparser metatable.
-	if (luaL_newmetatable(lua::scope::state(), "pegparser")) {
-		const lua::value indextable = lua::newtable();
-		indextable["parse"] = lua::invoke<parse>;
+constexpr char pegparser_name[] = "pegparser";
+using pegparser_metatable = lua::metatable<pegparser_name, pegparser>;
 
-		const lua::value metatable = lua::value::at(-1);
-		metatable["__gc"] = lua::invoke<destroyParser>;
-		metatable["__index"] = indextable;
-	}
-	lua_setmetatable(lua::scope::state(), -2);
+constexpr lua::method pegparser_methods[] = {
+	{ "parse", pegparser_metatable::mem_fn<&pegparser::parse> },
+};
 
-	// return parser object
-	return lua::value::pop();
+lua::value makeParser() {
+	return pegparser_metatable::newuserdata(pegparser_methods);
 }
