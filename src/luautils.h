@@ -89,15 +89,14 @@ namespace lua {
 	 * I represent a value of an arbitrary type on the Lua stack.
 	 */
 	class value {
-		static void push(const bool value){
+
+		// avoid ambiguity for types that could cast to int or bool
+		template<typename T>
+		static typename std::enable_if<std::is_same<T, bool>::value>::type push(const T value){
 			lua_pushboolean(scope::state(), value);
 		}
 
 		static void push(const int value){
-			lua_pushinteger(scope::state(), value);
-		}
-
-		static void push(const size_t value){
 			lua_pushinteger(scope::state(), value);
 		}
 
