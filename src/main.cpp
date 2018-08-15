@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <memory>
 #include "lua/src/lua.hpp"
 #include "luautils.h"
 #include "parser.h"
