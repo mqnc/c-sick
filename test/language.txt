@@ -70,31 +70,38 @@ function main() :=
 
 end
 
+function fun0 end
 
-function fun0 :=
+function fun1 :=
 end
 
-function fun1() :=
+function fun2() :=
 end
 
-function fun2(int x) :=
+function fun3(int x) :=
 end
 
-function fun3(int x=0) :=
+function fun4(int x=0) :=
 end
 
-function fun4(int x=0, int y) :=
+function fun5(int x=0, int y) :=
 end
 
-function fun5 ->(int q) :=
+function fun6 -> int q :=
 end
 
-function fun6 ->(int q=0) :=
+function fun7 -> int q=0 :=
 end
 
-function fun7 ->(int q=0, int r) :=
+function fun8 -> (int q) :=
 end
 
-function fun8 (int a, int b)->(int q, int r) :=
+function fun9 -> (int q=0) :=
+end
+
+function fun10 -> (int q=0, int r) :=
+end
+
+function fun11(int x=0, int y) -> (int q=0, int r) :=
 end
 

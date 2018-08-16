@@ -1,1 +1,1 @@
-./program test/adder.lua test/calculation.txt
+./program test/grammar.lua test/calculation.txt
