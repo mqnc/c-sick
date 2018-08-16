@@ -89,15 +89,14 @@ namespace lua {
 	 * I represent a value of an arbitrary type on the Lua stack.
 	 */
 	class value {
-		static void push(const bool value){
+
+		// avoid ambiguity for types that could cast to int or bool
+		template<typename T>
+		static typename std::enable_if<std::is_same<T, bool>::value>::type push(const T value){
 			lua_pushboolean(scope::state(), value);
 		}
 
 		static void push(const int value){
-			lua_pushinteger(scope::state(), value);
-		}
-
-		static void push(const size_t value){
 			lua_pushinteger(scope::state(), value);
 		}
 
@@ -358,6 +357,81 @@ namespace lua {
 		value(msg).push();
 		throw exception();
 	}
+
+	/**
+	 * A Lua method and its name in the metatable.
+	 */
+	struct method {
+		const char* name;
+		int (&f)(lua_State*);
+	};
+
+	/**
+	 * I represent a Lua metatable and provide methods for accessing
+	 * the contained userdata.
+	 */
+	template<const char* Name, typename T>
+	class metatable {
+		/**
+		 * If the value is a userdata whose metatable matches this
+		 * template specialisation, return the instance pointer.
+		 * Otherwise, raises a Lua error and does not return.
+		 *
+		 * @param index The index of the value to check.
+		 * @return The instance pointer if valid.
+		 */
+		static T* touserdata(lua_State* const L, int index = -1) {
+			return static_cast<T*>(luaL_checkudata(L, index, Name));
+		}
+
+		static int finalize(lua_State* L) {
+			T* const t = touserdata(L);
+			const scope luascope(L);
+			t->~T();
+			return 0;
+		}
+
+	public:
+		/**
+		 * Create a new instance for this template specialisation.
+		 *
+		 * @return The new instance.
+		 */
+		template<std::size_t N, typename... Args>
+		static value newuserdata(const method (&methods)[N], Args&&... args) {
+			lua_State* const L = scope::state();
+
+			T* const t = static_cast<T*>(lua_newuserdata(L, sizeof(T)));
+
+			if (luaL_newmetatable(L, Name)) {
+				lua_pushcfunction(L, finalize);
+				lua_setfield(L, -2, "__gc");
+				lua_newtable(L);
+				for (const auto& m : methods) {
+					lua_pushcfunction(L, m.f);
+					lua_setfield(L, -2, m.name);
+				}
+				lua_setfield(L, -2, "__index");
+			}
+			lua_setmetatable(L, -2);
+			const value result = lua::value::pop();
+
+			new (t) T(std::forward<Args>(args)...);
+			return result;
+		}
+
+		template<value (T::*f)()>
+		static int mem_fn(lua_State* const L) {
+			T* const t = touserdata(L, 1);
+			try {
+				const scope luascope(L);
+				(t->*f)().push();
+				return 1;
+			} catch (exception&) {
+				return lua_error(L);
+			}
+		}
+	};
 }
 
 inline auto lua_loadutils(lua_State *L){
