@@ -9,4 +9,5 @@
 /csickVS/Release/
 /csickVS/x64/
 /program
+/test/output/
 __pycache__
