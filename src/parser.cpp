@@ -166,8 +166,12 @@ pegparser::pegparser() {
 	}
 }
 
-//constexpr char pegparser_name[] = "pegparser";
-char pegparser_name[] = "pegparser";
+#ifndef _MSC_VER
+constexpr
+#else
+extern const
+#endif
+	char pegparser_name[] = "pegparser";
 using pegparser_metatable = lua::metatable<pegparser_name, pegparser>;
 
 constexpr lua::method pegparser_methods[] = {
