@@ -8,6 +8,8 @@ end
 
 rule([[ Start <- nl (GlobalToken)* _ nl ]])
 
+rule([[ SyntaxError <- (!'\n' .)* '\n' ]])
+
 rule([[ Comment <- <SingleLineComment / MultiLineComment / NestableComment> ]])
 rule([[ SingleLineComment <- '//' (!NL .)* NL ]])
 rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]])
@@ -16,9 +18,9 @@ rule([[ NestableComment <- '\\*' (NestableComment / !'*\\' .)* '*\\' ]])
 rule([[ AssignOperator <- ':=' ]])
 rule([[ Identifier <- <([a-zA-Z_] [a-zA-Z_0-9]* / VerbatimCpp)> _ ]])
 
-rule([[ GlobalToken <- VerbatimCpp / GlobalDeclaration ]])
+rule([[ GlobalToken <- VerbatimCpp / GlobalDeclaration / SyntaxError ]])
 
-rule([[ VerbatimCpp <- CppLimiter CppCode* CppLimiter _ ]])
+rule([[ VerbatimCpp <- CppLimiter CppCode* CppLimiter nl ]])
 rule([[ CppLimiter <- '$' ]])
 rule([[ CppCode <- CppComment / CppStringLiteral / CppAnything ]])
 rule([[ CppComment <- <CppSingleLineComment / CppMultiLineComment> ]])
@@ -58,42 +60,124 @@ rule([[ nl <- NL? _ # optional new line ]])
 
 rule([[ Placeholder <- <'X'> _ ]])
 
-function subws(text)
-	result = text
-	result = string.gsub(result, " ", "&nbsp;")
-	result = string.gsub(result, "\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
-	result = string.gsub(result, "\n", "<br>")
-	return result
+function htmlwrap(params)
+	chain = params.matched
+
+	for i = #params.values, 1, -1 do
+		p1 = params.values[i].subpos-params.position
+		p2 = p1+params.values[i].sublen
+		sub = params.values[i].subtxt
+		chain = string.sub(chain, 1, p1) .. "</p>" .. sub .. "<p>" .. string.sub(chain, p2+1)
+	end
+
+	chain = "<div_title=\"" .. params.rule .. "\"><p>" .. chain .. "</p></div>"
+	return {subpos=params.position, sublen=params.length, subtxt=chain, rule=params.rule}
 end
 
-function divwrap(params)
-	content = ""
-	if #params.tokens > 0 then
-		content = subws(table.concat(params.tokens, ""))
-	elseif #params.values > 0 then
-		content = table.concat(params.values, "")
-	else
-		content = subws(params.matched)
-	end
-	content = "<div title=\"" .. params.rule .. "\">" .. content .. "</div>"
-	content = string.gsub(content, "<br></div>", "</div><br>") -- propagate newline outside block
-	content = string.gsub(content, "\"></div>", "\">&epsilon;</div>")
+actions["SyntaxError"] = function(params)
+	html = htmlwrap(params)
+	html.subtxt = string.gsub(html.subtxt, "<p>", "<p_class=\"error\">")
+	return html
+end
+
+actions["Start"] = function(params)
+	content = htmlwrap(params).subtxt
+
+	content = string.gsub(content, "<p></p>", "")
+	content = string.gsub(content, " ", "&#x2423;")
+	content = string.gsub(content, "\t", "&xrarr;")
+	content = string.gsub(content, "\n", "&ldsh;<br>\n")
+	content = string.gsub(content, "<div_title=", "<div title=")
+	content = string.gsub(content, "<p_class=", "<p class=")
+
+	content = [[
+<html>
+	<head>
+		<title>Parsing Result</title>
+		<style>
+			div{
+				background-color:rgba(96,192,255,0.1);
+				border:solid 1px rgba(0,0,0,0.1);
+				display:inline;
+				font-family:monospace;
+				font-size:82%;
+				padding-left:3pt;
+				padding-right:3pt;
+				margin-left:2pt;
+				margin-right:2pt;
+			}
+			div.mark, div.mark div{
+				background-color:rgba(255,128,0,0.4);
+			}
+			p{
+				pointer-events: none;
+				display:inline;
+				font-size:12pt;
+			}
+			p.error{
+				color:#CC0000;
+			}
+			#info{
+				pointer-events: none;
+				display:block;
+				position:fixed;
+				top:30px;
+				right:30px;
+				border:solid 1px black;
+				background-color:#ffffaa;
+				font-size:14pt;
+				font-family:monospace;
+				padding:20pt;
+				visibility:hidden;
+			}
+			#explorer{
+				font-size:30pt;
+				line-height:25pt
+			}
+		</style>
+	</head>
+	<body>
+		<span id="info"></span>
+		<span id="explorer">
+
+
+]] .. content .. [[
+
+
+		</span>
+		<script>
+			var divs = document.getElementsByTagName("div");
+			var info = document.getElementById("info");
+
+			for(var i=0; i<divs.length; i++){
+				divs[i].onmouseover = function(evt){
+					evt.target.className="mark";
+					info.style.visibility = "visible";
+					info.innerHTML = evt.target.title;
+					parent = evt.target.parentElement;
+					while(parent.id != "explorer"){
+						info.innerHTML = parent.title + "<br>" + info.innerHTML;
+						parent = parent.parentElement;
+					}
+				}
+				divs[i].onmouseout = function(evt){
+					info.innerHTML = "";
+					info.style.visibility = "hidden";
+					evt.target.className="";
+				}
+			}
+		</script>
+	</body>
+</html>
+
+]]
 	return content
 end
-
-function matched(params)
-	return subws(params.matched)
-end
-
-actions["WS"] = matched
-actions["_"] = matched
-actions["NL"] = matched
-actions["nl"] = matched
 
 pp = pegparser{
 	grammar = table.concat(grammar, "\n"),
 	actions = actions,
-	default = divwrap,
+	default = htmlwrap,
 	packrat = true,
 	debuglog = false}
 
@@ -104,38 +188,10 @@ function writeToFile(fname, text)
 	io.close(fout)
 end
 
-htmlHeader = [[
-<html>
-	<head>
-		<title>Parsing Result</title>
-		<style>
-			div{
-				display: inline-block;
-				font-family:monospace;
-				background-color:rgba(0,100,255,0.05);
-				border:solid 1px rgba(0,100,255,0.3);
-				margin:3px;
-				cursor: default;
-			}
-			div:hover {
-				background-color:rgba(255,0,0,0.08);
-				border:solid 1px red;
-			}
-		</style>
-	</head>
-	<body>
 
-]]
 
-htmlFooter = [[
-
-	</body>
-</html>
-]]
-
-if false then
-print("testing verbatim c++...")
 result = pp:parse([[
+
 $int main(){
 	// $
 	/* $ // */
@@ -144,20 +200,14 @@ $int main(){
 	"\\\"$";
 	R"raw( )boiled" $ )raw";
 }$
-]])
-writeToFile("test/output/verbatim_cpp.html", htmlHeader .. result .. htmlFooter)
 
-print("testing global declarations...")
-result = pp:parse([[
+
 q := X
 int q := X
+I'm a syntax error
 const unsigned int q := X
-]])
-writeToFile("test/output/global_decl.html", htmlHeader .. result .. htmlFooter)
-end
 
-print("testing function declarations...")
-result = pp:parse([[
+
 function fun0 end
 
 function fun1 :=
@@ -193,4 +243,5 @@ end
 function fun11(int x:=X, int y) -> (int q:=X, int r) :=
 end
 ]])
-writeToFile("test/output/function_decl.html", htmlHeader .. result .. htmlFooter)
+
+writeToFile("test/output.html", result)
