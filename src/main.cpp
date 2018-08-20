@@ -7,8 +7,6 @@
 #include "luautils.h"
 #include "parser.h"
 
-lua_State* lua::scope::s_L = nullptr;
-
 using namespace std;
 
 // main
