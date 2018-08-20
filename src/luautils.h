@@ -46,7 +46,6 @@ namespace lua {
 	private:
 		lua_State* m_prev;
 	};
-	// lua_State* lua::scope::s_L = nullptr;
 
 	/**
 	 * I clean up the stack on scope exit.
@@ -313,24 +312,13 @@ namespace lua {
 		const value m_key;
 	};
 
-	inline void value::push(const subscript_value& value) {
-		value.push();
-	}
-
 	template<typename TKey>
 	subscript_value value::operator [](const TKey& key) const {
 		return subscript_value(*this, key);
 	}
 
-	inline value globals() {
-		lua_pushglobaltable(scope::state());
-		return value::pop();
-	}
-
-	inline value newtable() {
-		lua_newtable(scope::state());
-		return value::pop();
-	}
+	value globals();
+	value newtable();
 
 	/**
 	 * Invoke a C++ function from Lua. The Lua state is made available to
@@ -363,8 +351,16 @@ namespace lua {
 	 */
 	struct method {
 		const char* name;
-		int (&f)(lua_State*);
+		lua_CFunction f;
 	};
+
+	namespace detail {
+		void *newuserdata(const char* name,
+				  std::size_t size,
+				  lua_CFunction finalize,
+				  const method* methods,
+				  const method* methodsEnd);
+	}
 
 	/**
 	 * I represent a Lua metatable and provide methods for accessing
@@ -399,23 +395,12 @@ namespace lua {
 		 */
 		template<std::size_t N, typename... Args>
 		static value newuserdata(const method (&methods)[N], Args&&... args) {
-			lua_State* const L = scope::state();
-
-			T* const t = static_cast<T*>(lua_newuserdata(L, sizeof(T)));
-
-			if (luaL_newmetatable(L, Name)) {
-				lua_pushcfunction(L, finalize);
-				lua_setfield(L, -2, "__gc");
-				lua_newtable(L);
-				for (const auto& m : methods) {
-					lua_pushcfunction(L, m.f);
-					lua_setfield(L, -2, m.name);
-				}
-				lua_setfield(L, -2, "__index");
-			}
-			lua_setmetatable(L, -2);
-			const value result = lua::value::pop();
-
+			T* const t = static_cast<T*>(detail::newuserdata(Name,
+									 sizeof(T),
+									 finalize,
+									 std::begin(methods),
+									 std::end(methods)));
+			const value result = value::pop();
 			new (t) T(std::forward<Args>(args)...);
 			return result;
 		}
@@ -434,22 +419,4 @@ namespace lua {
 	};
 }
 
-inline auto lua_loadutils(lua_State *L){
-	const auto utils = R"(
-
-	function stringify(o)
-		if "table" ~= type(o) then
-				return tostring(o)
-		end
-
-		local res = {}
-		for k, v in pairs(o) do
-				local val = {"[", k, "]=", stringify(v)}
-				res[1 + #res] = table.concat(val)
-		end
-		return "{" .. table.concat(res, ", ") .. "}"
-	end
-
-	)";
-	return luaL_loadstring(L, utils) || lua_pcall(L, 0, 0, 0);
-}
+bool lua_loadutils(lua_State *L);

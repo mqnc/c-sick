@@ -54,4 +54,4 @@ if not GetOption("clean") and not GetOption("help"):
 luasrc = Glob("build/lua/src/*.c", exclude="build/lua/src/lua*.c")
 #env.Program("lua", ["build/lua/src/lua.c"] + luasrc)
 #env.Program("luac", ["build/lua/src/luac.c"] + luasrc)
-env.Program("program", ["build/main.cpp", "build/parser.cpp"] + luasrc)
+env.Program("program", ["build/luautils.cpp", "build/main.cpp", "build/parser.cpp"] + luasrc)
