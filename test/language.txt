@@ -24,6 +24,8 @@ function main() :=
 	else
 		print(a, ">", b)
 	end
+	
+	var f:= when e==17 then true else false // end? // ternary operator
 
 	switch a
 		case 1 do
