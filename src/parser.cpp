@@ -37,6 +37,8 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 		params["column"] = sv.line_info().second;
 		params["line"] = sv.line_info().first;
 		params["matched"] = StringPtr(sv.c_str(), sv.length());
+		params["position"] = (int)(sv.c_str() - sv.ss);
+		params["length"] = sv.length();
 		params["rule"] = rule;
 
 		const lua::value values = lua::newtable();
