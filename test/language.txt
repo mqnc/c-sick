@@ -14,7 +14,7 @@ function main() :=
 	val b:=3 // const auto
 	// single "=" is never valid in order to avoid confusion between assignment and comparison
 	var c:=7; var d:=8 // ";" and linebreak are equal
-	var c:= ... // line continuation
+	var e:= ... // line continuation
 		17
 
 	if a<b then
@@ -42,11 +42,11 @@ function main() :=
 
 	repeat
 		a++
-	until a==20
+	until a==20 // end?
 
 	repeat
 		a++
-	while a<30 // can be distinguished from nested while loop by the lack of "do" before linebreak
+	while a<30 // end? // can be distinguished from nested while loop by the lack of "do"
 
 	for i<=5 do // 0 1 2 3 4 5
 		print(i)
@@ -81,27 +81,27 @@ end
 function fun3(int x) :=
 end
 
-function fun4(int x=0) :=
+function fun4(int x:=0) :=
 end
 
-function fun5(int x=0, int y) :=
+function fun5(int x:=0, int y) :=
 end
 
-function fun6 -> int q :=
+function fun6 -> (int q) :=
 end
 
-function fun7 -> int q=0 :=
+function fun7 -> (int q:=0) :=
 end
 
-function fun8 -> (int q) :=
+function fun8 -> (int q:=0, int r) :=
+	val r:=5
+	return q, r
 end
 
-function fun9 -> (int q=0) :=
+function fun9 -> (int q:=0, int r:=7) :=
+	// implicit return q, r in the end when all return values are initialized
 end
 
-function fun10 -> (int q=0, int r) :=
-end
-
-function fun11(int x=0, int y) -> (int q=0, int r) :=
+function fun10(int x:=0, int y) -> (int q:=0, int r) :=
 end
 
