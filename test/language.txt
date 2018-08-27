@@ -145,6 +145,7 @@ left        a++      postfix increment
             a[]      subscript
             .        member access
             ->       member access
+            custom
 --------------------------------------------------------
 right       ++a      prefix increment
             --a      prefix decrement
@@ -160,27 +161,49 @@ right       ++a      prefix increment
             new[]    dynamic memory array allocation
             delete   dynamic memory deallocation
             delete[] dynamic memory array deallocation
+            custom
 --------------------------------------------------------
 left        .*       pointer-to-member
             ->*      pointer-to-member
 --------------------------------------------------------
+left        custom
+--------------------------------------------------------
 left        ^        exponentiation
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 left        a*b      multiplication
             a/b      division
             a mod b  remainder
+            custom
 --------------------------------------------------------
 left        a+b      addition
             a-b      subtraction
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 left        shl      shift left
             shr      shift right
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 left        bitand   bitwise and
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 left        bitxor   bitwise xor
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 left        bitor    bitwise or
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 left        ==       equal
             !=       not equal
@@ -188,13 +211,23 @@ left        ==       equal
             <=       lower or equal
             >        greater than
             >=       greater than or equal
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 left        and      logical and
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 left        or       logical or
+            custom
+--------------------------------------------------------
+left        custom
 --------------------------------------------------------
 right       when     ternary conditional
             throw    throw operator
+            custom
 --------------------------------------------------------
 
 assignments aren't operators
