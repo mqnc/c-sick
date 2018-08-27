@@ -154,7 +154,7 @@ right       ++a      prefix increment
             not      logical not
             bitnot   bitwise not
             (type)   c-style cast
-            *a       dereference
+            @a       dereference
             &a       address-of
             sizeof   size-of
             new      dynamic memory allocation
@@ -236,6 +236,6 @@ direct assignment
 :=
 
 compound assignment works with any infix operator
-a @= b  translates to  a := a @ b
+a §= b  translates to  a := a § b
 
 */
