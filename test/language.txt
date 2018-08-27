@@ -1,5 +1,29 @@
 
 
+struct data
+
+	// all public
+	int a:=5
+	string s:="toast"
+	// data* pdata:=nullptr // version 0.2
+
+end
+
+
+class student
+
+	// default private or public or no default?
+	public:
+
+	ctor():= // ctor named ctor?
+	end
+
+	dtor():= // dtor named dtor?
+	end
+
+end
+
+
 function main() :=
 
 	// comment
@@ -17,14 +41,14 @@ function main() :=
 	var e:= ... // line continuation
 		17
 
-	if a<b then
+	if a<b then // do we actually need "then" and "do" and so on or do we just require \n or ; here?
 		print(a, "<", b)
 	elseif a==b then
 		print(a, "==", b)
 	else
 		print(a, ">", b)
 	end
-	
+
 	var f:= when e==17 then true else false // end? // ternary operator
 
 	switch a
@@ -48,7 +72,7 @@ function main() :=
 
 	repeat
 		a++
-	while a<30 // end? // can be distinguished from nested while loop by the lack of "do"
+	while a<30 // end? // can be distinguished from nested while loop by the lack of "do" (in case "do" stays, maybe rather use "whilst"?)
 
 	for i<=5 do // 0 1 2 3 4 5
 		print(i)
@@ -107,3 +131,78 @@ end
 function fun10(int x:=0, int y) -> (int q:=0, int r) :=
 end
 
+/*
+
+operator precedence:
+
+associat.   operator description
+--------------------------------------------------------
+left        ::       scope resolution
+--------------------------------------------------------
+left        a++      postfix increment
+            a--      postfix decrement
+            a()      call
+            a[]      subscript
+            .        member access
+            ->       member access
+--------------------------------------------------------
+right       ++a      prefix increment
+            --a      prefix decrement
+            +a       unary plus
+            -a       unary minus
+            not      logical not
+            bitnot   bitwise not
+            (type)   c-style cast
+            *a       dereference
+            &a       address-of
+            sizeof   size-of
+            new      dynamic memory allocation
+            new[]    dynamic memory array allocation
+            delete   dynamic memory deallocation
+            delete[] dynamic memory array deallocation
+--------------------------------------------------------
+left        .*       pointer-to-member
+            ->*      pointer-to-member
+--------------------------------------------------------
+left        ^        exponentiation
+--------------------------------------------------------
+left        a*b      multiplication
+            a/b      division
+            a mod b  remainder
+--------------------------------------------------------
+left        a+b      addition
+            a-b      subtraction
+--------------------------------------------------------
+left        shl      shift left
+            shr      shift right
+--------------------------------------------------------
+left        bitand   bitwise and
+--------------------------------------------------------
+left        bitxor   bitwise xor
+--------------------------------------------------------
+left        bitor    bitwise or
+--------------------------------------------------------
+left        ==       equal
+            !=       not equal
+            <        lower than
+            <=       lower or equal
+            >        greater than
+            >=       greater than or equal
+--------------------------------------------------------
+left        and      logical and
+--------------------------------------------------------
+left        or       logical or
+--------------------------------------------------------
+right       when     ternary conditional
+            throw    throw operator
+--------------------------------------------------------
+
+assignments aren't operators
+
+direct assignment
+:=
+
+compound assignment works with any infix operator
+a @= b  translates to  a := a @ b
+
+*/
