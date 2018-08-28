@@ -72,7 +72,7 @@ function main()
 
 	repeat
 		a++
-	whilst a<30 // can be distinguished from nested while loop by the lack of "do" (in case "do" stays, maybe rather use "whilst"?)
+	whilst a<30
 
 	for i<=5 // 0 1 2 3 4 5
 		print(i)
@@ -185,6 +185,8 @@ left        a*b      multiplication
             a mod b  remainder
             custom
 --------------------------------------------------------
+left        custom
+--------------------------------------------------------
 left        a+b      addition
             a-b      subtraction
             custom
@@ -223,6 +225,11 @@ left        ==       equal
 left        custom
 --------------------------------------------------------
 left        and      logical and
+            custom
+--------------------------------------------------------
+left        custom
+--------------------------------------------------------
+left        xor      logical xor
             custom
 --------------------------------------------------------
 left        custom
