@@ -15,16 +15,16 @@ class student
 	// default private or public or no default?
 	public:
 
-	ctor():= // ctor named ctor?
+	ctor() // ctor named ctor?
 	end
 
-	dtor():= // dtor named dtor?
+	dtor() // dtor named dtor?
 	end
 
 end
 
 
-function main() :=
+function main()
 
 	// comment
 
@@ -41,9 +41,9 @@ function main() :=
 	var e:= ... // line continuation
 		17
 
-	if a<b then // do we actually need "then" and "do" and so on or do we just require \n or ; here?
+	if a<b
 		print(a, "<", b)
-	elseif a==b then
+	elseif a==b
 		print(a, "==", b)
 	else
 		print(a, ">", b)
@@ -52,83 +52,90 @@ function main() :=
 	var f:= when e==17 then true else false // end? // ternary operator
 
 	switch a
-		case 1 do
+		case 1
 			print("a is 1")
 			// implicit break
-		case 2 do
+		case 2
 			print("a is 2")
 			fall // prevents break
 		default
 			print("a is 2 or other")
 	end
 
-	while a<10 do
+	while a<10
 		a++
 	end
 
 	repeat
 		a++
-	until a==20 // end?
+	until a==20
 
 	repeat
 		a++
-	while a<30 // end? // can be distinguished from nested while loop by the lack of "do" (in case "do" stays, maybe rather use "whilst"?)
+	whilst a<30 // can be distinguished from nested while loop by the lack of "do" (in case "do" stays, maybe rather use "whilst"?)
 
-	for i<=5 do // 0 1 2 3 4 5
+	for i<=5 // 0 1 2 3 4 5
 		print(i)
 	end
 
-	for 1<=i<5 do // 1 2 3 4
+	for 1<=i<5 // 1 2 3 4
 		print(i)
 	end
 
-	for 5>i>=0 do // 4 3 2 1 0
+	for 5>i>=0 // 4 3 2 1 0
 		print(i)
 	end
 
-	for 1<=i<10, i*=2 do // 1 2 4 8
+	for 1<=i<10, i*=2 // 1 2 4 8
 		print(i)
 	end
 
-	for i in {2, 3, 5, 7, 11} do
+	for i in {2, 3, 5, 7, 11}
 		print(i)
 	end
 
 end
 
-function fun0 end
+function oneLine; end
 
-function fun1 :=
+function noParams
 end
 
-function fun2() :=
+function emptyParams()
 end
 
-function fun3(int x) :=
+function oneParam(int x)
 end
 
-function fun4(int x:=0) :=
+function oneDefaultParam(int x:=0)
 end
 
-function fun5(int x:=0, int y) :=
+function twoParams(int x:=0, int y)
 end
 
-function fun6 -> (int q) :=
+function simpleReturn -> int q
 end
 
-function fun7 -> (int q:=0) :=
+function simpleReturnDefaultValue -> int q:=0
+	// implicit return q in the end if return value is initialized
 end
 
-function fun8 -> (int q:=0, int r) :=
+function returnStruct -> (int q)
+end
+
+function returnStructDefaultValue -> (int q:=0)
+end
+
+function returnStructMultipleValues -> (int q:=0, int r)
 	val r:=5
 	return q, r
 end
 
-function fun9 -> (int q:=0, int r:=7) :=
+function returnStructMultipleDefaultValues -> (int q:=0, int r:=7)
 	// implicit return q, r in the end when all return values are initialized
 end
 
-function fun10(int x:=0, int y) -> (int q:=0, int r) :=
+function fullMonty(int x:=0, int y) -> (int q:=0, int r)
 end
 
 /*
@@ -154,8 +161,8 @@ right       ++a      prefix increment
             not      logical not
             bitnot   bitwise not
             (type)   c-style cast
-            @a       dereference
-            &a       address-of
+            *a       dereference
+            @a       address-of
             sizeof   size-of
             new      dynamic memory allocation
             new[]    dynamic memory array allocation
@@ -236,6 +243,6 @@ direct assignment
 :=
 
 compound assignment works with any infix operator
-a §= b  translates to  a := a § b
+a $= b  translates to  a := a $ b
 
 */
