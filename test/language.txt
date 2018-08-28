@@ -142,107 +142,107 @@ end
 
 operator precedence:
 
-associat.   operator description
---------------------------------------------------------
-left        ::       scope resolution
---------------------------------------------------------
-left        a++      postfix increment
-            a--      postfix decrement
-            a()      call
-            a[]      subscript
-            .        member access
-            ->       member access
-            custom
---------------------------------------------------------
-right       ++a      prefix increment
-            --a      prefix decrement
-            +a       unary plus
-            -a       unary minus
-            not      logical not
-            bitnot   bitwise not
-            (type)   c-style cast
-            *a       dereference
-            @a       address-of
-            sizeof   size-of
-            new      dynamic memory allocation
-            new[]    dynamic memory array allocation
-            delete   dynamic memory deallocation
-            delete[] dynamic memory array deallocation
-            custom
---------------------------------------------------------
-left        .*       pointer-to-member
-            ->*      pointer-to-member
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        ^        exponentiation
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        a*b      multiplication
-            a/b      division
-            a mod b  remainder
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        a+b      addition
-            a-b      subtraction
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        shl      shift left
-            shr      shift right
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        bitand   bitwise and
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        bitxor   bitwise xor
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        bitor    bitwise or
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        ==       equal
-            !=       not equal
-            <        lower than
-            <=       lower or equal
-            >        greater than
-            >=       greater than or equal
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        and      logical and
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        xor      logical xor
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-left        or       logical or
-            custom
---------------------------------------------------------
-left        custom
---------------------------------------------------------
-right       when     ternary conditional
-            throw    throw operator
-            custom
---------------------------------------------------------
+classid  associat.   operator description
+-----------------------------------------------------------------
+scope    left        ::       scope resolution
+-----------------------------------------------------------------
+postfix  left        a++      postfix increment
+                     a--      postfix decrement
+                     a()      call
+                     a[]      subscript
+                     .        member access
+                     ->       member access
+                     custom
+-----------------------------------------------------------------
+prefix   right       ++a      prefix increment
+                     --a      prefix decrement
+                     +a       unary plus
+                     -a       unary minus
+                     not      logical not
+                     bitnot   bitwise not
+                     (type)   c-style cast
+                     *a       dereference
+                     @a       address-of
+                     sizeof   size-of
+                     new      dynamic memory allocation
+                     new[]    dynamic memory array allocation
+                     delete   dynamic memory deallocation
+                     delete[] dynamic memory array deallocation
+                     custom
+-----------------------------------------------------------------
+pmember  left        .*       pointer-to-member
+                     ->*      pointer-to-member
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+power    left        ^        exponentiation
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+multiply left        a*b      multiplication
+                     a/b      division
+                     a mod b  remainder
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+add      left        a+b      addition
+                     a-b      subtraction
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+shift    left        shl      shift left
+                     shr      shift right
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+bitand   left        bitand   bitwise and
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+bitxor   left        bitxor   bitwise xor
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+bitor    left        bitor    bitwise or
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+compare  left        ==       equal
+                     !=       not equal
+                     <        lower than
+                     <=       lower or equal
+                     >        greater than
+                     >=       greater than or equal
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+and      left        and      logical and
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+xor      left        xor      logical xor
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+or       left        or       logical or
+                     custom
+-----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
+action   right       when     ternary conditional
+                     throw    throw operator
+                     custom
+-----------------------------------------------------------------
 
 assignments aren't operators
 
