@@ -33,7 +33,15 @@ rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]])
 rule([[ NestableComment <- '\\*' (NestableComment / !'*\\' .)* '*\\' ]])
 
 rule([[ AssignOperator <- ':=' ]])
-rule([[ Identifier <- ([a-zA-Z_] [a-zA-Z_0-9]* / VerbatimCpp) ]])
+
+rule([[ Name <- NameStart NameMid* NameEnd ]])
+rule([[ NameStart <- [a-zA-Z_] ]])
+rule([[ NameMid <- [a-zA-Z_0-9] ]])
+rule([[ NameEnd <- !NameMid ]])
+
+rule([[ Keyword <- (FunctionKeyword / EndFunction / IfKeyword / ElseIfKeyword / ElseIfKeyword / EndIf) NameEnd ]])
+
+rule([[ Identifier <- !Keyword (Name / VerbatimCpp) ]])
 
 rule([[ GlobalToken <- (VerbatimCpp _ break) / GlobalDeclaration / SyntaxError ]])
 rule([[ LocalToken <- Statement / SyntaxError ]])
@@ -51,6 +59,7 @@ rule([[ CppMultiLineString <- 'R"' $delim[a-zA-Z_0-9]* '(' (!(')' $delim '"') .)
 rule([[ CppAnything <- (!CppLimiter .) ]])
 
 rule([[ GlobalDeclaration <- FunctionDeclaration / SimpleDeclaration ]])
+rule([[ LocalDeclaration <- SimpleDeclaration ]])
 
 rule([[ SimpleDeclaration <- (Specifier ws)* Declaree _ (AssignOperator _ Placeholder _)? break ]])
 rule([[ Specifier <- !Declaree Identifier ]])
@@ -71,7 +80,7 @@ rule([[ ReturnValueList <- ParameterDeclaration _ (',' _ ParameterDeclaration _)
 rule([[ OptionalFunctionBody <- skip (!EndFunction LocalToken skip)*  ]])
 rule([[ EndFunction <- 'end' ]])
 
-rule([[ Statement <- IfStatement ]])
+rule([[ Statement <- LocalDeclaration / IfStatement ]])
 
 rule([[ IfStatement <- IfPart (ElseIfPart)* ElsePart? EndIf ]])
 rule([[ IfPart <- IfKeyword ws Condition _ break OptionalIfBody ]])
