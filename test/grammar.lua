@@ -11,8 +11,9 @@ end
 
 input = readAll("test/language.txt")
 
+-- for little tests:
 input2 = [[
-	small_test := 5
+
 ]]
 
 debuglog = false
@@ -22,6 +23,7 @@ function rule(r)
 end
 
 rule([[ Start <- skip (GlobalToken skip)* ]])
+--rule([[ Start <- _ IfStatement skip]])
 
 rule([[ SyntaxError <- (!nl .)* nl ]])
 
@@ -33,7 +35,8 @@ rule([[ NestableComment <- '\\*' (NestableComment / !'*\\' .)* '*\\' ]])
 rule([[ AssignOperator <- ':=' ]])
 rule([[ Identifier <- ([a-zA-Z_] [a-zA-Z_0-9]* / VerbatimCpp) ]])
 
-rule([[ GlobalToken <- (VerbatimCpp break) / GlobalDeclaration / SyntaxError ]])
+rule([[ GlobalToken <- (VerbatimCpp _ break) / GlobalDeclaration / SyntaxError ]])
+rule([[ LocalToken <- Statement / SyntaxError ]])
 
 rule([[ VerbatimCpp <- CppLimiter CppCode* CppLimiter ]])
 rule([[ CppLimiter <- '$' ]])
@@ -53,7 +56,7 @@ rule([[ SimpleDeclaration <- (Specifier ws)* Declaree _ (AssignOperator _ Placeh
 rule([[ Specifier <- !Declaree Identifier ]])
 rule([[ Declaree <- Identifier _ (&AssignOperator / &break) ]])
 
-rule([[ FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ OptionalParameters _ OptionalReturnValues _ break OptionalBody FunctionEnd break ]])
+rule([[ FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ OptionalParameters _ OptionalReturnValues _ break OptionalFunctionBody EndFunction _ break ]])
 rule([[ FunctionKeyword <- 'function' ]])
 rule([[ OptionalSpecifierList <- ('[' _ (Identifier _)* ']' )? ]])
 rule([[ OptionalParameters <- ('(' _ ParameterDeclarationList _ ')')? ]])
@@ -65,8 +68,21 @@ rule([[ OptionalReturnValues <- ('->' _ (SingleReturnValue / MultipleReturnValue
 rule([[ SingleReturnValue <- ParameterDeclaration ]])
 rule([[ MultipleReturnValues <- '(' _ ReturnValueList _ ')' ]])
 rule([[ ReturnValueList <- ParameterDeclaration _ (',' _ ParameterDeclaration _)* / _ ]])
-rule([[ OptionalBody <- (!FunctionEnd .)*  ]])
-rule([[ FunctionEnd <- 'end' ]])
+rule([[ OptionalFunctionBody <- skip (!EndFunction LocalToken skip)*  ]])
+rule([[ EndFunction <- 'end' ]])
+
+rule([[ Statement <- IfStatement ]])
+
+rule([[ IfStatement <- IfPart (ElseIfPart)* ElsePart? EndIf ]])
+rule([[ IfPart <- IfKeyword ws Condition _ break OptionalIfBody ]])
+rule([[ IfKeyword <- 'if' ]])
+rule([[ Condition <- Placeholder ]])
+rule([[ OptionalIfBody <- skip (!ElseIfKeyword !ElseKeyword !EndIf LocalToken skip)* ]])
+rule([[ ElseIfPart <- ElseIfKeyword ws Condition _ break OptionalIfBody ]])
+rule([[ ElseIfKeyword <- 'elseif' ]])
+rule([[ ElsePart <- ElseKeyword _ break OptionalIfBody ]])
+rule([[ ElseKeyword <- 'else' ]])
+rule([[ EndIf <- 'end' ]])
 
 rule([[ ws <- ([ \t] / ('...' _ break) / Comment)* # definite whitespace ]])
 rule([[ _ <- ws? # optional whitespace ]])

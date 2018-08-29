@@ -39,9 +39,9 @@ function main()
 	var e:= ... // line continuation
 		17
 
-	if a<b
+	if 123
 		print(a, "<", b)
-	elseif a==b
+	elseif 456
 		print(a, "==", b)
 	else
 		print(a, ">", b)
