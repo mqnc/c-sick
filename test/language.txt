@@ -92,6 +92,8 @@ function main()
 		print(i)
 	end
 
+	twoParams(y:=4) // kwargs
+
 end
 
 function oneLine; end
