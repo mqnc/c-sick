@@ -2,66 +2,85 @@
 grammar = {}
 actions = {}
 
+function readAll(file)
+    local f = assert(io.open(file, "rb"))
+    local content = f:read("*all")
+    f:close()
+    return content
+end
+
+input = readAll("test/language.txt")
+
+input2 = [[
+	small_test := 5
+]]
+
+debuglog = false
+
 function rule(r)
 	grammar[1 + #grammar] = r
 end
 
-rule([[ Start <- nl (GlobalToken)* _ nl ]])
+rule([[ Start <- skip (GlobalToken skip)* ]])
 
-rule([[ SyntaxError <- (!'\n' .)* '\n' ]])
+rule([[ SyntaxError <- (!nl .)* nl ]])
 
-rule([[ Comment <- <SingleLineComment / MultiLineComment / NestableComment> ]])
-rule([[ SingleLineComment <- '//' (!NL .)* NL ]])
+rule([[ Comment <- SingleLineComment / MultiLineComment / NestableComment ]])
+rule([[ SingleLineComment <- '//' (!nl .)* ]])
 rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]])
 rule([[ NestableComment <- '\\*' (NestableComment / !'*\\' .)* '*\\' ]])
 
 rule([[ AssignOperator <- ':=' ]])
-rule([[ Identifier <- <([a-zA-Z_] [a-zA-Z_0-9]* / VerbatimCpp)> _ ]])
+rule([[ Identifier <- ([a-zA-Z_] [a-zA-Z_0-9]* / VerbatimCpp) ]])
 
-rule([[ GlobalToken <- VerbatimCpp / GlobalDeclaration / SyntaxError ]])
+rule([[ GlobalToken <- (VerbatimCpp break) / GlobalDeclaration / SyntaxError ]])
 
-rule([[ VerbatimCpp <- CppLimiter CppCode* CppLimiter nl ]])
+rule([[ VerbatimCpp <- CppLimiter CppCode* CppLimiter ]])
 rule([[ CppLimiter <- '$' ]])
 rule([[ CppCode <- CppComment / CppStringLiteral / CppAnything ]])
-rule([[ CppComment <- <CppSingleLineComment / CppMultiLineComment> ]])
-rule([[ CppSingleLineComment <- '//' (!NL .)* NL ]])
+rule([[ CppComment <- CppSingleLineComment / CppMultiLineComment ]])
+rule([[ CppSingleLineComment <- '//' (!nl .)* nl ]])
 rule([[ CppMultiLineComment <- '/*' (!'*/' .)* '*/' ]])
-rule([[ CppStringLiteral <- <CppCharConstant / CppSimpleString / CppMultiLineString> ]])
+rule([[ CppStringLiteral <- CppCharConstant / CppSimpleString / CppMultiLineString ]])
 rule([[ CppCharConstant <- '\'' (('\\' .) / .) '\'' ]])
 rule([[ CppSimpleString <- '"' (('\\' .) / (!'"' .))* '"' ]])
-rule([[ CppMultiLineString <- 'R"' $delim<[a-zA-Z_0-9]*> '(' (!(')' $delim '"') .)* ')' $delim '"' ]])
+rule([[ CppMultiLineString <- 'R"' $delim[a-zA-Z_0-9]* '(' (!(')' $delim '"') .)* ')' $delim '"' ]])
 rule([[ CppAnything <- (!CppLimiter .) ]])
 
-rule([[ GlobalDeclaration <- (SimpleDeclaration / FunctionDeclaration) _ ]])
+rule([[ GlobalDeclaration <- FunctionDeclaration / SimpleDeclaration ]])
 
-rule([[ SimpleDeclaration <- Specifier* Declaree (AssignOperator _ Placeholder)? NL ]])
+rule([[ SimpleDeclaration <- (Specifier ws)* Declaree _ (AssignOperator _ Placeholder _)? break ]])
 rule([[ Specifier <- !Declaree Identifier ]])
-rule([[ Declaree <- Identifier (&AssignOperator / &NL) ]])
+rule([[ Declaree <- Identifier _ (&AssignOperator / &break) ]])
 
-rule([[ FunctionDeclaration <- FunctionKeyword WS Identifier OptionalSpecifierList OptionalParameters OptionalReturnValues OptionalBody FunctionEnd NL ]])
+rule([[ FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ OptionalParameters _ OptionalReturnValues _ break OptionalBody FunctionEnd break ]])
 rule([[ FunctionKeyword <- 'function' ]])
-rule([[ OptionalSpecifierList <- ('[' _ Identifier* ']' )? _  ]])
-rule([[ OptionalParameters <- ('(' _ ParameterDeclarationList ')')? _  ]])
+rule([[ OptionalSpecifierList <- ('[' _ (Identifier _)* ']' )? ]])
+rule([[ OptionalParameters <- ('(' _ ParameterDeclarationList _ ')')? ]])
 rule([[ ParameterDeclarationList <- ParameterDeclaration (',' _ ParameterDeclaration)* / _ ]])
-rule([[ ParameterDeclaration <- ParameterSpecifier* Parameter (AssignOperator _ Placeholder)? ]])
+rule([[ ParameterDeclaration <- (ParameterSpecifier _)* Parameter _ (AssignOperator _ Placeholder)? ]])
 rule([[ ParameterSpecifier <- !Parameter Identifier ]])
-rule([[ Parameter <- Identifier (&AssignOperator / &',' / &')') ]])
-rule([[ OptionalReturnValues <- ('->' _ (SingleReturnValue / MultipleReturnValues))? _ ]])
-rule([[ SingleReturnValue <- ParameterDeclaration _ ]])
-rule([[ MultipleReturnValues <- '(' _ ReturnValueList ')' _ ]])
-rule([[ ReturnValueList <- ParameterDeclaration (',' _ ParameterDeclaration)* / _ ]])
-rule([[ OptionalBody <- AssignOperator nl (!FunctionEnd .)*  ]])
+rule([[ Parameter <- Identifier _ (&AssignOperator / &',' / &')') ]])
+rule([[ OptionalReturnValues <- ('->' _ (SingleReturnValue / MultipleReturnValues))? ]])
+rule([[ SingleReturnValue <- ParameterDeclaration ]])
+rule([[ MultipleReturnValues <- '(' _ ReturnValueList _ ')' ]])
+rule([[ ReturnValueList <- ParameterDeclaration _ (',' _ ParameterDeclaration _)* / _ ]])
+rule([[ OptionalBody <- (!FunctionEnd .)*  ]])
 rule([[ FunctionEnd <- 'end' ]])
 
-rule([[ WS <- <([ \t] / ('...' _ NL) / Comment)> # definite whitespace ]])
-rule([[ _ <- WS? # optional whitespace ]])
-rule([[ NL <- <([;\n] _)+> # definite new line (consuming all new lines) ]])
-rule([[ nl <- NL? _ # optional new line ]])
+rule([[ ws <- ([ \t] / ('...' _ break) / Comment)* # definite whitespace ]])
+rule([[ _ <- ws? # optional whitespace ]])
+rule([[ nl <- '\r\n' / '\n' # definite whitespace ]])
+rule([[ break <- nl / ';' # end of something ]])
+rule([[ skip <- _ (nl _)* # consume all new lines and whitespaces (and comments) ]])
 
-rule([[ Placeholder <- <'X'> _ ]])
+rule([[ Placeholder <- [0-9]* _ ]])
 
 function htmlwrap(params)
 	chain = params.matched
+
+	chain = string.gsub(chain, "<", string.char(17)) -- substitute so html wont be messed up
+	chain = string.gsub(chain, ">", string.char(18)) -- replace with single character so positions remain unchanged
 
 	for i = #params.values, 1, -1 do
 		p1 = params.values[i].subpos-params.position
@@ -69,6 +88,9 @@ function htmlwrap(params)
 		sub = params.values[i].subtxt
 		chain = string.sub(chain, 1, p1) .. "</p>" .. sub .. "<p>" .. string.sub(chain, p2+1)
 	end
+
+	chain = string.gsub(chain, string.char(17), "&lt;") -- now render < and > in html
+	chain = string.gsub(chain, string.char(18), "&gt;")
 
 	chain = "<div_title=\"" .. params.rule .. "\"><p>" .. chain .. "</p></div>"
 	return {subpos=params.position, sublen=params.length, subtxt=chain, rule=params.rule}
@@ -179,7 +201,7 @@ pp = pegparser{
 	actions = actions,
 	default = htmlwrap,
 	packrat = true,
-	debuglog = false}
+	debuglog = debuglog}
 
 function writeToFile(fname, text)
 	fout = io.open(fname, "w")
@@ -188,60 +210,6 @@ function writeToFile(fname, text)
 	io.close(fout)
 end
 
+output = pp:parse(input)
 
-
-result = pp:parse([[
-
-$int main(){
-	// $
-	/* $ // */
-	'\'';
-	'$';
-	"\\\"$";
-	R"raw( )boiled" $ )raw";
-}$
-
-
-q := X
-int q := X
-I'm a syntax error
-const unsigned int q := X
-
-
-function fun0 end
-
-function fun1 :=
-end
-
-function fun2() :=
-end
-
-function fun3(int x) :=
-end
-
-function fun4(int x:=X) :=
-end
-
-function fun5(int x:=X, int y) :=
-end
-
-function fun6 -> int q :=
-end
-
-function fun7 -> int q:=X :=
-end
-
-function fun8 -> (int q) :=
-end
-
-function fun9 -> (int q:=X) :=
-end
-
-function fun10 -> (int q:=X, int r) :=
-end
-
-function fun11(int x:=X, int y) -> (int q:=X, int r) :=
-end
-]])
-
-writeToFile("test/output.html", result)
+writeToFile("test/output.html", output)

@@ -146,20 +146,20 @@ pegparser::pegparser() {
 				indent++;
 			};
 
-			(*m_parser)[rule.c_str()].leave = [rule](const char* s, size_t, size_t matchlen, any& value, any& dt) {
+			(*m_parser)[rule.c_str()].leave = [rule](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
 				auto& indent = *dt.get<int*>();
 				indent--;
 				cout << repeat("|  ", indent) << "`-> ";
 				if(success(matchlen)){
 
 					// display "match", the matched string and the result of the reduction
-					cout << "match: \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
+					cout << "matches " << rule << ": \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
 					const lua::value stringify(lua::globals()["stringify"]);
 					const string output = stringify(value.get<lua::value>()).tostring();
 					cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
 				}
 				else{
-					cout << "failed" << endl;
+					cout << "not " << rule << ": \"" << shorten(s, n, DEBUG_STRLEN) << "\"" << endl;
 				}
 			};
 		}
