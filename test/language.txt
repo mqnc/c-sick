@@ -1,14 +1,5 @@
 
-
-struct data
-
-	// all public
-	int a:=5
-	string s:="toast"
-	// data* pdata:=nullptr // version 0.2
-
-end
-
+// no structs
 
 class student
 
@@ -16,11 +7,16 @@ class student
 	public:
 
 	ctor() // ctor named ctor?
+		init // initializer list
+			m_data:=5
+		end
 	end
 
 	dtor() // dtor named dtor?
 	end
 
+	private:
+	int m_data;
 end
 
 
@@ -31,7 +27,9 @@ function main()
 	/* multiline
 	   comment */
 
-	\* multiline \* nestable *\ comment *\
+	\* multiline
+	\* nestable *\
+	   comment *\
 
 	// assignment
 	var a:=5 // auto
@@ -144,7 +142,12 @@ operator precedence:
 
 classid  associat.   operator description
 -----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
 scope    left        ::       scope resolution
+                     custom
+-----------------------------------------------------------------
+         left        custom
 -----------------------------------------------------------------
 postfix  left        a++      postfix increment
                      a--      postfix decrement
@@ -153,6 +156,8 @@ postfix  left        a++      postfix increment
                      .        member access
                      ->       member access
                      custom
+-----------------------------------------------------------------
+         left        custom
 -----------------------------------------------------------------
 prefix   right       ++a      prefix increment
                      --a      prefix decrement
@@ -169,6 +174,8 @@ prefix   right       ++a      prefix increment
                      delete   dynamic memory deallocation
                      delete[] dynamic memory array deallocation
                      custom
+-----------------------------------------------------------------
+         left        custom
 -----------------------------------------------------------------
 pmember  left        .*       pointer-to-member
                      ->*      pointer-to-member
@@ -243,6 +250,8 @@ action   right       when     ternary conditional
                      throw    throw operator
                      custom
 -----------------------------------------------------------------
+         left        custom
+-----------------------------------------------------------------
 
 assignments aren't operators
 
@@ -253,3 +262,20 @@ compound assignment works with any infix operator
 a $= b  translates to  a := a $ b
 
 */
+
+function sum(int a, int b) -> (int c:=a+b); end
+
+function operators
+
+	// will be shorter once the lua preprepreprocessor allows something like
+	// #define \+/ operator sum before multiply
+	// #define |+| operator sum with multiply
+	// #define /+\ operator sum after multiply
+
+	var c1 := 3*a operator sum before multiply 4*b
+
+	var c2 := 3*a operator sum with multiply 4*b
+
+	var c3 := 3*a operator sum after multiply 4*b
+
+end
