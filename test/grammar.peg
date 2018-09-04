@@ -15,7 +15,7 @@ Name <- NameStart NameMid* NameEnd
 	NameMid <- [a-zA-Z_0-9]
 	NameEnd <- !NameMid
 
-Keyword <- (FunctionKeyword / EndFunction / IfKeyword / ElseIfKeyword / ElseIfKeyword / EndIf / SwitchKeyword / CaseKeyword / FallKeyword / DefaultKeyword / EndSwitch) NameEnd
+Keyword <- (FunctionKeyword / EndFunction / IfKeyword / ElseIfKeyword / ElseIfKeyword / EndIf / SwitchKeyword / CaseKeyword / FallKeyword / DefaultKeyword / EndSwitch / WhileKeyword / EndWhile / RepeatKeyword / RepWhileKeyword / UntilKeyword) NameEnd
 
 Identifier <- !Keyword (Name / VerbatimCpp)
 
@@ -55,16 +55,16 @@ FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ O
 	OptionalFunctionBody <- skip (!EndFunction LocalToken skip)*
 	EndFunction <- 'end'
 
-Statement <- LocalDeclaration / IfStatement / SwitchStatement
+Statement <- LocalDeclaration / IfStatement / SwitchStatement / WhileStatement / RepeatStatement
 
 IfStatement <- IfPart (ElseIfPart)* ElsePart? EndIf _ break
-	IfPart <- IfKeyword ws Condition _ break OptionalIfBody
+	IfPart <- IfKeyword ws Condition _ break IfBody
 	IfKeyword <- 'if'
 	Condition <- Placeholder
-	OptionalIfBody <- skip (!ElseIfKeyword !ElseKeyword !EndIf LocalToken skip)*
-	ElseIfPart <- ElseIfKeyword ws Condition _ break OptionalIfBody
+	IfBody <- skip (!ElseIfKeyword !ElseKeyword !EndIf LocalToken skip)*
+	ElseIfPart <- ElseIfKeyword ws Condition _ break IfBody
 	ElseIfKeyword <- 'elseif'
-	ElsePart <- ElseKeyword _ break OptionalIfBody
+	ElsePart <- ElseKeyword _ break IfBody
 	ElseKeyword <- 'else'
 	EndIf <- 'end'
 
@@ -78,7 +78,18 @@ SwitchStatement <- SwitchKeyword ws Condition _ break skip (Case skip)* DefaultC
 	DefaultCase <- DefaultKeyword break OptionalCaseBody (FallKeyword break)? skip
 	EndSwitch <- 'end'
 
-ws <- ([ \t] / ('...' _ break) / Comment)* # definite whitespace
+WhileStatement <- WhileKeyword ws Condition _ break WhileBody EndWhile
+	WhileKeyword <- 'while'
+	WhileBody <- skip (!EndWhile LocalToken skip)*
+	EndWhile <- 'end'
+
+RepeatStatement <- RepeatKeyword _ break RepeatBody (RepWhileKeyword / UntilKeyword) ws Condition _ break
+	RepeatKeyword <- 'repeat'
+	RepeatBody <- skip (!RepWhileKeyword !UntilKeyword LocalToken skip)*
+	RepWhileKeyword <- 'whilst'
+	UntilKeyword <- 'until'
+
+ws <- ([ \t] / ('...' _ nl) / Comment)* # definite whitespace
 _ <- ws? # optional whitespace
 nl <- '\r\n' / '\n' # definite whitespace
 break <- nl / ';' # end of something
