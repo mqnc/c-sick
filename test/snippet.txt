@@ -1,0 +1,17 @@
+
+function main()
+
+	switch 3
+		case 1
+			u:=1
+			// implicit break
+		case 2
+			u:=2
+			fall // prevents break
+		case 3,4,5
+			u:=4
+		default
+			u:=8
+	end
+
+end

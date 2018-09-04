@@ -164,7 +164,7 @@ pegparser::pegparser() {
 			};
 		}
 		m_parser->log = [](size_t ln, size_t col, const string& msg) {
-			cout << "(" << ln << "," << col << ") " << msg;
+			cout << "(" << ln << "," << col << ") " << msg << "\n";
 		};
 	}
 }

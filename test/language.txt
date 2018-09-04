@@ -49,15 +49,17 @@ function main()
 
 	var f:= when e==17 then true else false // end? // ternary operator
 
-	switch a
+	switch 3
 		case 1
-			print("a is 1")
+			u:=1
 			// implicit break
 		case 2
-			print("a is 2")
+			u:=2
 			fall // prevents break
+		case 3,4,5
+			u:=4
 		default
-			print("a is 2 or other")
+			u:=8
 	end
 
 	while a<10

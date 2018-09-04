@@ -1,0 +1,86 @@
+
+Start <- skip (GlobalToken skip)*
+
+SyntaxError <- (!nl .)* nl
+
+Comment <- SingleLineComment / MultiLineComment / NestableComment
+	SingleLineComment <- '//' (!nl .)*
+	MultiLineComment <- '/*' (!'*/' .)* '*/'
+	NestableComment <- '\\*' (NestableComment / !'*\\' .)* '*\\'
+
+AssignOperator <- ':='
+
+Name <- NameStart NameMid* NameEnd
+	NameStart <- [a-zA-Z_]
+	NameMid <- [a-zA-Z_0-9]
+	NameEnd <- !NameMid
+
+Keyword <- (FunctionKeyword / EndFunction / IfKeyword / ElseIfKeyword / ElseIfKeyword / EndIf / SwitchKeyword / CaseKeyword / FallKeyword / DefaultKeyword / EndSwitch) NameEnd
+
+Identifier <- !Keyword (Name / VerbatimCpp)
+
+GlobalToken <- (VerbatimCpp _ break) / GlobalDeclaration / SyntaxError
+LocalToken <- Statement / SyntaxError
+
+VerbatimCpp <- CppLimiter CppCode* CppLimiter
+	CppLimiter <- '$'
+	CppCode <- CppComment / CppStringLiteral / CppAnything
+	CppComment <- CppSingleLineComment / CppMultiLineComment
+	CppSingleLineComment <- '//' (!nl .)* nl
+	CppMultiLineComment <- '/*' (!'*/' .)* '*/'
+	CppStringLiteral <- CppCharConstant / CppSimpleString / CppMultiLineString
+	CppCharConstant <- '\'' (('\\' .) / .) '\''
+	CppSimpleString <- '"' (('\\' .) / (!'"' .))* '"'
+	CppMultiLineString <- 'R"' $delim[a-zA-Z_0-9]* '(' (!(')' $delim '"') .)* ')' $delim '"'
+	CppAnything <- (!CppLimiter .)
+
+GlobalDeclaration <- FunctionDeclaration / SimpleDeclaration
+LocalDeclaration <- SimpleDeclaration
+	SimpleDeclaration <- (Specifier ws)* Declaree _ (AssignOperator _ Placeholder _)? break
+	Specifier <- !Declaree Identifier
+	Declaree <- Identifier _ (&AssignOperator / &break)
+
+FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ OptionalParameters _ OptionalReturnValues _ break OptionalFunctionBody EndFunction _ break
+	FunctionKeyword <- 'function'
+	OptionalSpecifierList <- ('[' _ (Identifier _)* ']' )?
+	OptionalParameters <- ('(' _ ParameterDeclarationList _ ')')?
+	ParameterDeclarationList <- ParameterDeclaration (',' _ ParameterDeclaration)* / _
+	ParameterDeclaration <- (ParameterSpecifier _)* Parameter _ (AssignOperator _ Placeholder)?
+	ParameterSpecifier <- !Parameter Identifier
+	Parameter <- Identifier _ (&AssignOperator / &',' / &')')
+	OptionalReturnValues <- ('->' _ (SingleReturnValue / MultipleReturnValues))?
+	SingleReturnValue <- ParameterDeclaration
+	MultipleReturnValues <- '(' _ ReturnValueList _ ')'
+	ReturnValueList <- ParameterDeclaration _ (',' _ ParameterDeclaration _)* / _
+	OptionalFunctionBody <- skip (!EndFunction LocalToken skip)*
+	EndFunction <- 'end'
+
+Statement <- LocalDeclaration / IfStatement / SwitchStatement
+
+IfStatement <- IfPart (ElseIfPart)* ElsePart? EndIf _ break
+	IfPart <- IfKeyword ws Condition _ break OptionalIfBody
+	IfKeyword <- 'if'
+	Condition <- Placeholder
+	OptionalIfBody <- skip (!ElseIfKeyword !ElseKeyword !EndIf LocalToken skip)*
+	ElseIfPart <- ElseIfKeyword ws Condition _ break OptionalIfBody
+	ElseIfKeyword <- 'elseif'
+	ElsePart <- ElseKeyword _ break OptionalIfBody
+	ElseKeyword <- 'else'
+	EndIf <- 'end'
+
+SwitchStatement <- SwitchKeyword ws Condition _ break skip (Case skip)* DefaultCase? skip EndSwitch
+	SwitchKeyword <- 'switch'
+	Case <- CaseKeyword ws Placeholder _ (',' _ Placeholder _)* break OptionalCaseBody (FallKeyword _ break)? skip
+	CaseKeyword <- 'case'
+	OptionalCaseBody <- skip (!FallKeyword !CaseKeyword !DefaultKeyword !EndSwitch LocalToken skip)*
+	FallKeyword <- 'fall'
+	DefaultKeyword <- 'default'
+	DefaultCase <- DefaultKeyword break OptionalCaseBody (FallKeyword break)? skip
+	EndSwitch <- 'end'
+
+ws <- ([ \t] / ('...' _ break) / Comment)* # definite whitespace
+_ <- ws? # optional whitespace
+nl <- '\r\n' / '\n' # definite whitespace
+break <- nl / ';' # end of something
+skip <- _ (nl _)* # consume all new lines and whitespaces (and comments)
+Placeholder <- [0-9]* _
