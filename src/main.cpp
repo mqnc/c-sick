@@ -15,11 +15,15 @@ using namespace std;
 int Main(vector<string> args)
 {
 
-	// check arguments
+	/*// check arguments
 	if(args.size()<3){
 		cout << "usage: " << args[0] << " parser.lua file" << endl
 			<< "\tRead the grammar and reduction rules from parser.lua and" << endl
 			<< "\tparse the given file." << endl;
+		return EXIT_FAILURE;
+	}*/
+	if(args.size()<2){
+		cout << "usage: " << args[0] << " parser.lua" << endl;
 		return EXIT_FAILURE;
 	}
 
