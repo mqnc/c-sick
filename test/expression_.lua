@@ -3,123 +3,142 @@ input = "3*-4+5*6++7+1*2*3"
 --input = "1*2+3*4+5*6*7"
 input = "11?22:33?44(41):55"
 
-OperatorClasses = {
-	{
-		name = "Scope",
-		order = "ltr",
-		operators = {
-			{peg="'::'", cpp="(<#)::(#>)"}
-		}
-	}, {
-		name = "Access",
-		order = "ltr",
-		operators = {
-			{peg="'(' _ Expression _ ')'", cpp="(<#)(#1)"},
-			{peg="'[' _ Expression _ ']'", cpp="(<#)[#1]"},
-			{peg="'.'", cpp="(<#).#>"},
-			{peg="'->'", cpp="(<#)->#>"}
-		}
-	}, {
-		name = "Prefix",
-		order = "rtl",
-		operators = {
-			{peg="'+'", cpp="+(#>)"},
-			{peg="'-'", cpp="-(#>)"},
-			{peg="'not'", cpp="!(#>)"},
-			{peg="'bitnot'", cpp="~(#>)"},
-			{peg="'^'", cpp="*(#>)"},
-			{peg="'@'", cpp="&(#>)"},
-			{peg="'sizeof'", cpp="sizeof(#>)"}
-		}
-	}, {
-		name = "Exponentiation",
-		order = "rtl",
-		operators = {
-			{peg="'^'", cpp="pow((<#), (#>))"}
-		}
-	}, {
-		name = "Multiplication",
-		order = "ltr",
-		operators = {
-			{peg="'*'", cpp="(<#)*(#>)"},
-			{peg="'/'", cpp="double(<#)/double(#>)"},
-			{peg="'div'", cpp="int(<#)/int(#>)"},
-			{peg="'mod'", cpp="(<#)%(#>)"}
-		}
-	}, {
-		name = "Addition",
-		order = "ltr",
-		operators = {
-			{peg="'+'", cpp="(<#)+(#>)"},
-			{peg="'-'", cpp="(<#)-(#>)"}
-		}
-	}, {
-		name = "Shifting",
-		order = "ltr",
-		operators = {
-			{peg="'<<'", cpp="(<#)<<(#>)"},
-			{peg="'>>'", cpp="(<#)>>(#>)"}
-		}
-	}, {
-		name = "BitConjunction",
-		order = "ltr",
-		operators = {
-			{peg="'bitand'", cpp="(<#)&(#>)"}
-		}
-	}, {
-		name = "BitExclusiveDisjunction",
-		order = "ltr",
-		operators = {
-			{peg="'bitxor'", cpp="(<#)^(#>)"}
-		}
-	}, {
-		name = "BitDisjunction",
-		order = "ltr",
-		operators = {
-			{peg="'bitor'", cpp="(<#)|(#>)"}
-		}
-	}, {
-		name = "Comparison",
-		order = "ltr",
-		operators = {
-			{peg="'=='", cpp="(<#)==(#>)"},
-			{peg="'!='", cpp="(<#)!=(#>)"},
-			{peg="'<'", cpp="(<#)<(#>)"},
-			{peg="'<='", cpp="(<#)<=(#>)"},
-			{peg="'>'", cpp="(<#)>(#>)"},
-			{peg="'>='", cpp="(<#)>=(#>)"}
-		}
-	}, {
-		name = "Conjunction",
-		order = "ltr",
-		operators = {
-			{peg="'and'", cpp="(<#)&&(#>)"}
-		}
-	}, {
-		name = "ExclusiveDisjunction",
-		order = "ltr",
-		operators = {
-			{peg="'xor'", cpp="!(<#)!=!(#>)"}
-		}
-	}, {
-		name = "Disjunction",
-		order = "ltr",
-		operators = {
-			{peg="'or'", cpp="(<#)||(#>)"}
-		}
-	}, {
-		name = "Conditional",
-		order = "rtl",
-		operators = {
-			{peg="'?' _ Conditional _ ':'", cpp="(<#)? (#1):(#>)"}
-		}
-	}, {
-		name = "Throw",
-		order = "rtl",
-		operators = {
-			{peg="'throw'", cpp="throw (#>)"}
-		}
+-- TODO: infer "unaries" and "binaries" from <# and #>, maybe write a complete grammar for the operator definition
+
+Scope = {name = "Scope", order = "ltr",
+	binaries = {
+		{"'::'", "(<#)::(#>)"}
 	}
+}
+
+Access = {name = "Access", order = "ltr",
+	unaries = {
+		{"'(' Expression ')'", "(<#)(#1)"},
+		{"'[' Expression ']'", "(<#)[#1]"}
+	},
+	binaries = {
+		{"'.'", "(<#).#>"},
+		{"'->'", "(<#)->#>"}
+	}
+}
+
+Prefix = {name = "Prefix", order = "rtl",
+	unaries = {
+		{"'+'", "+(#>)"},
+		{"'-'", "-(#>)"},
+		{"'not'", "!(#>)"},
+		{"'bitnot'", "~(#>)"},
+		{"'^'", "*(#>)"},
+		{"'@'", "&(#>)"},
+		{"'sizeof'", "sizeof(#>)"}
+	}
+}
+
+Exponentiation = {name = "Exponentiation", order = "rtl",
+	binaries = {
+		{"'^'", "pow((<#), (#>))"}
+	}
+}
+
+Multiplication = {name = "Multiplication", order = "ltr",
+	binaries = {
+		{"'*'", "(<#)*(#>)"},
+		{"'/'", "double(<#)/double(#>)"},
+		{"'div'", "int(<#)/int(#>)"},
+		{"'mod'", "(<#)%(#>)"}
+	}
+}
+
+Addition = {name = "Addition", order = "ltr",
+	binaries = {
+		{"'+'", "(<#)+(#>)"},
+		{"'-'", "(<#)-(#>)"}
+	}
+}
+
+Shifting = {name = "Shifting", order = "ltr",
+	binaries = {
+		{"'<<'", "(<#)<<(#>)"},
+		{"'>>'", "(<#)>>(#>)"}
+	}
+}
+
+BitConjunction = {name = "BitConjunction", order = "ltr",
+	binaries = {
+		{"'bitand'", "(<#)&(#>)"}
+	}
+}
+
+BitExclusiveDisjunction = {name = "BitExclusiveDisjunction", order = "ltr",
+	binaries = {
+		{"'bitxor'", "(<#)^(#>)"}
+	}
+}
+
+BitDisjunction = {name = "BitDisjunction", order = "ltr",
+	binaries = {
+		{"'bitor'", "(<#)|(#>)"}
+	}
+}
+
+Comparison = {name = "Comparison", order = "ltr",
+	binaries = {
+		{"'=='", "(<#)==(#>)"},
+		{"'!='", "(<#)!=(#>)"},
+		{"'<'", "(<#)<(#>)"},
+		{"'<='", "(<#)<=(#>)"},
+		{"'>'", "(<#)>(#>)"},
+		{"'>='", "(<#)>=(#>)"}
+	}
+}
+
+Conjunction = {name = "Conjunction", order = "ltr",
+	binaries = {
+		{"'and'", "(<#)&&(#>)"}
+	}
+}
+
+ExclusiveDisjunction = {name = "ExclusiveDisjunction", order = "ltr",
+	binaries = {
+		{"'xor'", "!(<#)!=!(#>)"}
+	}
+}
+
+Disjunction = {name = "Disjunction", order = "ltr",
+	binaries = {
+		{"'or'", "(<#)||(#>)"}
+	}
+}
+
+Conditional = {name = "Conditional", order = "rtl",
+	binaries = {
+		{"'?' Conditional ':'", "(<#)? (#1):(#>)"}
+	}
+}
+
+Throw = {name = "Throw", order = "rtl",
+	unaries = {
+		{"'throw'", "throw (#>)"}
+	}
+}
+
+OperatorClasses = {
+	Scope,
+	Access,
+	Prefix,
+	Exponentiation,
+	Multiplication,
+	Addition,
+	Shifting,
+	BitConjunction,
+	BitExclusiveDisjunction,
+	BitDisjunction,
+	Comparison,
+	Conjunction,
+	ExclusiveDisjunction,
+	Disjunction,
+	Conditional,
+	Throw
 }
 
 
@@ -130,7 +149,7 @@ function dump(obj)
 	print(stringify(obj))
 end
 
--- turn "(#1)+(#2)" into {"(", 1, ")+(", 2, ")"} and infer unaries and binaries from operators
+-- turn "(#1)+(#2)" into {"(", 1, ")+(", 2, ")", max=2}
 
 opparser = pegparser{
 	grammar = [[
@@ -153,24 +172,18 @@ opparser = pegparser{
 }
 
 for ic, class in ipairs(OperatorClasses) do
-	for iop, operator in ipairs(class.operators) do
-		snippet = opparser:parse(operator.cpp)
-
-		local usesl = false
-		local usesr = false
-		for ip, part in ipairs(snippet) do
-			if part == -1 then usesl = true end
-			if part == -2 then usesr = true end
+	if class.unaries ~= nil then
+		for iu, unary in ipairs(class.unaries) do
+			unary.snippet = opparser:parse(unary[2])
 		end
-		if  class.order == "ltr" and usesr  or  class.order == "rtl" and usesl  then
-			if class.binaries == nil then class.binaries = {} end
-			table.insert(class.binaries, {peg=operator.peg, snippet=snippet})
-		else
-			if class.unaries == nil then class.unaries = {} end
-			table.insert(class.unaries, {peg=operator.peg, snippet=snippet})
+	end
+	if class.binaries ~= nil then
+		for ib, binary in ipairs(class.binaries) do
+			binary.snippet = opparser:parse(binary[2])
 		end
 	end
 end
+
 
 grammar = {}
 actions = {}
@@ -185,32 +198,31 @@ function rule(r)
 end
 
 rule([[Expression <- ]] .. OperatorClasses[#OperatorClasses].name)
-rule([[Atomic <- '(' _ Expression _ ')' / '[' _ Expression _ ']' / [0-9]*]])
-rule([[_ <- ' '*]])
+rule([[Atomic <- '(' Expression ')' / '[' Expression ']' / [0-9]*]])
 
 function choice(tbl)
-	local result = ""
+	result = ""
 	if tbl == nil then
 		return result
 	end
 
-	local first = true
+	first = true
 	for i, v in ipairs(tbl) do
 		if first then
 			first = false
 		else
 			result = result .. " / "
 		end
-		result = result .. "(" .. v.peg .. ")"
+		result = result .. "(" .. v[1] .. ")"
 	end
 	return result
 end
 
 function ltrOperation(params)
 	--print(params.rule .. ": " .. stringify(params))
-	local vals = params.values
+	vals = params.values
 
-	local result = vals[1]
+	result = vals[1]
 
 	local i = 2
 
@@ -304,21 +316,21 @@ for i, v in ipairs(OperatorClasses) do
 	local hcrtl = ""
 
 	if class.order == "ltr" then
-		hcltr = " _ " .. higherClass .. " _ "
+		hcltr = " " .. higherClass .. " "
 	elseif class.order == "rtl" then
-		hcrtl = " _ " .. higherClass .. " _ "
+		hcrtl = " " .. higherClass .. " "
 	end
 
 	if unaries ~= "" and binaries == "" then
 		unaries = uname .. " <- " .. unaries .. "\n"
-		operation = operation .. " ( _ " .. uname .. ")*"
+		operation = operation .. " " .. uname .. "*"
 	elseif unaries == "" and binaries ~= "" then
 		binaries = bname .. " <- " .. binaries .. "\n"
-		operation = operation .. " ( _ " .. hcrtl .. bname .. hcltr .. " )*"
+		operation = operation .. " (" .. hcrtl .. bname .. hcltr .. ")*"
 	elseif unaries ~= "" and binaries ~= "" then
 		unaries = uname .. " <- " .. unaries .. "\n"
 		binaries = bname .. " <- " .. binaries .. "\n"
-		operation = operation .. " ( _ " .. uname .. " / ( _ " .. hcrtl .. bname .. hcltr .. "))*"
+		operation = operation .. " (" .. uname .. " / (" .. hcrtl .. bname .. hcltr .. "))*"
 	end
 
 	operation = class.name .. " <- " .. hcltr .. operation .. hcrtl
@@ -344,7 +356,6 @@ end
 print(table.concat(grammar, "\n"))
 
 function default(params)
-	dump(params)
 	return params.matched
 end
 
