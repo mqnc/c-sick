@@ -72,7 +72,7 @@ lua::value pegparser::parse() {
 
 	if(success){
 		//cout << "parsing successful, result = " << value.get<lua::value>().tostring() << endl;
-		cout << "parsing successful" << endl;
+		//cout << "parsing successful" << endl;
 	}
 	else{
 		cout << "parsing failed" << endl;

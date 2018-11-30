@@ -1,0 +1,36 @@
+Expression <- Throw
+Atomic <- '(' _ Expression _ ')' / '[' _ Expression _ ']' / [0-9]*
+_ <- [ \r\n\t]*
+ScopeBinary <- ('::')
+Scope <-  _ Atomic _  ( _ ScopeBinary _ Atomic _  )*
+AccessUnary <- ('(' _ Expression _ ')') / ('[' _ Expression _ ']')
+AccessBinary <- ('.') / ('->')
+Access <-  _ Scope _  ( _ AccessUnary / ( _ AccessBinary _ Scope _ ))*
+PrefixUnary <- ('+') / ('-') / ('not') / ('bitnot') / ('^') / ('@') / ('sizeof')
+Prefix <-  ( _ PrefixUnary)* _ Access _ 
+ExponentiationBinary <- ('^')
+Exponentiation <-  ( _  _ Prefix _ ExponentiationBinary )* _ Prefix _ 
+MultiplicationBinary <- ('*') / ('/') / ('div') / ('mod')
+Multiplication <-  _ Exponentiation _  ( _ MultiplicationBinary _ Exponentiation _  )*
+AdditionBinary <- ('+') / ('-')
+Addition <-  _ Multiplication _  ( _ AdditionBinary _ Multiplication _  )*
+ShiftingBinary <- ('<<') / ('>>')
+Shifting <-  _ Addition _  ( _ ShiftingBinary _ Addition _  )*
+BitConjunctionBinary <- ('bitand')
+BitConjunction <-  _ Shifting _  ( _ BitConjunctionBinary _ Shifting _  )*
+BitExclusiveDisjunctionBinary <- ('bitxor')
+BitExclusiveDisjunction <-  _ BitConjunction _  ( _ BitExclusiveDisjunctionBinary _ BitConjunction _  )*
+BitDisjunctionBinary <- ('bitor')
+BitDisjunction <-  _ BitExclusiveDisjunction _  ( _ BitDisjunctionBinary _ BitExclusiveDisjunction _  )*
+ComparisonBinary <- ('==') / ('!=') / ('<') / ('<=') / ('>') / ('>=')
+Comparison <-  _ BitDisjunction _  ( _ ComparisonBinary _ BitDisjunction _  )*
+ConjunctionBinary <- ('and')
+Conjunction <-  _ Comparison _  ( _ ConjunctionBinary _ Comparison _  )*
+ExclusiveDisjunctionBinary <- ('xor')
+ExclusiveDisjunction <-  _ Conjunction _  ( _ ExclusiveDisjunctionBinary _ Conjunction _  )*
+DisjunctionBinary <- ('or')
+Disjunction <-  _ ExclusiveDisjunction _  ( _ DisjunctionBinary _ ExclusiveDisjunction _  )*
+ConditionalBinary <- ('?' _ Conditional _ ':')
+Conditional <-  ( _  _ Disjunction _ ConditionalBinary )* _ Disjunction _ 
+ThrowUnary <- ('throw')
+Throw <-  ( _ ThrowUnary)* _ Conditional _ 

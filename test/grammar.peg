@@ -36,7 +36,7 @@ VerbatimCpp <- CppLimiter CppCode* CppLimiter
 
 GlobalDeclaration <- FunctionDeclaration / SimpleDeclaration
 LocalDeclaration <- SimpleDeclaration
-	SimpleDeclaration <- (Specifier ws)* Declaree _ (AssignOperator _ Placeholder _)? break
+	SimpleDeclaration <- (Specifier ws)* Declaree _ (AssignOperator _ Expression _)? break
 	Specifier <- !Declaree Identifier
 	Declaree <- Identifier _ (&AssignOperator / &break)
 
@@ -45,7 +45,7 @@ FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ O
 	OptionalSpecifierList <- ('[' _ (Identifier _)* ']' )?
 	OptionalParameters <- ('(' _ ParameterDeclarationList _ ')')?
 	ParameterDeclarationList <- ParameterDeclaration (',' _ ParameterDeclaration)* / _
-	ParameterDeclaration <- (ParameterSpecifier _)* Parameter _ (AssignOperator _ Placeholder)?
+	ParameterDeclaration <- (ParameterSpecifier _)* Parameter _ (AssignOperator _ Expression)?
 	ParameterSpecifier <- !Parameter Identifier
 	Parameter <- Identifier _ (&AssignOperator / &',' / &')')
 	OptionalReturnValues <- ('->' _ (SingleReturnValue / MultipleReturnValues))?
@@ -60,7 +60,7 @@ Statement <- LocalDeclaration / IfStatement / SwitchStatement / WhileStatement /
 IfStatement <- IfPart (ElseIfPart)* ElsePart? EndIf _ break
 	IfPart <- IfKeyword ws Condition _ break IfBody
 	IfKeyword <- 'if'
-	Condition <- Placeholder
+	Condition <- Expression
 	IfBody <- skip (!ElseIfKeyword !ElseKeyword !EndIf LocalToken skip)*
 	ElseIfPart <- ElseIfKeyword ws Condition _ break IfBody
 	ElseIfKeyword <- 'elseif'
@@ -70,7 +70,7 @@ IfStatement <- IfPart (ElseIfPart)* ElsePart? EndIf _ break
 
 SwitchStatement <- SwitchKeyword ws Condition _ break skip (Case skip)* DefaultCase? skip EndSwitch
 	SwitchKeyword <- 'switch'
-	Case <- CaseKeyword ws Placeholder _ (',' _ Placeholder _)* break OptionalCaseBody (FallKeyword _ break)? skip
+	Case <- CaseKeyword ws Expression _ (',' _ Expression _)* break OptionalCaseBody (FallKeyword _ break)? skip
 	CaseKeyword <- 'case'
 	OptionalCaseBody <- skip (!FallKeyword !CaseKeyword !DefaultKeyword !EndSwitch LocalToken skip)*
 	FallKeyword <- 'fall'
@@ -89,12 +89,46 @@ RepeatStatement <- RepeatKeyword ws break RepeatBody (RepWhileKeyword / UntilKey
 	RepWhileKeyword <- 'whilst'
 	UntilKeyword <- 'until'
 
-
+Expression <- Throw
+	Atomic <- '(' _ Expression _ ')' / [0-9]*
+	ScopeBinary <- ('::')
+	Scope <-  _ Atomic _  ( _ ScopeBinary _ Atomic _  )*
+	AccessUnary <- ('(' _ Expression _ ')') / ('[' _ Expression _ ']')
+	AccessBinary <- ('.') / ('->')
+	Access <-  _ Scope _  ( _ AccessUnary / ( _ AccessBinary _ Scope _ ))*
+	PrefixUnary <- ('+') / ('-') / ('not') / ('bitnot') / ('^') / ('@') / ('sizeof')
+	Prefix <-  ( _ PrefixUnary)* _ Access _ 
+	ExponentiationBinary <- ('^')
+	Exponentiation <-  ( _  _ Prefix _ ExponentiationBinary )* _ Prefix _ 
+	MultiplicationBinary <- ('*') / ('/') / ('div') / ('mod')
+	Multiplication <-  _ Exponentiation _  ( _ MultiplicationBinary _ Exponentiation _  )*
+	AdditionBinary <- ('+') / ('-')
+	Addition <-  _ Multiplication _  ( _ AdditionBinary _ Multiplication _  )*
+	ShiftingBinary <- ('<<') / ('>>')
+	Shifting <-  _ Addition _  ( _ ShiftingBinary _ Addition _  )*
+	BitConjunctionBinary <- ('bitand')
+	BitConjunction <-  _ Shifting _  ( _ BitConjunctionBinary _ Shifting _  )*
+	BitExclusiveDisjunctionBinary <- ('bitxor')
+	BitExclusiveDisjunction <-  _ BitConjunction _  ( _ BitExclusiveDisjunctionBinary _ BitConjunction _  )*
+	BitDisjunctionBinary <- ('bitor')
+	BitDisjunction <-  _ BitExclusiveDisjunction _  ( _ BitDisjunctionBinary _ BitExclusiveDisjunction _  )*
+	ComparisonBinary <- ('==') / ('!=') / ('<') / ('<=') / ('>') / ('>=')
+	Comparison <-  _ BitDisjunction _  ( _ ComparisonBinary _ BitDisjunction _  )*
+	ConjunctionBinary <- ('and')
+	Conjunction <-  _ Comparison _  ( _ ConjunctionBinary _ Comparison _  )*
+	ExclusiveDisjunctionBinary <- ('xor')
+	ExclusiveDisjunction <-  _ Conjunction _  ( _ ExclusiveDisjunctionBinary _ Conjunction _  )*
+	DisjunctionBinary <- ('or')
+	Disjunction <-  _ ExclusiveDisjunction _  ( _ DisjunctionBinary _ ExclusiveDisjunction _  )*
+	ConditionalBinary <- ('?' _ Conditional _ ':')
+	Conditional <-  ( _  _ Disjunction _ ConditionalBinary )* _ Disjunction _ 
+	ThrowUnary <- ('throw')
+	Throw <-  ( _ ThrowUnary)* _ Conditional _ 
 
 
 ws <- ([ \t] / ('...' _ nl) / Comment)* # definite whitespace
 _ <- ws? # optional whitespace
-nl <- '\r\n' / '\n' # definite whitespace
+nl <- '\r\n' / '\n' # definite new line
 break <- nl / ';' # end of something
 skip <- _ (nl _)* # consume all new lines and whitespaces (and comments)
 Placeholder <- [0-9]* _

@@ -206,9 +206,22 @@ function choice(tbl)
 	return result
 end
 
+function stripWs(tbl)
+	local result={}
+
+	for i, field in ipairs(tbl) do
+		if not field.ws then		
+			table.insert(result, field)
+		end
+	end
+
+	return result
+end
+
 function ltrOperation(params)
 	--print(params.rule .. ": " .. stringify(params))
-	local vals = params.values
+
+	vals = stripWs(params.values)
 
 	local result = vals[1]
 
@@ -247,7 +260,8 @@ end
 
 function rtlOperation(params)
 	--print(params.rule .. ": " .. stringify(params))
-	vals = params.values
+
+	vals = stripWs(params.values)
 
 	result = vals[1]
 
@@ -326,11 +340,11 @@ for i, v in ipairs(OperatorClasses) do
 	rule(unaries .. binaries .. operation)
 
 	actions[uname] = function(params)
-		return {typ='u', cpp=class.unaries[params.choice].snippet, args=params.values}
+		return {typ='u', cpp=class.unaries[params.choice].snippet, args=stripWs(params.values)}
 	end
 
 	actions[bname] = function(params)
-		return {typ='b', cpp=class.binaries[params.choice].snippet, args=params.values}
+		return {typ='b', cpp=class.binaries[params.choice].snippet, args=stripWs(params.values)}
 	end
 
 	if class.order == "ltr" then
@@ -344,8 +358,12 @@ end
 print(table.concat(grammar, "\n"))
 
 function default(params)
-	dump(params)
+	--dump(params)
 	return params.matched
+end
+
+actions["_"] = function(params)
+	return {["ws"] = true}
 end
 
 actions["Expression"] = function(params)
