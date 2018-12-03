@@ -44,18 +44,27 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 
 		const lua::value values = lua::newtable();
 		for (size_t i = 0; i != sv.size(); ++i){
-			values[1 + i] = sv[i].get<lua::value>();
+			values[i+1] = sv[i].get<lua::value>();
+			//values[i+1]["offset"] = lua::value(values[i+1]["position"]).tointeger() - ((int)(sv.c_str() - sv.ss) + 1);
 		}
 		params["values"] = values;
 
 		const lua::value tokens = lua::newtable();
 		for (size_t i = 0; i != sv.tokens.size(); ++i) {
-			tokens[1 + i] = StringPtr(sv.tokens[i].first, sv.tokens[i].second);
+			tokens[i+1] = StringPtr(sv.tokens[i].first, sv.tokens[i].second);
 		}
 		params["tokens"] = tokens;
 
-		// call lua function and return lua value.
-		return reduce(params);
+		// call lua function
+		auto output = reduce(params);
+
+		const lua::value result = lua::newtable();
+		result["output"] = output;
+		result["position"] = (int)(sv.c_str() - sv.ss) + 1;
+		result["length"] = sv.length();
+		result["rule"] = rule;
+
+		return result;
 	};
 }
 

@@ -8,7 +8,7 @@ SingleLineComment: match <- '//' (!nl .)*
 MultiLineComment: match <- '/*' (!'*/' .)* '*/'
 NestableComment <- '\\*' (NestableComment / !'*\\' .)* '*\\'
 
-AssignOperator: rule <- ':='
+AssignOperator: ~ <- ':='
 
 Name: match <- NameStart NameMid* NameEnd
 NameStart: ~ <- [a-zA-Z_]
@@ -19,26 +19,26 @@ Keyword: rule <- (FunctionKeyword / EndFunctionKeyword / IfKeyword / ElseIfKeywo
 
 Identifier: subs <- !Keyword (Name / VerbatimCpp)
 
-GlobalToken <- (VerbatimCpp _ break) / GlobalDeclaration / SyntaxError
-LocalToken <- Statement / SyntaxError
+GlobalToken: subs <- (VerbatimCpp _ break) / GlobalDeclaration / SyntaxError
+LocalToken: subs <- (VerbatimCpp _ break) / Statement / SyntaxError
 
-VerbatimCpp <- CppLimiter CppCode* CppLimiter
-CppLimiter <- '$'
-CppCode <- CppComment / CppStringLiteral / CppAnything
-CppComment <- CppSingleLineComment / CppMultiLineComment
-CppSingleLineComment <- '//' (!nl .)* nl
-CppMultiLineComment <- '/*' (!'*/' .)* '*/'
-CppStringLiteral <- CppCharConstant / CppSimpleString / CppMultiLineString
-CppCharConstant <- '\'' (('\\' .) / .) '\''
-CppSimpleString <- '"' (('\\' .) / (!'"' .))* '"'
-CppMultiLineString <- 'R"' $delim[a-zA-Z_0-9]* '(' (!(')' $delim '"') .)* ')' $delim '"'
-CppAnything <- (!CppLimiter .)
+VerbatimCpp: token <- CppLimiter <CppCode*> CppLimiter
+CppLimiter: ~ <- '$'
+CppCode: ~ <- CppComment / CppStringLiteral / CppAnything
+CppComment: ~ <- CppSingleLineComment / CppMultiLineComment
+CppSingleLineComment: ~ <- '//' (!nl .)* nl
+CppMultiLineComment: ~ <- '/*' (!'*/' .)* '*/'
+CppStringLiteral: ~ <- CppCharConstant / CppSimpleString / CppMultiLineString
+CppCharConstant: ~ <- '\'' (('\\' .) / .) '\''
+CppSimpleString: ~ <- '"' (('\\' .) / (!'"' .))* '"'
+CppMultiLineString: ~ <- 'R"' $delim[a-zA-Z_0-9]* '(' (!(')' $delim '"') .)* ')' $delim '"'
+CppAnything: ~ <- (!CppLimiter .)
 
-GlobalDeclaration <- FunctionDeclaration / SimpleDeclaration
-LocalDeclaration <- SimpleDeclaration
-SimpleDeclaration <- (Specifier ws)* Declaree _ (AssignOperator _ Expression _)? break
+GlobalDeclaration: subs <- FunctionDeclaration / SimpleDeclaration
+LocalDeclaration: subs <- SimpleDeclaration
+SimpleDeclaration <- (Specifier ~ws)* Declaree ~_ (AssignOperator ~_ Expression ~_)? ~break
 Specifier <- !Declaree Identifier
-Declaree <- Identifier _ (&AssignOperator / &break)
+Declaree: match <- Identifier _ (&AssignOperator / &break)
 
 FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ OptionalParameters _ OptionalReturnValues _ break OptionalFunctionBody EndFunctionKeyword _ break
 FunctionKeyword <- 'function'
@@ -127,7 +127,7 @@ Throw: rtlOperation <- ( ThrowUnary ~_ )* Conditional
 
 ws <- ([ \t] / ('...' _ nl) / Comment)* # definite whitespace
 _ <- ws? # optional whitespace
-nl <- '\r\n' / '\n' # definite new line
+nl <- '\r\n' / '\n' / !. # definite new line
 break <- nl / ';' # end of something
 skip <- _ (nl _)* # consume all new lines and whitespaces (and comments)
 Placeholder <- [0-9]* _

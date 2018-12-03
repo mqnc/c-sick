@@ -12,7 +12,7 @@ rule("Num <- [0-9]+")
 actions["Add"] = function(params)
 	res = 0
 	for i,term in pairs(params.values) do
-		res = res + term
+		res = res + term.output
 	end
 	return res
 end
@@ -33,4 +33,4 @@ pp = pegparser{
 
 print(stringify(pp))
 result = pp:parse("3+4+15")
-print("parsed", result)
+print(stringify(result))

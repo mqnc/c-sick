@@ -28,34 +28,31 @@ packrat = not debuglog
 
 
 actions["~"] = function(params)
-	return nil
+	--return nil
+	return "NIL"
 end
 
 actions.rule = function(params)
-	return {position = params.position, length = params.length, insert = params.rule}
+	return params.rule
 end
 
 actions.match = function(params)
-	return {position = params.position, length = params.length, insert = params.matched}
+	return params.matched
+end
+
+actions.token = function(params)
+	dump(params)
+
+	return params.tokens[1]
 end
 
 actions.subs = function(params)
-	local position = params.position
-	local length = params.length
-	local insert = params.matched
-
+	local output = params.matched
 	for i = #params.values, 1, -1 do
-		insert =
-			insert:sub(1, params.values[i].position-position) .. 
-			params.values[i].insert .. 
-			insert:sub(params.values[i].position-position + params.values[i].length + 1)
+		local offset = params.values[i].position - params.position
+		output = output:sub(1, offset) .. params.values[i].output .. output:sub(offset + params.values[i].length + 1)
 	end
-
-	return {position = position, length = length, insert = insert}
-end
-
-actions.ast = function(params)
-	return params
+	return output
 end
 
 reductionExtractor = pegparser{
@@ -72,21 +69,51 @@ reductionExtractor = pegparser{
 	actions = {
 		Grammar = actions.subs,
 		Definition = function(params)
-			local insert = ""
+			local output = ""
 			if #params.values == 3 then -- action forwarding
-				actions[params.values[1].insert] = actions[params.values[2].insert]
-				insert = params.values[1].insert .. ' <- ' .. params.values[3].insert .. "\n"
+				actions[params.values[1].output] = actions[params.values[2].output]
+				output = params.values[1].output .. ' <- ' .. params.values[3].output .. "\n"
 			else
-				insert = params.values[1].insert .. ' <- ' .. params.values[2].insert .. "\n"
+				output = params.values[1].output .. ' <- ' .. params.values[2].output .. "\n"
 			end
-			return {position = params.position, length = params.length, insert = insert} 
+			return output
 		end
 	},
 	default = actions.match,
 	packrat = true,
 	debuglog = false}
 
-grammar = reductionExtractor:parse(grammar).insert
+grammar = reductionExtractor:parse(grammar).output
+
+
+
+actions.SyntaxError = function(params)
+	return "!!!>" .. params.matched:sub(1, params.matched:len()-1) .. "<!!!\n"
+end
+
+actions.Specifier = function(params)
+	if params.matched == "var" then return "auto" end
+	if params.matched == "val" then return "const auto" end
+	return params.matched
+end
+
+actions.SimpleDeclaration = function(params)
+	local i = 1
+	local output = ""
+	while params.values[i].rule == "Specifier" do
+		output = output .. " " .. params.values[i].output
+		i = i + 1
+	end
+	output = output .. " " .. params.values[i].output
+	i = i + 1
+	if #params.values > i then
+		output = output .. " = " .. params.values[i + 1].output
+	end
+	output = output .. ";\n"
+	return output
+end
+
+
 
 pp = pegparser{
 	grammar = grammar,
@@ -95,7 +122,7 @@ pp = pegparser{
 	packrat = packrat,
 	debuglog = debuglog}
 
-output = pp:parse(input).insert
+output = pp:parse(input).output
 
 print(output)
 
