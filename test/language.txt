@@ -4,7 +4,7 @@
 class student
 
 	// default private or public or no default?
-	public:
+	// public:
 
 	ctor() // ctor named ctor?
 		init // initializer list
@@ -15,10 +15,9 @@ class student
 	dtor() // dtor named dtor?
 	end
 
-	private:
+	// private:
 	int m_data;
 end
-
 
 function main()
 
@@ -151,4 +150,3 @@ compound assignment works with any infix operator
 a &= b  translates to  a := a & b
 
 */
-

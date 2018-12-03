@@ -32,12 +32,13 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 	pegParser[rule.c_str()] = [rule, reduce](const SemanticValues& sv, any&) {
 
 		// push input parameters on stack
+		// 0-based c++ indices are converted to 1-based lua indices
 		const lua::value params = lua::newtable();
-		params["choice"] = sv.choice()+1; // 0-based c++ index to 1-based lua index
+		params["choice"] = sv.choice() + 1;
 		params["line"] = sv.line_info().first;
 		params["column"] = sv.line_info().second;
 		params["matched"] = StringPtr(sv.c_str(), sv.length());
-		params["position"] = (int)(sv.c_str() - sv.ss);
+		params["position"] = (int)(sv.c_str() - sv.ss) + 1;
 		params["length"] = sv.length();
 		params["rule"] = rule;
 

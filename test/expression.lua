@@ -141,11 +141,11 @@ opparser = pegparser{
 		other <- (!lref !mref !rref .)*
 	]],
 	actions = {
-		["lref"] = function(params) return -1 end,
-		["mref"] = function(params) return tonumber(params.tokens[1]) end,
-		["rref"] = function(params) return -2 end,
-		["other"] = function(params) return params.matched end,
-		["snippet"] = function(params) return params.values end
+		lref = function(params) return -1 end,
+		mref = function(params) return tonumber(params.tokens[1]) end,
+		rref = function(params) return -2 end,
+		other = function(params) return params.matched end,
+		snippet = function(params) return params.values end
 	},
 	default = function(params) return nil end,
 	packrat = false,
