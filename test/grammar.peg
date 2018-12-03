@@ -90,41 +90,40 @@ RepWhileKeyword <- 'whilst'
 UntilKeyword <- 'until'
 
 Expression <- Throw
-Atomic <- '(' _ Expression _ ')' / [0-9]*
+Atomic <- '(' ~_ Expression ~_ ')' / [0-9]*
 ScopeBinary <- ('::')
-Scope <-  _ Atomic _  ( _ ScopeBinary _ Atomic _  )*
-AccessUnary <- ('(' _ Expression _ ')') / ('[' _ Expression _ ']')
+Scope: ltrOperation <- Atomic ( ~_ ScopeBinary ~_ Atomic )*
+AccessUnary <- ('(' ~_ Expression ~_ ')') / ('[' ~_ Expression ~_ ']')
 AccessBinary <- ('.') / ('->')
-Access <-  _ Scope _  ( _ AccessUnary / ( _ AccessBinary _ Scope _ ))*
+Access: ltrOperation <- Scope ( ~_ AccessUnary / ( AccessBinary ~_ Scope ) )*
 PrefixUnary <- ('+') / ('-') / ('not') / ('bitnot') / ('^') / ('@') / ('sizeof')
-Prefix <-  ( _ PrefixUnary)* _ Access _ 
+Prefix: rtlOperation <- ( PrefixUnary ~_ )* Access
 ExponentiationBinary <- ('^')
-Exponentiation <-  ( _  _ Prefix _ ExponentiationBinary )* _ Prefix _ 
+Exponentiation: rtlOperation <- Prefix ( ~_ ExponentiationBinary ~_ Prefix )*
 MultiplicationBinary <- ('*') / ('/') / ('div') / ('mod')
-Multiplication <-  _ Exponentiation _  ( _ MultiplicationBinary _ Exponentiation _  )*
+Multiplication: ltrOperation <- Exponentiation ( ~_ MultiplicationBinary ~_ Exponentiation )*
 AdditionBinary <- ('+') / ('-')
-Addition <-  _ Multiplication _  ( _ AdditionBinary _ Multiplication _  )*
+Addition: ltrOperation <- Multiplication ( ~_ AdditionBinary ~_ Multiplication )*
 ShiftingBinary <- ('<<') / ('>>')
-Shifting <-  _ Addition _  ( _ ShiftingBinary _ Addition _  )*
+Shifting: ltrOperation <- Addition ( ~_ ShiftingBinary ~_ Addition )*
 BitConjunctionBinary <- ('bitand')
-BitConjunction <-  _ Shifting _  ( _ BitConjunctionBinary _ Shifting _  )*
+BitConjunction: ltrOperation <- Shifting ( ~_ BitConjunctionBinary ~_ Shifting )*
 BitExclusiveDisjunctionBinary <- ('bitxor')
-BitExclusiveDisjunction <-  _ BitConjunction _  ( _ BitExclusiveDisjunctionBinary _ BitConjunction _  )*
+BitExclusiveDisjunction: ltrOperation <- BitConjunction ( ~_ BitExclusiveDisjunctionBinary ~_ BitConjunction )*
 BitDisjunctionBinary <- ('bitor')
-BitDisjunction <-  _ BitExclusiveDisjunction _  ( _ BitDisjunctionBinary _ BitExclusiveDisjunction _  )*
+BitDisjunction: ltrOperation <- BitExclusiveDisjunction ( ~_ BitDisjunctionBinary ~_ BitExclusiveDisjunction )*
 ComparisonBinary <- ('==') / ('!=') / ('<') / ('<=') / ('>') / ('>=')
-Comparison <-  _ BitDisjunction _  ( _ ComparisonBinary _ BitDisjunction _  )*
+Comparison: ltrOperation <- BitDisjunction ( ~_ ComparisonBinary ~_ BitDisjunction )*
 ConjunctionBinary <- ('and')
-Conjunction <-  _ Comparison _  ( _ ConjunctionBinary _ Comparison _  )*
+Conjunction: ltrOperation <- Comparison ( ~_ ConjunctionBinary ~_ Comparison )*
 ExclusiveDisjunctionBinary <- ('xor')
-ExclusiveDisjunction <-  _ Conjunction _  ( _ ExclusiveDisjunctionBinary _ Conjunction _  )*
+ExclusiveDisjunction: ltrOperation <- Conjunction ( ~_ ExclusiveDisjunctionBinary ~_ Conjunction )*
 DisjunctionBinary <- ('or')
-Disjunction <-  _ ExclusiveDisjunction _  ( _ DisjunctionBinary _ ExclusiveDisjunction _  )*
-ConditionalBinary <- ('?' _ Conditional _ ':')
-Conditional <-  ( _  _ Disjunction _ ConditionalBinary )* _ Disjunction _ 
+Disjunction: ltrOperation <- ExclusiveDisjunction ( ~_ DisjunctionBinary ~_ ExclusiveDisjunction )*
+ConditionalBinary <- ('?' ~_ Conditional ~_ ':')
+Conditional: rtlOperation <- Disjunction ( ~_ ConditionalBinary ~_ Disjunction )*
 ThrowUnary <- ('throw')
-Throw <-  ( _ ThrowUnary)* _ Conditional _ 
-
+Throw: rtlOperation <- ( ThrowUnary ~_ )* Conditional
 
 ws <- ([ \t] / ('...' _ nl) / Comment)* # definite whitespace
 _ <- ws? # optional whitespace
