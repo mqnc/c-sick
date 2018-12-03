@@ -173,7 +173,7 @@ function rule(r)
 end
 
 rule([[Expression <- ]] .. OperatorClasses[#OperatorClasses].name)
-rule([[Atomic <- '(' ~_ Expression ~_ ')' / [0-9]*]])
+rule([[Atomic <- '(' ~_ Expression ~_ ')' / Identifier / [0-9]+]])
 
 function choice(tbl)
 	local result = ""

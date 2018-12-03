@@ -1,45 +1,35 @@
 
-Start: subs <- skip (GlobalToken skip)*
-
+Start <- skip (GlobalToken skip)*
 SyntaxError <- (!nl .)* nl
-
-Comment: subs <- SingleLineComment / MultiLineComment
-SingleLineComment: match <- '//' (!nl .)*
-MultiLineComment: match <- '/*' (!'*/' .)* '*/'
+Comment <- SingleLineComment / MultiLineComment
+SingleLineComment <- '//' (!nl .)*
+MultiLineComment <- '/*' (!'*/' .)* '*/'
 NestableComment <- '\\*' (NestableComment / !'*\\' .)* '*\\'
-
-AssignOperator: ~ <- ':='
-
-Name: match <- NameStart NameMid* NameEnd
-NameStart: ~ <- [a-zA-Z_]
-NameMid: ~ <- [a-zA-Z_0-9]
-NameEnd: ~ <- !NameMid
-
-Keyword: rule <- (FunctionKeyword / EndFunctionKeyword / IfKeyword / ElseIfKeyword / ElseIfKeyword / EndIfKeyword / SwitchKeyword / CaseKeyword / FallKeyword / DefaultKeyword / EndSwitchKeyword / WhileKeyword / EndWhileKeyword / RepeatKeyword / RepWhileKeyword / UntilKeyword) NameEnd
-
-Identifier: subs <- !Keyword (Name / VerbatimCpp)
-
-GlobalToken: subs <- (VerbatimCpp _ break) / GlobalDeclaration / SyntaxError
-LocalToken: subs <- (VerbatimCpp _ break) / Statement / SyntaxError
-
-VerbatimCpp: token <- CppLimiter <CppCode*> CppLimiter
-CppLimiter: ~ <- '$'
-CppCode: ~ <- CppComment / CppStringLiteral / CppAnything
-CppComment: ~ <- CppSingleLineComment / CppMultiLineComment
-CppSingleLineComment: ~ <- '//' (!nl .)* nl
-CppMultiLineComment: ~ <- '/*' (!'*/' .)* '*/'
-CppStringLiteral: ~ <- CppCharConstant / CppSimpleString / CppMultiLineString
-CppCharConstant: ~ <- '\'' (('\\' .) / .) '\''
-CppSimpleString: ~ <- '"' (('\\' .) / (!'"' .))* '"'
-CppMultiLineString: ~ <- 'R"' $delim[a-zA-Z_0-9]* '(' (!(')' $delim '"') .)* ')' $delim '"'
-CppAnything: ~ <- (!CppLimiter .)
-
-GlobalDeclaration: subs <- FunctionDeclaration / SimpleDeclaration
-LocalDeclaration: subs <- SimpleDeclaration
+AssignOperator <- ':='
+Name <- NameStart NameMid* NameEnd
+NameStart <- [a-zA-Z_]
+NameMid <- [a-zA-Z_0-9]
+NameEnd <- !NameMid
+Keyword <- (FunctionKeyword / EndFunctionKeyword / IfKeyword / ElseIfKeyword / ElseIfKeyword / EndIfKeyword / SwitchKeyword / CaseKeyword / FallKeyword / DefaultKeyword / EndSwitchKeyword / WhileKeyword / EndWhileKeyword / RepeatKeyword / RepWhileKeyword / UntilKeyword) NameEnd
+Identifier <- !Keyword (Name / VerbatimCpp)
+GlobalToken <- (VerbatimCpp _ break) / GlobalDeclaration / SyntaxError
+LocalToken <- (VerbatimCpp _ break) / Statement / SyntaxError
+VerbatimCpp <- CppLimiter <CppCode*> CppLimiter
+CppLimiter <- '$'
+CppCode <- CppComment / CppStringLiteral / CppAnything
+CppComment <- CppSingleLineComment / CppMultiLineComment
+CppSingleLineComment <- '//' (!nl .)* nl
+CppMultiLineComment <- '/*' (!'*/' .)* '*/'
+CppStringLiteral <- CppCharConstant / CppSimpleString / CppMultiLineString
+CppCharConstant <- '\'' (('\\' .) / .) '\''
+CppSimpleString <- '"' (('\\' .) / (!'"' .))* '"'
+CppMultiLineString <- 'R"' $delim[a-zA-Z_0-9]* '(' (!(')' $delim '"') .)* ')' $delim '"'
+CppAnything <- (!CppLimiter .)
+GlobalDeclaration <- FunctionDeclaration / SimpleDeclaration
+LocalDeclaration <- SimpleDeclaration
 SimpleDeclaration <- (Specifier ~ws)* Declaree ~_ (AssignOperator ~_ Expression ~_)? ~break
 Specifier <- !Declaree Identifier
-Declaree: match <- Identifier _ (&AssignOperator / &break)
-
+Declaree <- Identifier _ (&AssignOperator / &break)
 FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ OptionalParameters _ OptionalReturnValues _ break OptionalFunctionBody EndFunctionKeyword _ break
 FunctionKeyword <- 'function'
 OptionalSpecifierList <- ('[' _ (Identifier _)* ']' )?
@@ -54,9 +44,7 @@ MultipleReturnValues <- '(' _ ReturnValueList _ ')'
 ReturnValueList <- ParameterDeclaration _ (',' _ ParameterDeclaration _)* / _
 OptionalFunctionBody <- skip (!EndFunctionKeyword LocalToken skip)*
 EndFunctionKeyword <- 'end'
-
 Statement <- LocalDeclaration / IfStatement / SwitchStatement / WhileStatement / RepeatStatement
-
 IfStatement <- IfPart (ElseIfPart)* ElsePart? EndIfKeyword _ break
 IfPart <- IfKeyword ws Condition _ break IfBody
 IfKeyword <- 'if'
@@ -67,7 +55,6 @@ ElseIfKeyword <- 'elseif'
 ElsePart <- ElseKeyword _ break IfBody
 ElseKeyword <- 'else'
 EndIfKeyword <- 'end'
-
 SwitchStatement <- SwitchKeyword ws Condition _ break skip (Case skip)* DefaultCase? skip EndSwitchKeyword
 SwitchKeyword <- 'switch'
 Case <- CaseKeyword ws Expression _ (',' _ Expression _)* break OptionalCaseBody (FallKeyword _ break)? skip
@@ -77,54 +64,50 @@ FallKeyword <- 'fall'
 DefaultKeyword <- 'default'
 DefaultCase <- DefaultKeyword break OptionalCaseBody (FallKeyword break)? skip
 EndSwitchKeyword <- 'end'
-
 WhileStatement <- WhileKeyword ws Condition _ break WhileBody EndWhileKeyword
 WhileKeyword <- 'while'
 WhileBody <- skip (!EndWhileKeyword LocalToken skip)*
 EndWhileKeyword <- 'end'
-
 RepeatStatement <- RepeatKeyword ws break RepeatBody (RepWhileKeyword / UntilKeyword) ws Condition _ break
 RepeatKeyword <- 'repeat'
 RepeatBody <- skip (!RepWhileKeyword !UntilKeyword LocalToken skip)*
 RepWhileKeyword <- 'whilst'
 UntilKeyword <- 'until'
-
 Expression <- Throw
 Atomic <- '(' ~_ Expression ~_ ')' / Identifier / [0-9]+
 ScopeBinary <- ('::')
-Scope: ltrOperation <- Atomic ( ~_ ScopeBinary ~_ Atomic )*
+Scope <- Atomic ( ~_ ScopeBinary ~_ Atomic )*
 AccessUnary <- ('(' ~_ Expression ~_ ')') / ('[' ~_ Expression ~_ ']')
 AccessBinary <- ('.') / ('->')
-Access: ltrOperation <- Scope ( ~_ AccessUnary / ( AccessBinary ~_ Scope ) )*
+Access <- Scope ( ~_ AccessUnary / ( AccessBinary ~_ Scope ) )*
 PrefixUnary <- ('+') / ('-') / ('not') / ('bitnot') / ('^') / ('@') / ('sizeof')
-Prefix: rtlOperation <- ( PrefixUnary ~_ )* Access
+Prefix <- ( PrefixUnary ~_ )* Access
 ExponentiationBinary <- ('^')
-Exponentiation: rtlOperation <- Prefix ( ~_ ExponentiationBinary ~_ Prefix )*
+Exponentiation <- Prefix ( ~_ ExponentiationBinary ~_ Prefix )*
 MultiplicationBinary <- ('*') / ('/') / ('div') / ('mod')
-Multiplication: ltrOperation <- Exponentiation ( ~_ MultiplicationBinary ~_ Exponentiation )*
+Multiplication <- Exponentiation ( ~_ MultiplicationBinary ~_ Exponentiation )*
 AdditionBinary <- ('+') / ('-')
-Addition: ltrOperation <- Multiplication ( ~_ AdditionBinary ~_ Multiplication )*
+Addition <- Multiplication ( ~_ AdditionBinary ~_ Multiplication )*
 ShiftingBinary <- ('<<') / ('>>')
-Shifting: ltrOperation <- Addition ( ~_ ShiftingBinary ~_ Addition )*
+Shifting <- Addition ( ~_ ShiftingBinary ~_ Addition )*
 BitConjunctionBinary <- ('bitand')
-BitConjunction: ltrOperation <- Shifting ( ~_ BitConjunctionBinary ~_ Shifting )*
+BitConjunction <- Shifting ( ~_ BitConjunctionBinary ~_ Shifting )*
 BitExclusiveDisjunctionBinary <- ('bitxor')
-BitExclusiveDisjunction: ltrOperation <- BitConjunction ( ~_ BitExclusiveDisjunctionBinary ~_ BitConjunction )*
+BitExclusiveDisjunction <- BitConjunction ( ~_ BitExclusiveDisjunctionBinary ~_ BitConjunction )*
 BitDisjunctionBinary <- ('bitor')
-BitDisjunction: ltrOperation <- BitExclusiveDisjunction ( ~_ BitDisjunctionBinary ~_ BitExclusiveDisjunction )*
+BitDisjunction <- BitExclusiveDisjunction ( ~_ BitDisjunctionBinary ~_ BitExclusiveDisjunction )*
 ComparisonBinary <- ('==') / ('!=') / ('<') / ('<=') / ('>') / ('>=')
-Comparison: ltrOperation <- BitDisjunction ( ~_ ComparisonBinary ~_ BitDisjunction )*
+Comparison <- BitDisjunction ( ~_ ComparisonBinary ~_ BitDisjunction )*
 ConjunctionBinary <- ('and')
-Conjunction: ltrOperation <- Comparison ( ~_ ConjunctionBinary ~_ Comparison )*
+Conjunction <- Comparison ( ~_ ConjunctionBinary ~_ Comparison )*
 ExclusiveDisjunctionBinary <- ('xor')
-ExclusiveDisjunction: ltrOperation <- Conjunction ( ~_ ExclusiveDisjunctionBinary ~_ Conjunction )*
+ExclusiveDisjunction <- Conjunction ( ~_ ExclusiveDisjunctionBinary ~_ Conjunction )*
 DisjunctionBinary <- ('or')
-Disjunction: ltrOperation <- ExclusiveDisjunction ( ~_ DisjunctionBinary ~_ ExclusiveDisjunction )*
+Disjunction <- ExclusiveDisjunction ( ~_ DisjunctionBinary ~_ ExclusiveDisjunction )*
 ConditionalBinary <- ('?' ~_ Conditional ~_ ':')
-Conditional: rtlOperation <- Disjunction ( ~_ ConditionalBinary ~_ Disjunction )*
+Conditional <- Disjunction ( ~_ ConditionalBinary ~_ Disjunction )*
 ThrowUnary <- ('throw')
-Throw: rtlOperation <- ( ThrowUnary ~_ )* Conditional
-
+Throw <- ( ThrowUnary ~_ )* Conditional
 ws <- ([ \t] / ('...' _ nl) / Comment)* # definite whitespace
 _ <- ws? # optional whitespace
 nl <- '\r\n' / '\n' / !. # definite new line

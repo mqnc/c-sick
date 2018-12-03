@@ -28,7 +28,6 @@ packrat = not debuglog
 
 
 actions["~"] = function(params)
-	--return nil
 	return "NIL"
 end
 
@@ -41,8 +40,6 @@ actions.match = function(params)
 end
 
 actions.token = function(params)
-	dump(params)
-
 	return params.tokens[1]
 end
 
@@ -84,7 +81,7 @@ reductionExtractor = pegparser{
 	debuglog = false}
 
 grammar = reductionExtractor:parse(grammar).output
-
+writeToFile("test/rawgrammar.peg", grammar)
 
 
 actions.SyntaxError = function(params)
