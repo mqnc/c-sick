@@ -57,33 +57,33 @@ EndFunctionKeyword <- 'end'
 
 Statement <- LocalDeclaration / IfStatement / SwitchStatement / WhileStatement / RepeatStatement
 
-IfStatement <- IfPart (ElseIfPart)* ElsePart? EndIfKeyword _ break
-IfPart <- IfKeyword ws Condition _ break IfBody
-IfKeyword <- 'if'
-Condition <- Expression
-IfBody <- skip (!ElseIfKeyword !ElseKeyword !EndIfKeyword LocalToken skip)*
-ElseIfPart <- ElseIfKeyword ws Condition _ break IfBody
-ElseIfKeyword <- 'elseif'
-ElsePart <- ElseKeyword _ break IfBody
-ElseKeyword <- 'else'
-EndIfKeyword <- 'end'
+IfStatement: concat <- IfPart (ElseIfPart)* ElsePart? ~EndIfKeyword ~_ ~break
+IfPart <- ~IfKeyword ~_ Condition ~_ ~break IfBody
+IfKeyword: ~ <- 'if'
+Condition: subs <- Expression
+IfBody: subs <- skip (!ElseIfKeyword !ElseKeyword !EndIfKeyword LocalToken skip)*
+ElseIfPart <- ~ElseIfKeyword ~_ Condition ~_ ~break IfBody
+ElseIfKeyword: ~ <- 'elseif'
+ElsePart <- ~ElseKeyword ~_ ~break IfBody
+ElseKeyword: ~ <- 'else'
+EndIfKeyword: ~ <- 'end'
 
-SwitchStatement <- SwitchKeyword ws Condition _ break skip (Case skip)* DefaultCase? skip EndSwitchKeyword
-SwitchKeyword <- 'switch'
-Case <- CaseKeyword ws Expression _ (',' _ Expression _)* break OptionalCaseBody (FallKeyword _ break)? skip
-CaseKeyword <- 'case'
-OptionalCaseBody <- skip (!FallKeyword !CaseKeyword !DefaultKeyword !EndSwitchKeyword LocalToken skip)*
-FallKeyword <- 'fall'
-DefaultKeyword <- 'default'
-DefaultCase <- DefaultKeyword break OptionalCaseBody (FallKeyword break)? skip
-EndSwitchKeyword <- 'end'
+SwitchStatement <- ~SwitchKeyword ~_ Condition ~_ ~break ~skip (Case ~skip)* ~EndSwitchKeyword
+SwitchKeyword: ~ <- 'switch'
+Case <- (CaseCondition / DefaultKeyword) ~break OptionalCaseBody (FallKeyword ~_ ~break)? ~skip
+CaseCondition <- ~CaseKeyword ~_ (Expression / DefaultKeyword) ~_ (',' ~_ (Expression / DefaultKeyword) ~_)*
+CaseKeyword: ~ <- 'case'
+OptionalCaseBody: subs <- skip (!FallKeyword !CaseKeyword !DefaultKeyword !EndSwitchKeyword LocalToken skip)*
+FallKeyword: ~ <- 'fall'
+DefaultKeyword: ~ <- 'default'
+EndSwitchKeyword: ~ <- 'end'
 
-WhileStatement <- WhileKeyword ws Condition _ break WhileBody EndWhileKeyword
-WhileKeyword <- 'while'
-WhileBody <- skip (!EndWhileKeyword LocalToken skip)*
-EndWhileKeyword <- 'end'
+WhileStatement <- ~WhileKeyword ~_ Condition ~_ ~break WhileBody ~EndWhileKeyword
+WhileKeyword: ~ <- 'while'
+WhileBody: subs <- skip (!EndWhileKeyword LocalToken skip)*
+EndWhileKeyword: ~ <- 'end'
 
-RepeatStatement <- RepeatKeyword ws break RepeatBody (RepWhileKeyword / UntilKeyword) ws Condition _ break
+RepeatStatement <- ~RepeatKeyword ~_ ~break RepeatBody (RepWhileKeyword / UntilKeyword) ~_ Condition ~_ ~break
 RepeatKeyword <- 'repeat'
 RepeatBody <- skip (!RepWhileKeyword !UntilKeyword LocalToken skip)*
 RepWhileKeyword <- 'whilst'

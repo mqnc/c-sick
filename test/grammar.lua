@@ -27,20 +27,20 @@ debuglog = false
 packrat = not debuglog
 
 
-actions["~"] = function(params)
-	return "NIL"
-end
+actions["~"] = function(params) return "NIL" end
 
-actions.rule = function(params)
-	return params.rule
-end
+actions.rule = function(params) return params.rule end
 
-actions.match = function(params)
-	return params.matched
-end
+actions.match = function(params) return params.matched end
 
-actions.token = function(params)
-	return params.tokens[1]
+actions.token = function(params) return params.tokens[1] end
+
+actions.concat = function(params)
+	local output = ""
+	for i = 1, #params.values do
+		output = output .. params.values[i].output
+	end
+	return output
 end
 
 actions.subs = function(params)
@@ -85,8 +85,10 @@ writeToFile("test/rawgrammar.peg", grammar)
 
 
 actions.SyntaxError = function(params)
-	return "!!!>" .. params.matched:sub(1, params.matched:len()-1) .. "<!!!\n"
+	return 'static_assert(0, R"ERROR(' .. params.matched:sub(1, params.matched:len()-1) .. ')ERROR");\n'
 end
+
+
 
 actions.Specifier = function(params)
 	if params.matched == "var" then return "auto" end
@@ -112,14 +114,85 @@ end
 
 
 
-pp = pegparser{
+actions.IfPart = function(params)
+	return "if( " .. params.values[1].output .. " ){\n" .. params.values[2].output .. "\n}\n"
+end
+
+actions.ElseIfPart = function(params)
+	return "else if( " .. params.values[1].output .. " ){\n" .. params.values[2].output .. "\n}\n"
+end
+
+actions.ElsePart = function(params)
+	return "else{\n" .. params.values[1].output .. "\n}\n"
+end
+
+
+
+actions.SwitchStatement = function(params)
+	local output = "switch(" .. params.values[1].output .. "){\n"
+	for i = 2, #params.values do
+		output = output .. params.values[i].output
+	end
+	output = output .. "\n}\n"
+	return output
+end
+
+actions.CaseCondition = function(params)
+	local i = 1
+	local output = ""
+	for i, val in ipairs(params.values) do
+		if val.rule == "DefaultKeyword" then
+			output = output .. val.output
+		else
+			output = output .. "case(" .. val.output .. "): "
+		end
+	end
+	return output
+end
+
+actions.Case = function(params)
+	local output = params.values[1].output .. "\n" .. params.values[2].output .. "\n"
+	if #params.values == 2 then -- no fall keyword
+		output = output .. "break;\n"
+	end
+	return output
+end
+
+actions.DefaultKeyword = function(params)
+	return "default: "
+end
+
+
+
+actions.WhileStatement = function(params)
+	return "while( " .. params.values[1].output .. " ){\n" .. params.values[2].output .. "\n}\n"
+end
+
+
+
+actions.RepeatStatement = function(params)
+	local condition = ""
+	if params.values[2].rule == "RepWhileKeyword" then
+		condition = "( " .. params.values[3].output .. " )"
+	else
+		condition = "(!( " .. params.values[3].output .. " ))"
+	end
+	return "do{\n" .. params.values[1].output .. "\n}\nwhile" .. condition .. "\n"
+end
+
+
+
+
+
+
+transpiler = pegparser{
 	grammar = grammar,
 	actions = actions,
 	default = actions.subs,
 	packrat = packrat,
 	debuglog = debuglog}
 
-output = pp:parse(input).output
+output = transpiler:parse(input).output
 
 print(output)
 

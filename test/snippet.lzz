@@ -3,43 +3,78 @@ function main()
 
 	 auto a = 5+7*3;
 
-	if 123
-		!!!>print(a, "<", b)<!!!
-	elseif 456
-		!!!>print(a, "==", b)<!!!
-	else
-		!!!>print(a, ">", b)<!!!
-	end
+	if( 123 ){
+		static_assert(0, R"ERROR(print(a, "<", b))ERROR");
+	
+}
+else if( 456 ){
+		static_assert(0, R"ERROR(print(a, "==", b))ERROR");
+	
+}
+else{
+		static_assert(0, R"ERROR(print(a, ">", b))ERROR");
+	
+}
 
 	 double x = 5; 
 
-	switch 3
-		case 1
+	switch(3){
+case(1): 
 			 u = 1;
-		case 2
+		
+break;
+case(2): 
 			 u = 2;
-			fall
-		case 3,4,5
+			
+case(3): case(4): case(5): 
 			 u = 4;
-		default
+		
+break;
+default: 
 			 u = 8;
+	
+break;
+
+}
+
+
+	switch(0){
+case(1): default: case(2): 
+			 u = 9;
+		
+break;
+case(3): 
+			 u = 10;
+	
+break;
+
+}
+
+
+	while( a<10 ){
+		static_assert(0, R"ERROR(a++)ERROR");
+	
+}
+
+
+	do{
+		do{
+			static_assert(0, R"ERROR(b++)ERROR");
+		
+}
+while( b<20 )
+		static_assert(0, R"ERROR(a++)ERROR");
+	
+}
+while(!( a==20 ))
+
+	static_assert(0, R"ERROR(for 1<=i<5 // 1 2 3 4)ERROR");
+		static_assert(0, R"ERROR(print(i))ERROR");
 	end
 
-	while a<10
-		!!!>a++<!!!
-	end
+	static_assert(0, R"ERROR(compute(1, 2))ERROR");
 
-	repeat
-		!!!>a++<!!!
-	until a==20
-
-	!!!>for 1<=i<5 // 1 2 3 4<!!!
-		!!!>print(i)<!!!
-	end
-
-	!!!>compute(1, 2)<!!!
-
-!!!>end<!!!
+static_assert(0, R"ERROR(end)ERROR");
 
 function compute(int xNIL0, int y)
 end

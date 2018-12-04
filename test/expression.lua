@@ -118,8 +118,6 @@ OperatorClasses = {
 	}
 }
 
-
-
 -- turn "(#1)+(#2)" into {"(", 1, ")+(", 2, ")"} and infer unaries and binaries from operators
 
 opparser = pegparser{

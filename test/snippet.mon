@@ -25,11 +25,21 @@ function main()
 			u:=8
 	end
 
+	switch 0
+		case 1, default, 2
+			u:=9
+		case 3
+			u:=10
+	end
+
 	while a<10
 		a++
 	end
 
 	repeat
+		repeat
+			b++
+		whilst b<20
 		a++
 	until a==20
 
