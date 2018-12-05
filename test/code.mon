@@ -1,6 +1,7 @@
 
 // no structs
 
+// classes should only have external methods
 class student
 
 	// default private or public or no default?
@@ -46,19 +47,28 @@ function main()
 		print(a, ">", b)
 	end
 
-	var f:= when e==17 then true else false // end? // ternary operator
+	//var f:= when e==17 then true else false // end? // ternary operator
+	var f := { -1 if x<0, 1 if x>0, 0 otherwise
 
-	switch 3
+	$ double x = 5; $
+
+	switch thing
 		case 1
-			u:=1
-			// implicit break
+			print("1")
 		case 2
-			u:=2
-			fall // prevents break
+			print("2")
+			fall
 		case 3,4,5
-			u:=4
+			print("2345")
 		default
-			u:=8
+			print(">5")
+	end
+
+	switch thing
+		case 1, default, 2
+			print("1/2/!3")
+		case 3
+			print("3")
 	end
 
 	while a<10
@@ -114,7 +124,8 @@ end
 function twoParams(int x:=0, int y)
 end
 
-function simpleReturn -> int q
+// if it's not initialized, it doesn't get a name
+function simpleReturn -> int
 end
 
 function simpleReturnDefaultValue -> int q:=0
@@ -147,6 +158,6 @@ direct assignment
 :=
 
 compound assignment works with any infix operator
-a &= b  translates to  a := a & b
+a &:= b  translates to  a := a & b
 
 */

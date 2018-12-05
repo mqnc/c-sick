@@ -1,0 +1,204 @@
+
+// no structs
+
+// classes should only have external methods
+ class student;
+
+	// default private or public or no default?
+	// public:
+
+	[91mctor() // ctor named ctor?[39m
+		 init // initializer list;
+			 m_data = 5;
+		[91mend[39m
+	[91mend[39m
+
+	[91mdtor() // dtor named dtor?[39m
+	[91mend[39m
+
+	// private:
+	 int m_data;
+
+[91mend[39m
+
+main(){
+
+	// comment
+
+	/* multiline
+	   comment */
+
+	[91m\* multiline[39m
+	[91m\* nestable *\[39m
+	   comment [91m*\[39m
+
+	// assignment
+	 auto a = 5;
+	 const auto b = 3;
+	// single "=" is never valid in order to avoid confusion between assignment and comparison
+	 auto c = 7;
+  auto d = 8;
+	 auto e = 17;
+
+	if( 123 ){
+		print[91m(a, "<", b)[39m
+	
+}
+ else if( 456 ){
+		print[91m(a, "==", b)[39m
+	
+}
+ else{
+		print[91m(a, ">", b)[39m
+	
+}
+ 
+	//var f:= when e==17 then true else false // end? // ternary operator
+	var f [91m:= { -1 if x<0, 1 if x>0, 0 otherwise[39m
+
+	 double x = 5; 
+
+	switch(thing){
+case(1): 
+			print[91m("1")[39m
+		
+break;
+case(2): 
+			print[91m("2")[39m
+			
+case(3): case(4): case(5): 
+			print[91m("2345")[39m
+		
+break;
+default: 
+			print[91m(">5")[39m
+	
+break;
+
+}
+
+
+	switch(thing){
+case(1): default: case(2): 
+			print[91m("1/2/!3")[39m
+		
+break;
+case(3): 
+			print[91m("3")[39m
+	
+break;
+
+}
+
+
+	while( a<10 ){
+		a[91m++[39m
+	
+}
+
+
+	do{
+		a[91m++[39m
+	
+}
+while(!( a==20 ))
+
+	do{
+		a[91m++[39m
+	
+}
+while( a<30 )
+
+	for i[91m<=5 // 0 1 2 3 4 5[39m
+		print(i)
+	
+}
+
+	[91mfor 1<=i<5 // 1 2 3 4[39m
+		[91mprint(i)[39m
+	[91mend[39m
+
+	[91mfor 5>i>=0 // 4 3 2 1 0[39m
+		[91mprint(i)[39m
+	[91mend[39m
+
+	[91mfor 1<=i<10, i*=2 // 1 2 4 8[39m
+		[91mprint(i)[39m
+	[91mend[39m
+
+	[91mfor i in {2, 3, 5, 7, 11}[39m
+		[91mprint(i)[39m
+	[91mend[39m
+
+	[91mtwoParams(y:=4) // kwargs[39m
+
+[91mend[39m
+
+oneLine(){
+ 
+}
+
+noParams(){
+
+}
+
+emptyParams(){
+
+}
+
+oneParam(int x ){
+
+}
+
+oneDefaultParam(int x  =  0 ){
+
+}
+
+twoParams(int x  =  0 , int y ){
+
+}
+
+// if it's not initialized, it doesn't get a name
+simpleReturn(){
+
+}
+
+simpleReturnDefaultValue(){
+	// implicit return q in the end if return value is initialized
+
+}
+
+returnStruct(){
+
+}
+
+returnStructDefaultValue(){
+
+}
+
+returnStructMultipleValues(){
+	 const auto r = 5;
+	return q[91m, r[39m
+
+}
+
+returnStructMultipleDefaultValues(){
+	// implicit return q, r in the end when all return values are initialized
+
+}
+
+fullMonty(int x  =  0 , int y ){
+
+}
+
+/*
+
+assignments aren't operators
+
+direct assignment
+:=
+
+compound assignment works with any infix operator
+a &= b  translates to  a := a & b
+
+*/

@@ -19,7 +19,7 @@ function writeToFile(fname, text)
 end
 
 grammar = readAll("test/grammar.peg")
-input = readAll("test/snippet.mon")
+input = readAll("test/code.mon")
 
 actions = {}
 
@@ -38,7 +38,7 @@ actions.token = function(params) return params.tokens[1] end
 actions.concat = function(params)
 	local output = ""
 	for i = 1, #params.values do
-		output = output .. params.values[i].output
+		output = output .. params.values[i].output .. " "
 	end
 	return output
 end
@@ -47,10 +47,12 @@ actions.subs = function(params)
 	local output = params.matched
 	for i = #params.values, 1, -1 do
 		local offset = params.values[i].position - params.position
-		output = output:sub(1, offset) .. params.values[i].output .. output:sub(offset + params.values[i].length + 1)
+		output = output:sub(1, offset) .. stringify(params.values[i].output) .. output:sub(offset + params.values[i].length + 1)
 	end
 	return output
 end
+
+actions.forward = function(params) return params end
 
 reductionExtractor = pegparser{
 	grammar = [[
@@ -85,7 +87,9 @@ writeToFile("test/rawgrammar.peg", grammar)
 
 
 actions.SyntaxError = function(params)
-	return 'static_assert(0, R"ERROR(' .. params.matched:sub(1, params.matched:len()-1) .. ')ERROR");\n'
+	--return 'static_assert(0, R"ERROR(' .. params.matched:sub(1, params.matched:len()-1) .. ')ERROR");\n'
+	--return '!!!>' .. params.matched:sub(1, params.matched:len()-1) .. '<!!!\n'
+	return string.char(27) .. '[91m' .. params.matched:sub(1, params.matched:len()-1) .. string.char(27) .. '[39m\n'
 end
 
 
@@ -182,6 +186,36 @@ end
 
 
 
+actions.FunctionDeclaration = function(params)
+
+	local name = params.values[1].output
+	local specifiers = params.values[2].output
+	local parameters = params.values[3].output
+	local returns = params.values[4].output
+	local body = params.values[5].output
+
+	output = specifiers .. name .. "(" .. parameters .. ")"
+
+	output = output .. "{\n" .. body .. "\n}\n"
+
+	return output
+end
+
+actions.ParameterList = function(params)
+	local output = ""
+	if #params.values >= 1 then
+		output = params.values[1].output
+	end
+	for i = 2, #params.values do
+		output = output .. ", " .. params.values[i].output
+	end
+	return output
+end
+
+actions.ParameterAssignOperator = function(params) return " = " end
+
+
+
 
 
 
@@ -196,4 +230,4 @@ output = transpiler:parse(input).output
 
 print(output)
 
-writeToFile("test/snippet.lzz", output)
+writeToFile("test/code.lzz", output)

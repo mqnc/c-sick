@@ -30,21 +30,16 @@ LocalDeclaration <- SimpleDeclaration
 SimpleDeclaration <- (Specifier ~ws)* Declaree ~_ (AssignOperator ~_ Expression ~_)? ~break
 Specifier <- !Declaree Identifier
 Declaree <- Identifier _ (&AssignOperator / &break)
-FunctionDeclaration <- FunctionKeyword ws Identifier _ OptionalSpecifierList _ OptionalParameters _ OptionalReturnValues _ break OptionalFunctionBody EndFunctionKeyword _ break
+FunctionDeclaration <- ~FunctionKeyword ~_ Identifier ~_ FunctionSpecifiers ~_ ParameterList ~_ ReturnValues ~_ ~break FunctionBody ~EndFunctionKeyword ~_ ~break
 FunctionKeyword <- 'function'
-OptionalSpecifierList <- ('[' _ (Identifier _)* ']' )?
-OptionalParameters <- ('(' _ ParameterDeclarationList _ ')')?
-ParameterDeclarationList <- ParameterDeclaration (',' _ ParameterDeclaration)* / _
-ParameterDeclaration <- (ParameterSpecifier _)* Parameter _ (AssignOperator _ Expression)?
-ParameterSpecifier <- !Parameter Identifier
-Parameter <- Identifier _ (&AssignOperator / &',' / &')')
-OptionalReturnValues <- ('->' _ (SingleReturnValue / MultipleReturnValues))?
-SingleReturnValue <- ParameterDeclaration
-MultipleReturnValues <- '(' _ ReturnValueList _ ')'
-ReturnValueList <- ParameterDeclaration _ (',' _ ParameterDeclaration _)* / _
-OptionalFunctionBody <- skip (!EndFunctionKeyword LocalToken skip)*
+FunctionSpecifiers <- ('[' ~_ (Identifier ~_)* ']')?
+ParameterList <- ('(' ~_ (ParameterDeclaration (~_ ',' ~_ ParameterDeclaration)*)? ~_ ')')?
+ParameterDeclaration <- (Identifier ~_)+ (ParameterAssignOperator ~_ Expression)? # specifiers included in the identifiers
+ParameterAssignOperator <- AssignOperator
+ReturnValues <- ('->' ~_ (ParameterDeclaration / ParameterList))?
+FunctionBody <- skip (!EndFunctionKeyword LocalToken skip)*
 EndFunctionKeyword <- 'end'
-Statement <- LocalDeclaration / IfStatement / SwitchStatement / WhileStatement / RepeatStatement
+Statement <- LocalDeclaration / IfStatement / SwitchStatement / WhileStatement / RepeatStatement / Expression
 IfStatement <- IfPart (ElseIfPart)* ElsePart? ~EndIfKeyword ~_ ~break
 IfPart <- ~IfKeyword ~_ Condition ~_ ~break IfBody
 IfKeyword <- 'if'
