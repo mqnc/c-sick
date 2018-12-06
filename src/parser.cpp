@@ -128,8 +128,16 @@ pegparser::pegparser() {
 		debug = lvdebug.toboolean();
 	}
 
+
 	// create parser
-	m_parser = std::make_unique<parser>(grammar.tocstring());
+	m_parser = std::make_unique<parser>();
+    m_parser->log = [](size_t line, size_t col, const string& msg) {
+        cerr << line << ":" << col << ": " << msg << "\n";
+    };
+    auto ok = m_parser->load_grammar(grammar.tocstring());
+    if(!ok){
+		cerr << "error loading grammar\n";
+	}
 	if (packrat) {
 		m_parser->enable_packrat_parsing();
 	}
