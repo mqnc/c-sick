@@ -21,7 +21,7 @@ table.insert(localStatements, "{SimpleDeclaration}")
 table.insert(localStatements, "{Expression}")
 rule([[ SimpleDeclaration <- ({Identifier} _)+ ({AssignOperator} _ {Expression} _)? {break} ]], basic.subs )
 rule([[ AssignOperator <- ':=' ]], " = " )
-rule([[ Expression <- [0-9]+ ]], basic.match )
+rule([[ Expression <- [0-9]+ / {Identifier} ]], basic.subs )
 
 rule([[ ws <- ([ \t] / ('...' _ nl) / {Comment})* ]], basic.subs ) -- definite whitespace
 rule([[ _ <- {ws}? ]], basic.subs ) -- optional whitespace

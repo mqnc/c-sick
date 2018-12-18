@@ -10,9 +10,9 @@ identifiers = {}
 globalStatements = {}
 localStatements = {}
 
-sep = package.config:sub(1,1)
+sep = package.config:sub(1,1) -- platform specific path seperator
 dofile("language" .. sep .. "core.lua")
-
+dofile("language" .. sep .. "rawcpp.lua")
 
 
 table.insert(globalStatements, "{SyntaxError}")
@@ -24,12 +24,12 @@ if #keywords == 0 then
 else
     rule( "Keyword <- (" .. table.concat(keywords, " / ") .. " ) NameEnd", basic.subs)
 end
-rule( "Identifier <- !Keyword (" .. table.concat(identifiers, " / ") .. " )", basic.subs)
+rule( "Identifier <- !Keyword ( " .. table.concat(identifiers, " / ") .. " )", basic.subs)
 rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.subs)
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.subs)
 
 
-input = utils.readAll("snippets/core.mon")
+input = utils.readAll("snippets/rawcpp.mon")
 
 print(transpiler.grammar())
 utils.writeToFile("testgrammar.peg", transpiler.grammar())

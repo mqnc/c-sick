@@ -66,14 +66,16 @@ local xpeg = [[
 	Prefix     <- (AND / NOT)? Suffix
 	Suffix     <- Primary (QUESTION / STAR / PLUS)?
 	Primary    <- # Identifier Spacing !LEFTARROW
-	              IgnoredId
-	              / IndexedId
+	              IgnoredId / IndexedId
+	              / Token / Capture / Reference
 	              / OPEN Expression CLOSE
-	              / TOKENOPEN Expression TOKENCLOSE
 	              / Literal / Class / DOT
 
 	IgnoredId <- Identifier Spacing !LEFTARROW # id -> ~id
 	IndexedId <- '{' Identifier '}' Spacing # {id} -> id
+	Token <- TOKENOPEN Expression TOKENCLOSE
+	Capture <- Reference Token
+	Reference <- REF Identifier Spacing
 
 	# Lexical syntax
 	Identifier <- IdentStart IdentCont*
@@ -100,6 +102,7 @@ local xpeg = [[
 	DOT       <- '.' Spacing
 	TOKENOPEN <- '<' Spacing
 	TOKENCLOSE<- '>' Spacing
+	REF       <- '$' Spacing
 	Spacing   <- (Space / Comment)*
 	Comment   <- '#' (!EndOfLine .)* EndOfLine
 	Space     <- ' ' / '\t' / EndOfLine
@@ -131,6 +134,8 @@ local ruleParser = pegparser{
 
 
 transpiler.rule = function(entry, action)
+	--print("parsing " .. entry)
+
 	local definition = ruleParser:parse(entry).output
 
 	-- if the rule does not exist yet, associate a new index with it

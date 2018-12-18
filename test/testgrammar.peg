@@ -9,14 +9,25 @@ NameMid <- [a-zA-Z_0-9]   # -> NIL
 NameEnd <- !~NameMid   # -> NIL
 SimpleDeclaration <- (Identifier ~_)+ (AssignOperator ~_ Expression ~_)? break   # -> subs
 AssignOperator <- ':='   # -> ' = '
-Expression <- [0-9]+   # -> match
+Expression <- [0-9]+ / Identifier   # -> subs
 ws <- ([ \t] / ('...' ~_ ~nl) / Comment)*   # -> subs
 _ <- ws?   # -> subs
 nl <- '\r\n' / '\n' / !.   # -> '\n'
 break <- ~nl / ';'   # -> ';\n'
 skip <- _ (~nl _)*   # -> subs
+RawCpp <- ~CppDelimiter <~CppCode*> ~CppDelimiter   # -> token
+CppDelimiter <- '$'   # -> NIL
+CppCode <- ~CppComment / ~CppStringLiteral / ~CppAnything   # -> NIL
+CppComment <- ~CppSingleLineComment / ~CppMultiLineComment   # -> NIL
+CppSingleLineComment <- '//' (!~nl .)* ~nl   # -> NIL
+CppMultiLineComment <- '/*' (!'*/' .)* '*/'   # -> NIL
+CppStringLiteral <- ~CppCharConstant / ~CppSimpleString / ~CppMultiLineString   # -> NIL
+CppCharConstant <- '\'' (('\\' .) / .) '\''   # -> NIL
+CppSimpleString <- '"' (('\\' .) / (!'"' .))* '"'   # -> NIL
+CppMultiLineString <- 'R"' $delim<[a-zA-Z_0-9]*> '(' (!(')' $delim '"') .)* ')' $delim '"'   # -> NIL
+CppAnything <- (!~CppDelimiter .)   # -> NIL
 SyntaxError <- (!~nl .)* ~nl   # -> '[91m{match}[39m\n'
 Keyword <- !. .  # -> ''
-Identifier <- !~Keyword (Name )  # -> subs
+Identifier <- !~Keyword ( Name / RawCpp )  # -> subs
 GlobalStatement <- SimpleDeclaration / SyntaxError  # -> subs
 LocalStatement <- SimpleDeclaration / Expression / SyntaxError  # -> subs
