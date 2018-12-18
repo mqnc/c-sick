@@ -1,1 +1,1 @@
-./program test/grammar.lua test/calculation.txt
+./program test/cinnamon.lua

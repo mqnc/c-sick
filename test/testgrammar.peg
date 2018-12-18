@@ -1,0 +1,22 @@
+Start <- skip (GlobalStatement skip)*   # -> subs
+Comment <- SingleLineComment / MultiLineComment / NestableComment   # -> subs
+SingleLineComment <- '//' (!~nl .)*   # -> match
+MultiLineComment <- '/*' (!'*/' .)* '*/'   # -> match
+NestableComment <- '\\*' <(~NestableComment / !'*\\' .)*> '*\\'   # -> special action
+Name <- ~NameStart ~NameMid* ~NameEnd   # -> match
+NameStart <- [a-zA-Z_]   # -> NIL
+NameMid <- [a-zA-Z_0-9]   # -> NIL
+NameEnd <- !~NameMid   # -> NIL
+SimpleDeclaration <- (Identifier ~_)+ (AssignOperator ~_ Expression ~_)? break   # -> subs
+AssignOperator <- ':='   # -> ' = '
+Expression <- [0-9]+   # -> match
+ws <- ([ \t] / ('...' ~_ ~nl) / Comment)*   # -> subs
+_ <- ws?   # -> subs
+nl <- '\r\n' / '\n' / !.   # -> '\n'
+break <- ~nl / ';'   # -> ';\n'
+skip <- _ (~nl _)*   # -> subs
+SyntaxError <- (!~nl .)* ~nl   # -> '[91m{match}[39m\n'
+Keyword <- !. .  # -> ''
+Identifier <- !~Keyword (Name )  # -> subs
+GlobalStatement <- SimpleDeclaration / SyntaxError  # -> subs
+LocalStatement <- SimpleDeclaration / Expression / SyntaxError  # -> subs

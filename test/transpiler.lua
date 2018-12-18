@@ -59,7 +59,7 @@ transpiler.basicActions = {
 -- extended peg grammar for rule transformation
 local xpeg = [[
 	# Hierarchical syntax
-	# Grammar    <- Spacing Definition+ EndOfFile
+	# Grammar  <- Spacing Definition+ EndOfFile
 	Definition <- Spacing Identifier Spacing LEFTARROW Expression
 	Expression <- Sequence (SLASH Sequence)*
 	Sequence   <- Prefix*
@@ -69,10 +69,11 @@ local xpeg = [[
 	              IgnoredId
 	              / IndexedId
 	              / OPEN Expression CLOSE
+	              / TOKENOPEN Expression TOKENCLOSE
 	              / Literal / Class / DOT
 
-	IgnoredId <- Identifier Spacing !LEFTARROW        #  id  -> ~id
-	IndexedId <- '{' Identifier '}' Spacing   # {id} ->  id
+	IgnoredId <- Identifier Spacing !LEFTARROW # id -> ~id
+	IndexedId <- '{' Identifier '}' Spacing # {id} -> id
 
 	# Lexical syntax
 	Identifier <- IdentStart IdentCont*
@@ -97,7 +98,8 @@ local xpeg = [[
 	OPEN      <- '(' Spacing
 	CLOSE     <- ')' Spacing
 	DOT       <- '.' Spacing
-	AT        <- '@'
+	TOKENOPEN <- '<' Spacing
+	TOKENCLOSE<- '>' Spacing
 	Spacing   <- (Space / Comment)*
 	Comment   <- '#' (!EndOfLine .)* EndOfLine
 	Space     <- ' ' / '\t' / EndOfLine
@@ -138,20 +140,30 @@ transpiler.rule = function(entry, action)
 		print('warning: rule "' .. definition.name .. '" will be overwritten')
 	end
 
-	-- create/update rule
-	ruleList[definition.name] = definition.pattern
-
 	-- create action
 	if type(action) == "function" then
 
 		-- just register the provided action
 		actionList[definition.name] = action
+		local found = false
+		for fname, f in pairs(transpiler.basicActions) do
+			if action == f then
+				definition.pattern = definition.pattern .. "  # -> " .. fname
+				found = true
+			end
+		end
+		if not found then
+			definition.pattern = definition.pattern .. "  # -> special action"
+		end
 
 	elseif type(action) == "string" then
 
 		-- return a string but:
  			-- replace "{#}" with the #-th semantic value
 			-- replace "{match}" with the complete match
+
+		definition.pattern = definition.pattern .. "  # -> '" .. action:gsub("\n", "\\n") .. "'"
+
 		actionList[definition.name] = function(params)
 			local output = action
 			for i, v in ipairs(params.values) do
@@ -161,7 +173,14 @@ transpiler.rule = function(entry, action)
 			return output
 		end
 
+	else
+
+		definition.pattern = definition.pattern .. "  # -> NIL"
+
 	end
+
+	-- create/update rule
+	ruleList[definition.name] = definition.pattern
 end
 
 

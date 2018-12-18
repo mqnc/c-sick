@@ -20,12 +20,12 @@
    xml:space="preserve"
    sodipodi:docname="cinnamon.svg"
    inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
-   inkscape:export-filename="/home/mirko/development/c-sick/logo/cinnamon.png"
+   inkscape:export-filename="/home/mirko/development/c-sick/logo/cinnamon_w.png"
    inkscape:export-xdpi="60"
    inkscape:export-ydpi="60"><metadata
      id="metadata25"><rdf:RDF><cc:Work
          rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
      id="defs23" /><sodipodi:namedview
      pagecolor="#ffffff"
      bordercolor="#666666"
@@ -33,7 +33,7 @@
      objecttolerance="10"
      gridtolerance="10"
      guidetolerance="10"
-     inkscape:pageopacity="0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:window-width="1920"
      inkscape:window-height="1023"
@@ -53,7 +53,7 @@
      fit-margin-right="0"
      fit-margin-bottom="0"
      inkscape:zoom="1"
-     inkscape:cx="310.79597"
+     inkscape:cx="103.29597"
      inkscape:cy="206.23777"
      inkscape:window-x="0"
      inkscape:window-y="0"
