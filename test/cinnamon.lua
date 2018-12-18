@@ -12,8 +12,10 @@ localStatements = {}
 
 sep = package.config:sub(1,1) -- platform specific path seperator
 dofile("language" .. sep .. "core.lua")
-dofile("language" .. sep .. "rawcpp.lua")
+--dofile("language" .. sep .. "rawcpp.lua")
+dofile("language" .. sep .. "loop.lua")
 
+table.insert(globalStatements, "{LocalStatement}") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
 
 table.insert(globalStatements, "{SyntaxError}")
 table.insert(localStatements, "{SyntaxError}")
@@ -29,7 +31,7 @@ rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.subs
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.subs)
 
 
-input = utils.readAll("snippets/rawcpp.mon")
+input = utils.readAll("snippets/loop.mon")
 
 print(transpiler.grammar())
 utils.writeToFile("testgrammar.peg", transpiler.grammar())

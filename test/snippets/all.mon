@@ -72,15 +72,15 @@ function main()
 	end
 
 	while a<10
-		a++
+		a := a+1
 	end
 
 	repeat
-		a++
+		a := a+1
 	until a==20
 
 	repeat
-		a++
+		a := a+1
 	whilst a<30
 
 	for i<=5 // 0 1 2 3 4 5
