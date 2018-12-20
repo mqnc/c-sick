@@ -1,0 +1,43 @@
+
+function oneLine; end
+
+function noParams
+end
+
+function emptyParams()
+end
+
+function oneParam(int x)
+end
+
+function oneDefaultParam(int x:=0)
+end
+
+function twoParams(int x:=0, int y)
+end
+
+// if it's not initialized, it doesn't get a name
+function simpleReturn -> int
+end
+
+function simpleReturnDefaultValue -> int q:=0
+	// implicit return q in the end if return value is initialized
+end
+
+function returnStruct -> (int q)
+end
+
+function returnStructDefaultValue -> (int q:=0)
+end
+
+function returnStructMultipleValues -> (int q:=0, int r)
+	val r:=5
+	return q, r
+end
+
+function returnStructMultipleDefaultValues -> (int q:=0, int r:=7)
+	// implicit return q, r in the end when all return values are initialized
+end
+
+function fullMonty(int x:=0, int y) -> (int q:=0, int r)
+end

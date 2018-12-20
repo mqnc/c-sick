@@ -442,23 +442,3 @@ namespace lua {
 		}
 	};
 }
-
-inline auto lua_loadutils(lua_State *L){
-	const auto utils = R"(
-
-	function stringify(o)
-		if "table" ~= type(o) then
-				return tostring(o)
-		end
-
-		local res = {}
-		for k, v in pairs(o) do
-				local val = {"[", k, "]=", stringify(v)}
-				res[1 + #res] = table.concat(val)
-		end
-		return "{" .. table.concat(res, ", ") .. "}"
-	end
-
-	)";
-	return luaL_loadstring(L, utils) || lua_pcall(L, 0, 0, 0);
-}

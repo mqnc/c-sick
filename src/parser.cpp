@@ -5,10 +5,7 @@
 #include <memory>
 #include <string>
 #include "lua/src/lua.hpp"
-#include "stringutils.h"
 #include "peglib.h"
-
-#define DEBUG_STRLEN 40 // display that many chars of the parsing text in debug output
 
 using namespace peg;
 using namespace std;
@@ -37,7 +34,7 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 		params["choice"] = sv.choice() + 1;
 		params["line"] = sv.line_info().first;
 		params["column"] = sv.line_info().second;
-		params["matched"] = StringPtr(sv.c_str(), sv.length());
+		//params["matched"] = StringPtr(sv.c_str(), sv.length());
 		params["position"] = (int)(sv.c_str() - sv.ss) + 1;
 		params["length"] = sv.length();
 		params["rule"] = rule;
@@ -45,7 +42,6 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 		const lua::value values = lua::newtable();
 		for (size_t i = 0; i != sv.size(); ++i){
 			values[i+1] = sv[i].get<lua::value>();
-			//values[i+1]["offset"] = lua::value(values[i+1]["position"]).tointeger() - ((int)(sv.c_str() - sv.ss) + 1);
 		}
 		params["values"] = values;
 
@@ -56,15 +52,7 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 		params["tokens"] = tokens;
 
 		// call lua function
-		auto output = reduce(params);
-
-		const lua::value result = lua::newtable();
-		result["output"] = output;
-		result["position"] = (int)(sv.c_str() - sv.ss) + 1;
-		result["length"] = sv.length();
-		result["rule"] = rule;
-
-		return result;
+		return reduce(params);
 	};
 }
 
@@ -83,12 +71,12 @@ lua::value pegparser::parse() {
 	if(success){
 		//cout << "parsing successful, result = " << value.get<lua::value>().tostring() << endl;
 		//cout << "parsing successful" << endl;
+		return value.get<lua::value>();
 	}
 	else{
 		cout << "parsing failed" << endl;
+		return lua::value(); // return nil
 	}
-
-	return value.get<lua::value>();
 }
 
 pegparser::pegparser() {
@@ -100,34 +88,29 @@ pegparser::pegparser() {
 	lua::value grammar(options["grammar"]);
 	if(grammar.isnil()){
 		lua::error("no grammar defined");
+		return;
 	}
 
 	// read default actions
 	lua::value defaultReduce(options["default"]);
 	if(defaultReduce.isnil()){
 		lua::error("no default reduction action defined");
+		return;
 	}
 
 	// read specific reduction actions
 	lua::value actions(options["actions"]);
 	if(actions.isnil()){
 		lua::error("no reduction actions defined");
+		return;
 	}
 
 	// packrat mode
-	bool packrat = false;
+	bool packrat = true;
 	lua::value lvpackrat(options["packrat"]);
 	if(!lvpackrat.isnil()){
 		packrat = lvpackrat.toboolean();
 	}
-
-	// debug output during parsing
-	bool debug = false;
-	lua::value lvdebug(options["debuglog"]);
-	if(!lvdebug.isnil()){
-		debug = lvdebug.toboolean();
-	}
-
 
 	// create parser
 	m_parser = std::make_unique<parser>();
@@ -137,6 +120,7 @@ pegparser::pegparser() {
     auto ok = m_parser->load_grammar(grammar.tocstring());
     if(!ok){
 		cerr << "error loading grammar\n";
+		return;
 	}
 	if (packrat) {
 		m_parser->enable_packrat_parsing();
@@ -152,38 +136,6 @@ pegparser::pegparser() {
 		else {
 			registerReductionRule(*m_parser, rule, defaultReduce);
 		}
-	}
-
-	// assign callbacks for parser debugging
-	if(debug){
-		for(auto& rule:rules){
-
-			(*m_parser)[rule.c_str()].enter = [rule](const char* s, size_t n, any& dt) {
-				auto& indent = *dt.get<int*>();
-				cout << repeat("|  ", indent) << rule << " => \"" << shorten(s, n, DEBUG_STRLEN) << "\"?" << endl;
-				indent++;
-			};
-
-			(*m_parser)[rule.c_str()].leave = [rule](const char* s, size_t n, size_t matchlen, any& value, any& dt) {
-				auto& indent = *dt.get<int*>();
-				indent--;
-				cout << repeat("|  ", indent) << "`-> ";
-				if(success(matchlen)){
-
-					// display "match", the matched string and the result of the reduction
-					cout << "matches " << rule << ": \"" << shorten(s, matchlen, DEBUG_STRLEN-2) << "\" -> ";
-					const lua::value stringify(lua::globals()["stringify"]);
-					const string output = stringify(value.get<lua::value>()).tostring();
-					cout << shorten(output.data(), output.size(), DEBUG_STRLEN) << endl;
-				}
-				else{
-					cout << "not " << rule << ": \"" << shorten(s, n, DEBUG_STRLEN) << "\"" << endl;
-				}
-			};
-		}
-		m_parser->log = [](size_t ln, size_t col, const string& msg) {
-			cout << "(" << ln << "," << col << ") " << msg << "\n";
-		};
 	}
 }
 

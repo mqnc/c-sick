@@ -1,62 +1,180 @@
 
+-- the module that will be exported
 local transpiler = {}
 
+-- the private lists of rules and actions
 local ruleList = {}
 local actionList = {}
+local parsingText = ""
+local ansiColors = true
 
+-- swipe clean
 transpiler.clear = function()
 	ruleList = {}
 	actionList = {}
+	parsingText = ""
 end
 
+-- enable/disable colored output
+transpiler.ansiColors = function(enable)
+	if type(enable) == "boolean" then
+		ansiColors = enable
+	end
+end
 
+-- ansi color codes
+local ESC = string.char(27)
 
+local palette = {
+	default = ESC .. "[0m",
+	black = ESC .. "[90m",
+	red = ESC .. "[91m",
+	green = ESC .. "[92m",
+	yellow = ESC .. "[93m",
+	blue = ESC .. "[94m",
+	magenta = ESC .. "[95m",
+	cyan = ESC .. "[96m",
+	white = ESC .. "[97m"
+}
+
+local col = function(text, color)
+	if not ansiColors then
+		return text
+	end
+	return palette[color] .. text .. palette["default"]
+end
+
+transpiler.colorize = col -- make accessible
+
+-- turn something into string, recursively expand tables
+transpiler.stringify = function(obj, indent)
+	if nil == indent then
+		indent = ""
+	end
+	if type(obj) == "string" then
+		return '"' .. obj .. '"'
+	elseif type(obj) == "table" then
+		if next(obj) == nil then
+			return col("{}", "cyan")
+		end
+		local res = {}
+		for k, v in pairs(obj) do
+			local key = k
+			if type(k) ~= "string" then
+				key = "[" .. tostring(k) .. "]"
+			end
+			res[1 + #res] = indent .. "\t" .. col(key, "yellow") .. col(" = ", "cyan") .. transpiler.stringify(v, "\t" .. indent)
+		end
+		return "\n" .. indent .. col("{", "cyan") .. "\n" .. table.concat(res, col(",\n", "cyan")) .. "\n" .. indent .. col("}", "cyan")
+	elseif type(obj) == "function" then
+		return tostring(obj) .. col(" -> ", "cyan") .. tostring(obj())
+	else
+		return tostring(obj)
+	end
+end
+
+-- display something, recursively expand tables
+transpiler.log = function(obj)
+	print(transpiler.stringify(obj))
+end
+
+-- wrapper class for semantic values
+-- the str field should store the resulting output text
+-- see standard actions below for examples how to use
+transpiler.semanticValue = {
+
+	mt = {
+		__tostring = function(value)
+			return value.str
+		end
+	},
+
+	new = function(arg)
+		local value = {}
+		setmetatable(value, transpiler.semanticValue.mt)
+		value.pos = arg.position
+		value.len = arg.length
+		value.rule = arg.rule
+		value.match = function()
+			return parsingText:sub(arg.position, arg.position + arg.length - 1)
+		end
+		value.str = ""
+		return value
+	end
+}
+
+-- set of standard reduction actions
 transpiler.basicActions = {
 
-	-- return the name of the rule that was reduced
-	rule = function(params)
-		return params.rule
+	-- output the name of the rule that was reduced
+	rule = function(arg)
+		local result = transpiler.semanticValue.new(arg)
+		result.str = result.rule
+		return result
 	end,
 
-	-- return the matched text
-	match = function(params)
-		return params.matched
+	-- output the matched text
+	match = function(arg)
+		local result = transpiler.semanticValue.new(arg)
+		result.str = result.match()
+		return result
 	end,
 
-	-- return the first captured token (raw text)
-	token = function(params)
- 		return params.tokens[1]
+	-- output the first captured token (raw text)
+	token = function(arg)
+		local result = transpiler.semanticValue.new(arg)
+		result.str = arg.tokens[1]
+		return result
 	end,
 
 	-- concat all captured semantic values with a space in between
-	concat = function(params)
-		local output = ""
-		for i = 1, #params.values do
-			output = output .. params.values[i].output .. " "
+	concat = function(arg)
+		local result = transpiler.semanticValue.new(arg)
+		local sep = ""
+		for i = 1, #arg.values do
+			result.str = result.str .. sep .. arg.values[i].str
+			sep = " "
 		end
-		return output
+		return result
 	end,
 
-	-- return the matched text but substitute all semantic values at their positions
-	subs = function(params)
-
-		local output = params.matched
-		for i = #params.values, 1, -1 do
-			local offset = params.values[i].position - params.position
-			output = output:sub(1, offset) .. stringify(params.values[i].output) .. output:sub(offset + params.values[i].length + 1)
+	-- concat all captured semantic values with a comma in between
+	csv = function(arg)
+		local result = transpiler.semanticValue.new(arg)
+		local sep = ""
+		for i = 1, #arg.values do
+			result.str = result.str .. sep .. arg.values[i].str
+			sep = ", "
 		end
-		return output
+		return result
+	end,
+
+	-- output the matched text but substitute all semantic values at their positions
+	subs = function(arg)
+		local result = transpiler.semanticValue.new(arg)
+		result.str = result.match()
+
+		for i = #arg.values, 1, -1 do
+			local offset = arg.values[i].pos - arg.position
+			result.str = result.str:sub(1, offset) .. arg.values[i].str .. result.str:sub(offset + arg.values[i].len + 1)
+		end
+		return result
 	end,
 
 	-- just forward all parameters
-	forward = function(params)
-		return params
+	forward = function(arg)
+		local result = transpiler.semanticValue.new(arg)
+		result.sub = arg
+		return result
 	end
 }
 
 
 
 -- extended peg grammar for rule transformation
+-- turn "rule <- keyword ws {important} ws keyword"
+-- into "rule <- ~keyword ~ws important ~ws ~keyword" for peglib
+-- so we can highlight considered semantic values instead of highlighting ignored ones
 local xpeg = [[
 	# Hierarchical syntax
 	# Grammar  <- Spacing Definition+ EndOfFile
@@ -113,30 +231,38 @@ local xpeg = [[
 local ruleParser = pegparser{
 	grammar = xpeg,
 	actions = {
-		Definition = function(params)
+		Definition = function(arg)
 			return {
-				name = params.values[2].output,
-				pattern = params.values[5].output
+				name = arg.values[2].str,
+				pattern = arg.values[5].str
 			}
 		end,
-		IndexedId = function(params)
-			return params.values[1].output .. params.values[2].output
+		IndexedId = function(arg)
+			local result = transpiler.semanticValue.new(arg)
+			result.str = arg.values[1].str .. arg.values[2].str
+			return result
 		end,
-		IgnoredId = function(params)
-			return '~' .. params.values[1].output .. params.values[2].output
+		IgnoredId = function(arg)
+			local result = transpiler.semanticValue.new(arg)
+			result.str = '~' .. arg.values[1].str .. arg.values[2].str
+			return result
 		end
 	},
-	default = transpiler.basicActions.subs,
-	packrat = true,
-	debuglog = false
+	default = transpiler.basicActions.subs
 }
 
-
-
+-- use this function to define parsing rules like this:
+-- rule( [[ sum <- {term} _ plus _ {term} ]], basic.subs )
+-- use {} to mark semantic values you need
 transpiler.rule = function(entry, action)
-	--print("parsing " .. entry)
+	parsingText = entry
 
-	local definition = ruleParser:parse(entry).output
+	local definition = ruleParser:parse(entry)
+
+	if definition == nil then
+		error('error while parsing rule "' .. entry .. '"')
+		return
+	end
 
 	-- if the rule does not exist yet, associate a new index with it
 	if ruleList[definition.name] == nil then
@@ -169,18 +295,25 @@ transpiler.rule = function(entry, action)
 
 		definition.pattern = definition.pattern .. "  # -> '" .. action:gsub("\n", "\\n") .. "'"
 
-		actionList[definition.name] = function(params)
-			local output = action
-			for i, v in ipairs(params.values) do
-				output = output:gsub("{" .. i .. "}", v.output)
+		actionList[definition.name] = function(arg)
+			local result = transpiler.semanticValue.new(arg)
+			result.str = action
+			for i, v in ipairs(arg.values) do
+				result.str = result.str:gsub("{" .. i .. "}", v.str)
 			end
-			output = output:gsub("{match}", params.matched)
-			return output
+			result.str = result.str:gsub("{match}", result.match())
+			return result
 		end
 
 	else
 
-		definition.pattern = definition.pattern .. "  # -> NIL"
+		definition.pattern = definition.pattern .. "  # (no action)"
+
+		actionList[definition.name] = function(arg)
+			local result = transpiler.semanticValue.new(arg)
+			result.str = "UNDEFINED"
+			return result
+		end
 
 	end
 
@@ -189,7 +322,7 @@ transpiler.rule = function(entry, action)
 end
 
 
-
+-- compose grammar from all registered rules
 transpiler.grammar = function()
 	local result = ""
 	for i, r in ipairs(ruleList) do
@@ -199,20 +332,18 @@ transpiler.grammar = function()
 end
 
 
+-- do transpilation
+transpiler.transpile = function(code)
 
-transpiler.transpile = function(code, debug)
+	parsingText = code
 
-	local transpiler = pegparser{
+	local pp = pegparser{
 		grammar = transpiler.grammar(),
 		actions = actionList,
-		default = function(params)
-			--print('warning: rule "' .. params.rule .. '" has no action');
-			return 'NIL'
-		end,
-		packrat = true,
-		debuglog = (debug==true)}
+		default = function(arg) return nil end
+	}
 
-	return transpiler:parse(code).output
+	return pp:parse(code)
 
 end
 
