@@ -19,3 +19,5 @@ var c; val d
 a := 3; b := 4
 const long int favoriteNumber := 129438752013874309213
 expression_with_underscores
+
+syntax-error

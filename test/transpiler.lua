@@ -102,6 +102,9 @@ transpiler.basicActions = {
 	forward = function(arg)
 		local result = transpiler.semanticValue.new(arg)
 		result.sub = arg
+		if #values >= 1 then
+			result.str = values[1].str
+		end
 		return result
 	end
 }

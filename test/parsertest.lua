@@ -81,12 +81,12 @@ transpiler.clear()
 
 rule([[ list <- "\n"* {item}* ]], "match=<<<{match}>>> val1={1} val2={2} val3={3} val100={100}")
 rule([[ item <- ({rule} / {match} / {token} / {concat} / {csv} / {subs} / {forward} / {default}) ("\n"+ / !.) ]],
-function(arg)
-	--log(arg.values)
-	local result = sv.new(arg)
-	result.str = "(" .. arg.rule .. ")"
-	return result
-end
+	function(arg)
+		--log(arg.values)
+		local result = sv.new(arg)
+		result.str = "(" .. arg.rule .. ")"
+		return result
+	end
 )
 rule([[ rule <- "rule" (" " word)* ]], basic.rule)
 rule([[ match <- "match" (" " word)* ]], basic.match)

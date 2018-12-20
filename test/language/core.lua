@@ -5,8 +5,10 @@ rule([[ Comment <- {SingleLineComment} / {MultiLineComment} / {NestableComment} 
 rule([[ SingleLineComment <- '//' (!nl .)* ]], basic.match )
 rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]], basic.match )
 rule([[ NestableComment <- '\\*' <(NestableComment / !'*\\' .)*> '*\\' ]],
-    function(params)
-        return "/*" .. params.tokens[1]:gsub("/[*]", "\\*"):gsub("[*]/", "*\\") .. "*/"
+    function(arg)
+		local result = sv.new(arg)
+		result.str = "/*" .. arg.tokens[1]:gsub("/[*]", "\\*"):gsub("[*]/", "*\\") .. "*/"
+		return result
     end
 )
 
@@ -16,19 +18,38 @@ rule([[ NameStart <- [a-zA-Z_] ]])
 rule([[ NameMid <- [a-zA-Z_0-9] ]])
 rule([[ NameEnd <- !NameMid ]])
 
-rule([[ SimpleDeclaration <- DeclarationWithInit / DeclarationWithoutInit ]], basic.subs )
-rule([[ DeclarationWithInit <- {Identifier} _ ({Identifier} _)+ {AssignOperator} _ {Expression} _ {break} ]], basic.subs )
-rule([[ DeclarationWithoutInit <- {Identifier} _ ({Identifier} _)+ {break} ]],
-	function(params)
-		local i = 1
-		local specifiers = {}
-		while params.values[i].rule == "Identifier"
-			table.insert(specifiers, params.values[i].output)
-			i = i+1
-		end
-		local variable = 
+rule([[ SimpleDeclaration <- {DeclarationWithInit} / {DeclarationWithoutInit} ]],
+	function(arg)
+		local result = arg.values[1]
+		result.rule = arg.rule
+		return result
 	end
 )
+
+local declarationAction = function(arg)
+	local result = basic.subs(arg)
+	result.specifiers = {}
+
+	local i = 1
+	while arg.values[i].rule == "Identifier" do
+		table.insert(result.specifiers, arg.values[i].str)
+		i = i+1
+	end
+	i = i-1
+
+	result.variable = result.specifiers[i]
+	result.specifiers[i] = nil
+	if arg.rule == "DeclarationWithInit" then
+		result.init = arg.values[i+2].str
+	else
+		result.init = nil
+	end
+
+	return result
+end
+
+rule([[ DeclarationWithInit <- {Identifier} _ ({Identifier} _)+ {AssignOperator} _ {Expression} _ {break} ]], declarationAction )
+rule([[ DeclarationWithoutInit <- {Identifier} _ ({Identifier} _)+ {break} ]], declarationAction )
 table.insert(globalStatements, "{SimpleDeclaration}")
 table.insert(localStatements, "{SimpleDeclaration}")
 rule([[ Assignment <- {Identifier} _ {AssignOperator} _ {Expression} _ {break} ]], basic.subs )
