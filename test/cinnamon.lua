@@ -1,9 +1,11 @@
 
 utils = require "utils"
 transpiler = require "transpiler"
+log = transpiler.log
 rule = transpiler.rule
 basic = transpiler.basicActions
-
+sv = transpiler.semanticValue
+col = transpiler.colorize
 
 keywords = {}
 identifiers = {}

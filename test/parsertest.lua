@@ -1,6 +1,15 @@
 
 -- the assertion is outsourced to the user
 
+local utils = require "utils"
+log = utils.log
+col = utils.colorize
+
+local transpiler = require "transpiler"
+rule = transpiler.rule
+basic = transpiler.basicActions
+sv = transpiler.semanticValue
+
 local testText = [[
 rule them all
 match cannot work outside transpiler
@@ -12,16 +21,10 @@ forward and for honor
 default rule should warn
 ]]
 
-local transpiler = require "transpiler"
-log = transpiler.log
-rule = transpiler.rule
-basic = transpiler.basicActions
-sv = transpiler.semanticValue
-col = transpiler.colorize
 
 -- test the naked parser
 
-print(col("\ntesting the naked parser\n", "green"))
+print(col("\ntesting the naked parser\n", "brightgreen"))
 local pp = pegparser{
 	grammar = [[
 		list <- "\n"* item*
@@ -55,24 +58,24 @@ local pp = pegparser{
 }
 
 
-print(col("\nreturned values of the basic rules:\n", "green"))
+print(col("\nreturned values of the basic rules:\n", "brightgreen"))
 
 local result = pp:parse(testText)
 
-print(col("\nresult:\n", "green"))
+print(col("\nresult:\n", "brightgreen"))
 
 log(result)
 
 
 -- test rule conversion
-print(col("\ntesting rule conversion\n", "green"))
+print(col("\ntesting rule conversion\n", "brightgreen"))
 transpiler.clear()
 rule([[ rulename <- <token> $capture(stuff) $reference ignored {considered} ]], "cucumber")
 print(transpiler.grammar())
 
 
 -- test transpiler
-print(col("\ntesting transpiler module\n", "green"))
+print(col("\ntesting transpiler module\n", "brightgreen"))
 transpiler.clear()
 
 
@@ -95,8 +98,8 @@ rule([[ forward <- "forward" (" " word)* ]], basic.forward)
 rule([[ default <- "default" (" " word)* ]])
 rule([[ word <- [a-zA-Z0-9]+ ]], basic.rule)
 
-print(col("\nresulting grammar:\n", "green"))
+print(col("\nresulting grammar:\n", "brightgreen"))
 print(transpiler.grammar())
 
-print(col("\ntranspilation\n", "green"))
+print(col("\ntranspilation\n", "brightgreen"))
 print(transpiler.transpile(testText).str)

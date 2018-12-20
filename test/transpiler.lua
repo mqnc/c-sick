@@ -6,7 +6,6 @@ local transpiler = {}
 local ruleList = {}
 local actionList = {}
 local parsingText = ""
-local ansiColors = true
 
 -- swipe clean
 transpiler.clear = function()
@@ -15,68 +14,6 @@ transpiler.clear = function()
 	parsingText = ""
 end
 
--- enable/disable colored output
-transpiler.ansiColors = function(enable)
-	if type(enable) == "boolean" then
-		ansiColors = enable
-	end
-end
-
--- ansi color codes
-local ESC = string.char(27)
-
-local palette = {
-	default = ESC .. "[0m",
-	black = ESC .. "[90m",
-	red = ESC .. "[91m",
-	green = ESC .. "[92m",
-	yellow = ESC .. "[93m",
-	blue = ESC .. "[94m",
-	magenta = ESC .. "[95m",
-	cyan = ESC .. "[96m",
-	white = ESC .. "[97m"
-}
-
-local col = function(text, color)
-	if not ansiColors then
-		return text
-	end
-	return palette[color] .. text .. palette["default"]
-end
-
-transpiler.colorize = col -- make accessible
-
--- turn something into string, recursively expand tables
-transpiler.stringify = function(obj, indent)
-	if nil == indent then
-		indent = ""
-	end
-	if type(obj) == "string" then
-		return '"' .. obj .. '"'
-	elseif type(obj) == "table" then
-		if next(obj) == nil then
-			return col("{}", "cyan")
-		end
-		local res = {}
-		for k, v in pairs(obj) do
-			local key = k
-			if type(k) ~= "string" then
-				key = "[" .. tostring(k) .. "]"
-			end
-			res[1 + #res] = indent .. "\t" .. col(key, "yellow") .. col(" = ", "cyan") .. transpiler.stringify(v, "\t" .. indent)
-		end
-		return "\n" .. indent .. col("{", "cyan") .. "\n" .. table.concat(res, col(",\n", "cyan")) .. "\n" .. indent .. col("}", "cyan")
-	elseif type(obj) == "function" then
-		return tostring(obj) .. col(" -> ", "cyan") .. tostring(obj())
-	else
-		return tostring(obj)
-	end
-end
-
--- display something, recursively expand tables
-transpiler.log = function(obj)
-	print(transpiler.stringify(obj))
-end
 
 -- wrapper class for semantic values
 -- the str field should store the resulting output text
