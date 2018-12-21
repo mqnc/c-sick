@@ -1,4 +1,7 @@
 
+function awa(int x) -> const unsigned long int
+end
+
 function oneLine; end
 
 function noParams

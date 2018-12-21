@@ -1,7 +1,9 @@
 
 rule([[ WhileStatement <- WhileKeyword _ {Expression} _ break {WhileBody} EndWhileKeyword ]],
-	function(params)
-		return "while( " .. params.values[1].output .. " ){\n" .. params.values[2].output .. "\n}\n"
+	function(arg)
+		local result = sv(arg)
+		result.str = "while( " .. arg.values[1].str .. " ){\n" .. arg.values[2].str .. "\n}\n"
+		return result
 	end
 )
 rule([[ WhileKeyword <- 'while' ]])
@@ -14,14 +16,16 @@ table.insert(localStatements, "{WhileStatement}")
 
 
 rule([[ RepeatStatement <- RepeatKeyword _ break {RepeatBody} ({RepWhileKeyword} / {UntilKeyword}) _ {Expression} _ break ]],
-	function(params)
+	function(arg)
+		local result = sv(arg)
 		local condition = ""
-		if params.values[2].rule == "RepWhileKeyword" then
-			condition = "( " .. params.values[3].output .. " )"
+		if arg.values[2].rule == "RepWhileKeyword" then
+			condition = "( " .. arg.values[3].str .. " )"
 		else
-			condition = "(!( " .. params.values[3].output .. " ))"
+			condition = "(!( " .. arg.values[3].str .. " ))"
 		end
-		return "do{\n" .. params.values[1].output .. "\n}\nwhile" .. condition .. "\n"
+		result.str = "do{\n" .. arg.values[1].str .. "\n}\nwhile" .. condition .. "\n"
+		return result
 	end
 )
 rule([[ RepeatKeyword <- 'repeat' ]])

@@ -2,7 +2,8 @@
 rule( [[ RawCpp <- CppDelimiter <CppCode*> CppDelimiter ]], basic.token )
 rule( [[ CppDelimiter <- '$' ]] )
 rule( [[ CppCode <- CppComment / CppStringLiteral / CppAnything ]] )
-rule( [[ CppComment <- CppSingleLineComment / CppMultiLineComment ]] )
+--rule( [[ CppComment <- CppSingleLineComment / CppMultiLineComment ]] )
+rule( [[ CppComment <- CppMultiLineComment ]] ) -- $ number++ // increase number $ should work
 rule( [[ CppSingleLineComment <- '//' (!nl .)* nl ]] )
 rule( [[ CppMultiLineComment <- '/*' (!'*/' .)* '*/' ]] )
 rule( [[ CppStringLiteral <- CppCharConstant / CppSimpleString / CppMultiLineString ]] )

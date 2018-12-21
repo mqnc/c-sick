@@ -6,7 +6,7 @@ col = utils.colorize
 local transpiler = require "transpiler"
 rule = transpiler.rule
 basic = transpiler.basicActions
-sv = transpiler.semanticValue
+sv = transpiler.semanticValue.new
 
 keywords = {}
 identifiers = {}
@@ -15,8 +15,9 @@ localStatements = {}
 
 sep = package.config:sub(1,1) -- platform specific path seperator
 dofile("language" .. sep .. "core.lua")
---dofile("language" .. sep .. "rawcpp.lua")
---dofile("language" .. sep .. "loop.lua")
+dofile("language" .. sep .. "rawcpp.lua")
+dofile("language" .. sep .. "loop.lua")
+dofile("language" .. sep .. "function.lua")
 
 table.insert(globalStatements, "{LocalStatement}") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
 
@@ -34,7 +35,7 @@ rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.subs
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.subs)
 
 
-input = utils.readAll("snippets/core.mon")
+input = utils.readAll("snippets/function.mon")
 
 print(transpiler.grammar())
 utils.writeToFile("testgrammar.peg", transpiler.grammar())

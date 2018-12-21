@@ -74,13 +74,19 @@ utils.stringify = function(obj, indent)
 		for k, v in pairs(obj) do
 			local key = k
 			if type(k) ~= "string" then
-				key = "[" .. tostring(k) .. "]"
+				key = "[" .. tostring(k):gsub("\n", "\\n") .. "]"
 			end
 			res[1 + #res] = indent .. "\t" .. col(key, "brightyellow") .. col(" = ", "brightcyan") .. utils.stringify(v, "\t" .. indent)
 		end
 		return "\n" .. indent .. col("{", "brightcyan") .. "\n" .. table.concat(res, col(",\n", "brightcyan")) .. "\n" .. indent .. col("}", "brightcyan")
 	elseif type(obj) == "function" then
-		return tostring(obj) .. col(" -> ", "brightcyan") .. tostring(obj())
+		local res = obj()
+		if type(res) == "string" then
+			res = '"' .. res:gsub("\n", "\\n") .. '"'
+		else
+			res = tostring(res):gsub("\n", "\\n")
+		end
+		return tostring(obj) .. col(" -> ", "brightcyan") .. col(res, "brightmagenta")
 	else
 		return tostring(obj)
 	end

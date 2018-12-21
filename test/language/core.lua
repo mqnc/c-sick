@@ -1,13 +1,13 @@
 
-rule([[ Start <- {skip} ({GlobalStatement} {skip})* ]], basic.subs )
+rule([[ Cinnamon <- {skip} ({GlobalStatement} {skip})* ]], basic.subs )
 
 rule([[ Comment <- {SingleLineComment} / {MultiLineComment} / {NestableComment} ]], basic.subs )
 rule([[ SingleLineComment <- '//' (!nl .)* ]], basic.match )
 rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]], basic.match )
-rule([[ NestableComment <- '\\*' <(NestableComment / !'*\\' .)*> '*\\' ]],
+rule([[ NestableComment <- '(*' <(NestableComment / !'*)' .)*> '*)' ]],
     function(arg)
-		local result = sv.new(arg)
-		result.str = "/*" .. arg.tokens[1]:gsub("/[*]", "\\*"):gsub("[*]/", "*\\") .. "*/"
+		local result = sv(arg)
+		result.str = "/*" .. arg.tokens[1]:gsub("/[*]", "(*"):gsub("[*]/", "*)") .. "*/"
 		return result
     end
 )
@@ -31,7 +31,7 @@ local declarationAction = function(arg)
 	result.specifiers = {}
 
 	local i = 1
-	while arg.values[i].rule == "Identifier" do
+	while #arg.values>=i and arg.values[i].rule == "Identifier" do
 		table.insert(result.specifiers, arg.values[i].str)
 		i = i+1
 	end
@@ -41,23 +41,21 @@ local declarationAction = function(arg)
 	result.specifiers[i] = nil
 	if arg.rule == "DeclarationWithInit" then
 		result.init = arg.values[i+2].str
-	else
-		result.init = nil
 	end
 
 	return result
 end
 
-rule([[ DeclarationWithInit <- {Identifier} _ ({Identifier} _)+ {AssignOperator} _ {Expression} _ {break} ]], declarationAction )
-rule([[ DeclarationWithoutInit <- {Identifier} _ ({Identifier} _)+ {break} ]], declarationAction )
-table.insert(globalStatements, "{SimpleDeclaration}")
-table.insert(localStatements, "{SimpleDeclaration}")
+rule([[ DeclarationWithInit <- {Identifier} _ ({Identifier} _)+ {AssignOperator} _ {Expression} ]], declarationAction )
+rule([[ DeclarationWithoutInit <- {Identifier} (_ {Identifier})+ ]], declarationAction )
+table.insert(globalStatements, "{SimpleDeclaration} _ {break}")
+table.insert(localStatements, "{SimpleDeclaration} _ {break}")
 rule([[ Assignment <- {Identifier} _ {AssignOperator} _ {Expression} _ {break} ]], basic.subs )
 table.insert(globalStatements, "{Assignment}")
 table.insert(localStatements, "{Assignment}")
 rule([[ AssignOperator <- ':=' ]], " = " )
 rule([[ Expression <- [0-9]+ / {Identifier} ]], basic.subs )
-table.insert(localStatements, "{Expression}")
+table.insert(localStatements, "{Expression} _ {break}")
 
 rule([[ ws <- ([ \t] / ('...' _ nl) / {Comment})* ]], basic.subs ) -- definite whitespace
 rule([[ _ <- {ws}? ]], basic.subs ) -- optional whitespace

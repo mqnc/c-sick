@@ -4,13 +4,13 @@
 /* multiline
    comment */
 
-\* multiline
-\* nestable *\
-   comment *\
+(* multiline
+(* nestable *)
+   comment *)
 
-// /*test*/ \*test*\
-/* //test \*test*\ */
-\* //test /*test*/ \*test*\ *\
+// /*test*/ (*test*)
+/* //test (*test*) */
+(* //test /*test*/ (*test*) *)
 
 // simple declaration
 var a := 1

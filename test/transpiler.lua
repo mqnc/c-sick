@@ -101,9 +101,9 @@ transpiler.basicActions = {
 	-- just forward all parameters
 	forward = function(arg)
 		local result = transpiler.semanticValue.new(arg)
-		result.sub = arg
-		if #values >= 1 then
-			result.str = values[1].str
+		result.values = arg.values
+		for i, v in ipairs(arg.values) do
+			result.str = result.str .. v.str .. " "
 		end
 		return result
 	end

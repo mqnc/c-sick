@@ -10,6 +10,8 @@ repeat
 	a := 4
 whilst true
 
+(*
+
 for i<=5 // 0 1 2 3 4 5
 	print(i)
 end
@@ -29,3 +31,5 @@ end
 for i in {2, 3, 5, 7, 11}
 	print(i)
 end
+
+*)

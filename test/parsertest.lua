@@ -8,7 +8,7 @@ col = utils.colorize
 local transpiler = require "transpiler"
 rule = transpiler.rule
 basic = transpiler.basicActions
-sv = transpiler.semanticValue
+sv = transpiler.semanticValue.new
 
 local testText = [[
 rule them all
@@ -83,7 +83,7 @@ rule([[ list <- "\n"* {item}* ]], "match=<<<{match}>>> val1={1} val2={2} val3={3
 rule([[ item <- ({rule} / {match} / {token} / {concat} / {csv} / {subs} / {forward} / {default}) ("\n"+ / !.) ]],
 	function(arg)
 		--log(arg.values)
-		local result = sv.new(arg)
+		local result = sv(arg)
 		result.str = "(" .. arg.rule .. ")"
 		return result
 	end
