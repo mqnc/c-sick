@@ -18,6 +18,39 @@ utils.writeToFile = function(fname, text)
 	io.close(fout)
 end
 
+-- string buffer for convenient string concatenation
+--[[
+	buf = stringStream.new() -- create string stream
+	buf("Hello")("world" .. "!")("!") -- appending can be chained
+	result = tostring(buf) -- get resulting string
+	buf:rm() -- remove last element
+	buf.sep = ", " -- define separator between elements
+	print(buf) -- print has implicit tostring
+]]
+utils.stringStream = {
+
+	mt = {
+		__call = function(ss, append)
+			table.insert(ss, append)
+			return ss -- makes chaining possible
+		end,
+		__tostring = function(ss)
+			return table.concat(ss, ss.sep)
+		end,
+		__index = function(ss, key) -- so rm is forwarded to meta table
+			return getmetatable(ss)[key]
+		end,
+		rm = function(ss)
+			ss[#ss] = nil
+		end
+	},
+
+	new = function()
+		ss = {}
+		setmetatable(ss, utils.stringStream.mt)
+		return ss
+	end
+}
 
 local ansiColors = true
 -- enable/disable colored output

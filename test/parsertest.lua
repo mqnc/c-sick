@@ -4,6 +4,7 @@
 local utils = require "utils"
 log = utils.log
 col = utils.colorize
+ss = utils.stringStream.new
 
 local transpiler = require "transpiler"
 rule = transpiler.rule
