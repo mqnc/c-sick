@@ -1,69 +1,67 @@
-IfStatement: concat <- IfPart (ElseIfPart)* ElsePart? ~EndIfKeyword ~_ ~break
-IfPart <- ~IfKeyword ~_ Condition ~_ ~break IfBody
-IfKeyword: ~ <- 'if'
-Condition: subs <- Expression
-IfBody: subs <- skip (!ElseIfKeyword !ElseKeyword !EndIfKeyword LocalToken skip)*
-ElseIfPart <- ~ElseIfKeyword ~_ Condition ~_ ~break IfBody
-ElseIfKeyword: ~ <- 'elseif'
-ElsePart <- ~ElseKeyword ~_ ~break IfBody
-ElseKeyword: ~ <- 'else'
-EndIfKeyword: ~ <- 'end'
-
-SwitchStatement <- ~SwitchKeyword ~_ Condition ~_ ~break ~skip (Case ~skip)* ~EndSwitchKeyword
-SwitchKeyword: ~ <- 'switch'
-Case <- (CaseCondition / DefaultKeyword) ~break OptionalCaseBody (FallKeyword ~_ ~break)? ~skip
-CaseCondition <- ~CaseKeyword ~_ (Expression / DefaultKeyword) ~_ (',' ~_ (Expression / DefaultKeyword) ~_)*
-CaseKeyword: ~ <- 'case'
-OptionalCaseBody: subs <- skip (!FallKeyword !CaseKeyword !DefaultKeyword !EndSwitchKeyword LocalToken skip)*
-FallKeyword: ~ <- 'fall'
-DefaultKeyword: ~ <- 'default'
-EndSwitchKeyword: ~ <- 'end'
 
 
-actions.IfPart = function(params)
-	return "if( " .. params.values[1].output .. " ){\n" .. params.values[2].output .. "\n}\n"
-end
+rule([[ IfStatement <- {IfPart} ({ElseIfPart})* {ElsePart}? EndIfKeyword _ break ]], basic.concat )
+rule([[ IfPart <- IfKeyword _ {Condition} _ break {IfBody} ]], "if( {1} ){\n{2}\n}\n" )
+rule([[ IfKeyword <- 'if' ]])
+table.insert(keywords, "IfKeyword")
+rule([[ Condition <- {Expression} ]], basic.subs )
+rule([[ IfBody <- {skip} (!ElseIfKeyword !ElseKeyword !EndIfKeyword {LocalStatement} {skip})* ]], basic.subs )
+rule([[ ElseIfPart <- ElseIfKeyword _ {Condition} _ break {IfBody} ]], "else if( {1} ){\n{2}\n}\n" )
+rule([[ ElseIfKeyword <- 'elseif' ]])
+table.insert(keywords, "ElseIfKeyword")
+rule([[ ElsePart <- ElseKeyword _ break {IfBody} ]], "else{\n{1}\n}\n" )
+rule([[ ElseKeyword <- 'else' ]])
+table.insert(keywords, "ElseKeyword")
+rule([[ EndIfKeyword <- 'end' ]])
+table.insert(keywords, "EndIfKeyword")
 
-actions.ElseIfPart = function(params)
-	return "else if( " .. params.values[1].output .. " ){\n" .. params.values[2].output .. "\n}\n"
-end
-
-actions.ElsePart = function(params)
-	return "else{\n" .. params.values[1].output .. "\n}\n"
-end
+table.insert(localStatements, "{IfStatement}")
 
 
-
-actions.SwitchStatement = function(params)
-	local output = "switch(" .. params.values[1].output .. "){\n"
-	for i = 2, #params.values do
-		output = output .. params.values[i].output
-	end
-	output = output .. "\n}\n"
-	return output
-end
-
-actions.CaseCondition = function(params)
-	local i = 1
-	local output = ""
-	for i, val in ipairs(params.values) do
-		if val.rule == "DefaultKeyword" then
-			output = output .. val.output
-		else
-			output = output .. "case(" .. val.output .. "): "
+rule([[ SwitchStatement <- SwitchKeyword _ {Expression} _ break skip ({Case} skip)* EndSwitchKeyword ]],
+	function(arg)
+		local result = sv(arg)
+		local buf = ss()
+		for i = 2, #arg.values do
+			append(buf, arg.values[i].str)
 		end
+		result.str = "switch(" .. arg.values[1].str .. "){\n" .. join(buf) .. "\n}\n"
+		return result
 	end
-	return output
-end
-
-actions.Case = function(params)
-	local output = params.values[1].output .. "\n" .. params.values[2].output .. "\n"
-	if #params.values == 2 then -- no fall keyword
-		output = output .. "break;\n"
+)
+rule([[ SwitchKeyword <- 'switch' ]])
+table.insert(keywords, "SwitchKeyword")
+rule([[ Case <- ({CaseCondition} / {DefaultKeyword}) break {OptionalCaseBody} ({FallKeyword} _ break)? skip ]],
+	function(arg)
+		local result = sv(arg)
+		result.str = arg.values[1].str .. "\n" .. arg.values[2].str .. "\n"
+		if #arg.values == 2 then -- no fall keyword
+			result.str = result.str .. "break;\n"
+		end
+		return result
 	end
-	return output
-end
+)
+rule([[ CaseCondition <- CaseKeyword _ ({Expression} / {DefaultKeyword}) _ (',' _ ({Expression} / {DefaultKeyword}) _)* ]],
+	function(arg)
+		local result = sv(arg)
+		for i, val in ipairs(arg.values) do
+			if val.rule == "DefaultKeyword" then
+				result.str = result.str .. val.str
+			else
+				result.str = result.str .. "case(" .. val.str .. "): "
+			end
+		end
+		return result
+	end
+)
+rule([[ CaseKeyword <- 'case' ]])
+table.insert(keywords, "CaseKeyword")
+rule([[ FallKeyword <- 'fall' ]])
+table.insert(keywords, "FallKeyword")
+rule([[ DefaultKeyword <- 'default' ]], "default: " )
+table.insert(keywords, "DefaultKeyword")
+rule([[ EndSwitchKeyword <- 'end' ]])
+table.insert(keywords, "EndSwitchKeyword")
+rule([[ OptionalCaseBody <- {skip} (!FallKeyword !CaseKeyword !DefaultKeyword !EndSwitchKeyword {LocalStatement} {skip})* ]], basic.subs )
 
-actions.DefaultKeyword = function(params)
-	return "default: "
-end
+table.insert(localStatements, "{SwitchStatement}")

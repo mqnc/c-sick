@@ -194,7 +194,7 @@ local ruleParser = pegparser{
 -- use this function to define parsing rules like this:
 -- rule( [[ sum <- {term} _ plus _ {term} ]], basic.subs )
 -- use {} to mark semantic values you need
-transpiler.rule = function(entry, action)
+transpiler.rule = function(entry, action, comment)
 	parsingText = entry
 
 	local definition = ruleParser:parse(entry)
@@ -220,11 +220,18 @@ transpiler.rule = function(entry, action)
 		for fname, f in pairs(transpiler.basicActions) do
 			if action == f then
 				definition.pattern = definition.pattern .. "  # -> " .. fname
+				if comment ~= nil then
+					definition.pattern = definition.pattern .. "; " .. comment
+				end
 				found = true
 			end
 		end
 		if not found then
-			definition.pattern = definition.pattern .. "  # -> special action"
+			if comment ~= nil then
+				definition.pattern = definition.pattern .. "  # -> " .. comment
+			else
+				definition.pattern = definition.pattern .. "  # -> special action"
+			end
 		end
 
 	elseif type(action) == "string" then
@@ -234,6 +241,9 @@ transpiler.rule = function(entry, action)
 			-- replace "{match}" with the complete match
 
 		definition.pattern = definition.pattern .. "  # -> '" .. action:gsub("\n", "\\n") .. "'"
+		if comment ~= nil then
+			definition.pattern = definition.pattern .. "; " .. comment
+		end
 
 		actionList[definition.name] = function(arg)
 			local result = transpiler.semanticValue.new(arg)

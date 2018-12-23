@@ -4,140 +4,138 @@ OperatorClasses = {
 		name = "Scope",
 		order = "ltr",
 		operators = {
-			{peg="'::'", cpp="(<#)::(#>)"}
+			{peg="'::'", cpp="({<})::({>})"}
 		}
 	}, {
 		name = "Access",
 		order = "ltr",
 		operators = {
-			{peg="'(' ~_ Expression ~_ ')'", cpp="(<#)(#1)"},
-			{peg="'[' ~_ Expression ~_ ']'", cpp="(<#)[#1]"},
-			{peg="'.'", cpp="(<#).#>"},
-			{peg="'->'", cpp="(<#)->#>"}
+			{peg="'(' _ {ExpressionList} _ ')'", cpp="({<})({1})"},
+			{peg="'[' _ {ExpressionList} _ ']'", cpp="({<})[{1}]"},
+			{peg="'.'", cpp="({<}).{>}"},
+			{peg="'->'", cpp="({<})->{>}"}
 		}
 	}, {
 		name = "Prefix",
 		order = "rtl",
 		operators = {
-			{peg="'+'", cpp="+(#>)"},
-			{peg="'-'", cpp="-(#>)"},
-			{peg="'not'", cpp="!(#>)"},
-			{peg="'bitnot'", cpp="~(#>)"},
-			{peg="'^'", cpp="*(#>)"},
-			{peg="'@'", cpp="&(#>)"},
-			{peg="'sizeof'", cpp="sizeof(#>)"}
+			{peg="'+'", cpp="+({>})"},
+			{peg="'-'", cpp="-({>})"},
+			{peg="'not'", cpp="!({>})"},
+			{peg="'bitnot'", cpp="~({>})"},
+			{peg="'^'", cpp="*({>})"},
+			{peg="'@'", cpp="&({>})"},
+			{peg="'sizeof'", cpp="sizeof({>})"}
 		}
 	}, {
 		name = "Exponentiation",
 		order = "rtl",
 		operators = {
-			{peg="'^'", cpp="pow((<#), (#>))"}
+			{peg="'^'", cpp="pow(({<}), ({>}))"}
 		}
 	}, {
 		name = "Multiplication",
 		order = "ltr",
 		operators = {
-			{peg="'*'", cpp="(<#)*(#>)"},
-			{peg="'/'", cpp="double(<#)/double(#>)"},
-			{peg="'div'", cpp="int(<#)/int(#>)"},
-			{peg="'mod'", cpp="(<#)%(#>)"}
+			{peg="'*'", cpp="({<})*({>})"},
+			{peg="'/'", cpp="double({<})/double({>})"},
+			{peg="'div'", cpp="int({<})/int({>})"},
+			{peg="'mod'", cpp="({<})%({>})"}
 		}
 	}, {
 		name = "Addition",
 		order = "ltr",
 		operators = {
-			{peg="'+'", cpp="(<#)+(#>)"},
-			{peg="'-'", cpp="(<#)-(#>)"}
+			{peg="'+'", cpp="({<})+({>})"},
+			{peg="'-'", cpp="({<})-({>})"}
 		}
 	}, {
 		name = "Shifting",
 		order = "ltr",
 		operators = {
-			{peg="'<<'", cpp="(<#)<<(#>)"},
-			{peg="'>>'", cpp="(<#)>>(#>)"}
+			{peg="'<<'", cpp="({<})<<({>})"},
+			{peg="'>>'", cpp="({<})>>({>})"}
 		}
 	}, {
 		name = "BitConjunction",
 		order = "ltr",
 		operators = {
-			{peg="'bitand'", cpp="(<#)&(#>)"}
+			{peg="'bitand'", cpp="({<})&({>})"}
 		}
 	}, {
 		name = "BitExclusiveDisjunction",
 		order = "ltr",
 		operators = {
-			{peg="'bitxor'", cpp="(<#)^(#>)"}
+			{peg="'bitxor'", cpp="({<})^({>})"}
 		}
 	}, {
 		name = "BitDisjunction",
 		order = "ltr",
 		operators = {
-			{peg="'bitor'", cpp="(<#)|(#>)"}
+			{peg="'bitor'", cpp="({<})|({>})"}
 		}
 	}, {
 		name = "Comparison",
 		order = "ltr",
 		operators = {
-			{peg="'=='", cpp="(<#)==(#>)"},
-			{peg="'!='", cpp="(<#)!=(#>)"},
-			{peg="'<'", cpp="(<#)<(#>)"},
-			{peg="'<='", cpp="(<#)<=(#>)"},
-			{peg="'>'", cpp="(<#)>(#>)"},
-			{peg="'>='", cpp="(<#)>=(#>)"}
+			{peg="'=='", cpp="({<})==({>})"},
+			{peg="'!='", cpp="({<})!=({>})"},
+			{peg="'<'", cpp="({<})<({>})"},
+			{peg="'<='", cpp="({<})<=({>})"},
+			{peg="'>'", cpp="({<})>({>})"},
+			{peg="'>='", cpp="({<})>=({>})"}
 		}
 	}, {
 		name = "Conjunction",
 		order = "ltr",
 		operators = {
-			{peg="'and'", cpp="(<#)&&(#>)"}
+			{peg="'and'", cpp="({<})&&({>})"}
 		}
 	}, {
 		name = "ExclusiveDisjunction",
 		order = "ltr",
 		operators = {
-			{peg="'xor'", cpp="!(<#)!=!(#>)"}
+			{peg="'xor'", cpp="!({<})!=!({>})"}
 		}
 	}, {
 		name = "Disjunction",
 		order = "ltr",
 		operators = {
-			{peg="'or'", cpp="(<#)||(#>)"}
+			{peg="'or'", cpp="({<})||({>})"}
 		}
 	}, {
 		name = "Conditional",
 		order = "rtl",
 		operators = {
-			{peg="'?' ~_ Conditional ~_ ':'", cpp="(<#)? (#1):(#>)"}
+			{peg="'?' _ {Expression} _ ':'", cpp="({<})? ({1}):({>})"}
 		}
 	}, {
 		name = "Throw",
 		order = "rtl",
 		operators = {
-			{peg="'throw'", cpp="throw (#>)"}
+			{peg="'throw'", cpp="throw ({>})"}
 		}
 	}
 }
 
--- turn "(#1)+(#2)" into {"(", 1, ")+(", 2, ")"} and infer unaries and binaries from operators
+-- turn "{<}?{1}:{>}" into {-1, "?", 1, ":", -2} and infer unaries and binaries from the presence of {<} and {>}
 
 opparser = pegparser{
 	grammar = [[
 		snippet <- (lref / mref / rref / other)*
-		lref <- '<#'
-		mref <- '#'<[1-9][0-9]*>
-		rref <- '#>'
-		other <- (!lref !mref !rref .)*
+		lref <- '{<}'
+		mref <- '{' <[1-9][0-9]*> '}'
+		rref <- '{>}'
+		other <- <(!lref !mref !rref .)*>
 	]],
 	actions = {
-		lref = function(params) return -1 end,
-		mref = function(params) return tonumber(params.tokens[1]) end,
-		rref = function(params) return -2 end,
-		other = function(params) return params.matched end,
-		snippet = function(params) return params.values end
+		lref = function() return -1 end,
+		mref = function(arg) return tonumber(arg.tokens[1]) end,
+		rref = function() return -2 end,
+		other = function(arg) return arg.tokens[1] end,
+		snippet = function(arg) return arg.values end
 	},
-	default = function(params) return nil end,
-	packrat = false,
-	debuglog = false
+	default = function() return nil end
 }
 
 for ic, class in ipairs(OperatorClasses) do
@@ -160,109 +158,93 @@ for ic, class in ipairs(OperatorClasses) do
 	end
 end
 
-grammar = {}
-actions = {}
+rule(" Expression <- {" .. OperatorClasses[#OperatorClasses].name .. "} ", basic.subs )
+rule([[ Atomic <- '(' _ {Expression} _ ')' / {Identifier} / [0-9]+ ]], basic.subs)
 
-debuglog = false
-packrat = not debuglog
-
-function rule(r)
-	grammar[1 + #grammar] = r
-end
-
-rule([[Expression <- ]] .. OperatorClasses[#OperatorClasses].name)
-rule([[Atomic <- '(' ~_ Expression ~_ ')' / Identifier / [0-9]+]])
-
+-- helper function: turn {{peg='a'}, {peg='b'}, {peg='c'}} into "a / b / c"
 function choice(tbl)
-	local result = ""
-	if tbl == nil then
-		return result
-	end
+	if tbl == nil then return "" end
 
-	local first = true
+	local buf = ss()
 	for i, v in ipairs(tbl) do
-		if first then
-			first = false
-		else
-			result = result .. " / "
-		end
-		result = result .. "(" .. v.peg .. ")"
+		append(buf, "(" .. v.peg .. ")")
 	end
-	return result
+	return join(buf, " / ")
 end
 
+-- the action for operations with left to right associativity
+function ltrOperation(arg)
+	local result = sv(arg)
 
-function ltrOperation(params)
-	--print(params.rule .. ": " .. stringify(params))
+	log(arg)
 
-	local result = params.values[1]
+	result.str = arg.values[1].str
 
 	local i = 2
-
-	while i <= #params.values do
+	while i <= #arg.values do
 
 		local raw = ""
 
-		for is, snippet in ipairs(params.values[i].cpp) do
+		for is, snippet in ipairs(arg.values[i].cpp) do
 			if type(snippet) == "number" then
 				if snippet == -1 then
-					raw = raw .. result
+					raw = raw .. result.str
 				elseif snippet == -2 then
-					raw = raw .. params.values[i+1]
+					raw = raw .. arg.values[i+1].str
 				else
-					raw = raw .. params.values[i].args[snippet]
+					raw = raw .. arg.values[i].args[snippet].str
 				end
 			else
 				raw = raw .. snippet
 			end
 		end
-		if params.values[i].typ == "u" then
+		if arg.values[i].typ == "u" then
 			i = i+1
-		elseif params.values[i].typ == "b" then
+		elseif arg.values[i].typ == "b" then
 			i = i+2
 		else
 			error("invalid operator type")
 		end
 
-		result = raw
+		result.str = raw
 	end
 
 	return result
 end
 
-function rtlOperation(params)
-	--print(params.rule .. ": " .. stringify(params))
+-- the action for operations with right to left associativity
+function rtlOperation(arg)
+	local result = sv(arg)
 
-	result = params.values[1]
+	result.str = arg.values[#arg.values].str
 
-	local i = #params.values-1
-
+	local i = #arg.values-1
 	while i >= 1 do
 
 		local raw = ""
 
-		for is, snippet in ipairs(params.values[i].cpp) do
+		for is, snippet in ipairs(arg.values[i].cpp) do
 			if type(snippet) == "number" then
 				if snippet == -2 then
-					raw = raw .. result
+					raw = raw .. result.str
 				elseif snippet == -1 then
-					raw = raw .. params.values[i-1]
+					raw = raw .. arg.values[i-1].str
 				else
-					raw = raw .. params.values[i].args[snippet]
+					raw = raw .. arg.values[i].args[snippet].str
 				end
 			else
 				raw = raw .. snippet
 			end
 		end
-		if params.values[i].typ == "u" then
+		if arg.values[i].typ == "u" then
 			i = i-1
-		elseif params.values[i].typ == "b" then
+		elseif arg.values[i].typ == "b" then
 			i = i-2
 		else
 			error("invalid operator type")
 		end
 
-		result = raw
+		result.str = raw
 	end
 
 	return result
@@ -284,36 +266,43 @@ for i, v in ipairs(OperatorClasses) do
 	local bname = class.name .. "Binary"
 
 	if unaries ~= "" and binaries == "" then
-		unaries = uname .. " <- " .. unaries .. "\n"
-		if class.order == "ltr" then			
-			operation = class.name .. ": ltrOperation <- " .. higherClass .. " ( ~_ " .. uname .. " )*"
+		unaries = uname .. " <- " .. unaries
+		if class.order == "ltr" then
+			operation = class.name .. " <- {" .. higherClass .. "} ( _ {" .. uname .. "} )*"
 		else
-			operation = class.name .. ": rtlOperation <- ( " .. uname .. " ~_ )* " .. higherClass .. ""
+			operation = class.name .. " <- ( {" .. uname .. "} _ )* {" .. higherClass .. "}"
 		end
 	elseif unaries == "" and binaries ~= "" then
-		binaries = bname .. " <- " .. binaries .. "\n"
-		operation = class.name .. ": " .. class.order .. "Operation <- " .. higherClass .. " ( ~_ " .. bname .. " ~_ " .. higherClass .. " )*"
+		binaries = bname .. " <- " .. binaries
+		operation = class.name .. " <- {" .. higherClass .. "} ( _ {" .. bname .. "} _ {" .. higherClass .. "} )*"
 	elseif unaries ~= "" and binaries ~= "" then
-		unaries = uname .. " <- " .. unaries .. "\n"
-		binaries = bname .. " <- " .. binaries .. "\n"
+		unaries = uname .. " <- " .. unaries
+		binaries = bname .. " <- " .. binaries
 		if class.order == "ltr" then
-			operation = class.name .. ": ltrOperation <- " .. higherClass .. " ( ~_ " .. uname .. " / ( " .. bname .. " ~_ " .. higherClass .. " ) )*"
+			operation = class.name .. " <- {" .. higherClass .. "} ( _ {" .. uname .. "} / ( {" .. bname .. "} _ {" .. higherClass .. "} ) )*"
 		else
-			operation = class.name .. ": rtlOperation <- ( " .. uname .. " / ( " .. higherClass .. " ~_ " .. bname .. " ) ~_ )* " .. higherClass .. ""
+			operation = class.name .. " <- ( {" .. uname .. "} / ( {" .. higherClass .. "} _ {" .. bname .. "} ) _ )* {" .. higherClass .. "}"
 		end
 	end
-	
-	rule(unaries .. binaries .. operation)
 
-	actions[uname] = function(params)
-		return {typ='u', cpp=class.unaries[params.choice].snippet, args=params.values}
+	if unaries ~= "" then
+		rule(unaries,
+			function(arg)
+				return {typ='u', cpp=class.unaries[arg.choice].snippet, args=arg.values}
+			end, "unary"
+		)
+	end
+	if binaries ~= "" then
+	 	rule(binaries,
+			function(arg)
+				return {typ='b', cpp=class.binaries[arg.choice].snippet, args=arg.values}
+			end, "binary"
+		)
 	end
 
-	actions[bname] = function(params)
-		return {typ='b', cpp=class.binaries[params.choice].snippet, args=params.values}
+	if class.order == "ltr" then
+		rule(operation, ltrOperation, "ltrOperation")
+	else
+		rule(operation, rtlOperation, "rtlOperation")
 	end
-
 end
-
-print(table.concat(grammar, "\n"))
-

@@ -56,6 +56,7 @@ table.insert(globalStatements, "{Assignment}")
 table.insert(localStatements, "{Assignment}")
 rule([[ AssignOperator <- ':=' ]], " = " )
 rule([[ Expression <- [0-9]+ / {Identifier} ]], basic.subs )
+rule([[ ExpressionList <- {Expression} (_ ',' _ {Expression})* ]], basic.forward )
 table.insert(localStatements, "{Expression} _ {break}")
 
 rule([[ ws <- ([ \t] / ('...' _ nl) / {Comment})* ]], basic.subs ) -- definite whitespace

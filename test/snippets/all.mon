@@ -27,9 +27,9 @@ function main()
 	/* multiline
 	   comment */
 
-	\* multiline
-	\* nestable *\
-	   comment *\
+	(* multiline
+	(* nestable *)
+	   comment *)
 
 	// assignment
 	var a:=5 // auto
