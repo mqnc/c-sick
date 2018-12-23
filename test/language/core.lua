@@ -18,6 +18,7 @@ rule([[ NameStart <- [a-zA-Z_] ]])
 rule([[ NameMid <- [a-zA-Z_0-9] ]])
 rule([[ NameEnd <- !NameMid ]])
 
+-- note that a declaration does not include a trailing break
 rule([[ SimpleDeclaration <- {DeclarationWithInit} / {DeclarationWithoutInit} ]],
 	function(arg)
 		local result = arg.values[1]

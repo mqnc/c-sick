@@ -1,9 +1,27 @@
 
 local utils = {}
 
+-- stringstream
+utils.stringstream = function()
+	return {}
+end
+
+utils.append = function(ss, elem)
+	ss[#ss + 1] = elem
+end
+
+utils.remove = function(ss)
+	ss[#ss + 1] = nil
+end
+
+utils.join = function(ss, sep)
+	return table.concat(ss, sep)
+end
+
 -- path separator
 utils.sep = package.config:sub(1,1)
 
+-- read complete file into string
 utils.readAll = function(file)
     local f = assert(io.open(file, "rb"))
     local content = f:read("*all")
@@ -11,6 +29,7 @@ utils.readAll = function(file)
     return content
 end
 
+-- write string into file
 utils.writeToFile = function(fname, text)
 	fout = io.open(fname, "w")
 	io.output(fout)
@@ -18,42 +37,8 @@ utils.writeToFile = function(fname, text)
 	io.close(fout)
 end
 
--- string buffer for convenient string concatenation
---[[
-	buf = stringStream.new() -- create string stream
-	buf("Hello")("world" .. "!")("!") -- appending can be chained
-	result = tostring(buf) -- get resulting string
-	buf:rm() -- remove last element
-	buf.sep = ", " -- define separator between elements
-	print(buf) -- print has implicit tostring
-]]
-utils.stringStream = {
-
-	mt = {
-		__call = function(ss, append)
-			table.insert(ss, append)
-			return ss -- makes chaining possible
-		end,
-		__tostring = function(ss)
-			return table.concat(ss, ss.sep)
-		end,
-		__index = function(ss, key) -- so rm is forwarded to meta table
-			return getmetatable(ss)[key]
-		end,
-		rm = function(ss)
-			ss[#ss] = nil
-		end
-	},
-
-	new = function()
-		ss = {}
-		setmetatable(ss, utils.stringStream.mt)
-		return ss
-	end
-}
-
-local ansiColors = true
 -- enable/disable colored output
+local ansiColors = true
 utils.ansiColors = function(enable)
 	if type(enable) == "boolean" then
 		ansiColors = enable

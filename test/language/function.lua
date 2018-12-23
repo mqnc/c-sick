@@ -60,7 +60,7 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ {Identifier} _ {FunctionSpecifi
 					result.str = result.str .. sep .. ret.variable
 					sep = ", "
 				end
-				result.str = result.str .. "}\n}\n"
+				result.str = result.str .. "};\n}\n"
 			else
 				for i, decl in ipairs(decls) do
 					if decl.init ~= nil then
@@ -82,6 +82,19 @@ rule([[ FunctionSpecifiers <- ('[' _ ({Identifier} _)* ']')? ]], basic.concat )
 rule([[ ParameterList <- ('(' _ ({SimpleDeclaration} (_ ',' _ {SimpleDeclaration})*)? _ ')')? ]], basic.forward )
 rule([[ ReturnValues <- ('->' _ ({DeclarationWithInit} / {ReturnType} / {ParameterList}))? ]], basic.forward )
 rule([[ ReturnType <- ({Identifier} _)+ ]], basic.concat )
-rule([[ FunctionBody <- {skip} (!EndFunctionKeyword {LocalStatement} {skip})* ]], basic.subs )
+rule([[ FunctionBody <- {skip} (!EndFunctionKeyword ({ReturnStatement} / {LocalStatement}) {skip})* ]], basic.subs )
+rule([[ ReturnStatement <- ReturnKeyword _ {Identifier} (_ ',' _ {Identifier})* _ break ]],
+	function(arg)
+		local result = sv(arg)
+		local buf = ss()
+		for i, val in ipairs(arg.values) do
+			append(buf, val.str)
+		end
+		result.str = "return {" .. join(buf, ", ") .. "};\n"
+		return result
+	end
+)
+rule([[ ReturnKeyword <- 'return' ]])
+table.insert(keywords, "ReturnKeyword")
 rule([[ EndFunctionKeyword <- 'end' ]])
 table.insert(keywords, "EndFunctionKeyword")

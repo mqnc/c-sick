@@ -1,5 +1,35 @@
 
+--[[
+Todo:
+
+replace
+object.element
+by
+ELEMENT = 2
+object[ELEMENT]
+(speedtest before)
+
+speedtest compare:
+f(a,b) and f{a,b}
+and maybe do
+
+action = function(info, values, tokens)
+	info[STRING] = values[1][STRING]
+	return info
+end
+
+create a keys(tbl) and a vals(tbl) iterator
+
+use stringstream
+
+somehow make a concat that concats all tbl[i].str
+]]
+
 local utils = require "utils"
+ss = utils.stringstream
+append = utils.append
+remove = utils.remove
+join = utils.join
 log = utils.log
 col = utils.colorize
 

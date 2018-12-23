@@ -32,8 +32,8 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 		// 0-based c++ indices are converted to 1-based lua indices
 		const lua::value params = lua::newtable();
 		params["choice"] = sv.choice() + 1;
-		params["line"] = sv.line_info().first;
-		params["column"] = sv.line_info().second;
+		//params["line"] = sv.line_info().first;
+		//params["column"] = sv.line_info().second;
 		//params["matched"] = StringPtr(sv.c_str(), sv.length());
 		params["position"] = (int)(sv.c_str() - sv.ss) + 1;
 		params["length"] = sv.length();
