@@ -176,8 +176,6 @@ end
 function ltrOperation(arg)
 	local result = sv(arg)
 
-	log(arg)
-
 	result.str = arg.values[1].str
 
 	local i = 2

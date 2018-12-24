@@ -23,6 +23,10 @@ create a keys(tbl) and a vals(tbl) iterator
 use stringstream
 
 somehow make a concat that concats all tbl[i].str
+
+also create a list for expressions and atomics
+
+maybe generate a table instead of a string and do a huge concat for all the source code in the end
 ]]
 
 local utils = require "utils"
@@ -69,7 +73,13 @@ rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.subs)
 
 input = utils.readAll("snippets/all.mon")
 
+
+
 print(transpiler.grammar())
 --utils.writeToFile("testgrammar.peg", transpiler.grammar())
 
+t0 = os.clock()
+
 print(transpiler.transpile(input))
+
+print(os.clock() - t0)
