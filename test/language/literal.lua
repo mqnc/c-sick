@@ -1,5 +1,8 @@
 
-rule([[ Literal <- {CharLiteral} / {StringLiteral} / {NumericLiteral} ]], basic.subs )
+rule([[ Literal <- {Boolean} / {CharLiteral} / {StringLiteral} / {NumericLiteral} ]], basic.subs )
+
+rule([[ Boolean <- "true" / "false" ]], basic.match )
+table.insert(keywords, "Boolean")
 
 rule([[ CharLiteral <- '\'' (('\\' .) / .) '\'' ]], basic.match )
 

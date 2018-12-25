@@ -2,7 +2,7 @@
 rule([[ Cinnamon <- {skip} ({GlobalStatement} {skip})* ]], basic.subs )
 
 rule([[ Comment <- {LineEndComment} / {InlineComment} ]], basic.subs )
-rule([[ LineEndComment <- '//' <(!nl .)*> ]], basic.match )
+rule([[ LineEndComment <- '//' <(!('\r\n' / '\n') .)*> ]], basic.match )
 rule([[ InlineComment <- {MultiLineComment} / {NestableComment} ]], basic.subs )
 rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]], basic.match )
 rule([[ NestableComment <- '(*' <(NestableComment / !'*)' .)*> '*)' ]],
@@ -56,7 +56,8 @@ rule([[ Assignment <- {Identifier} _ {AssignOperator} _ {Expression} _ {break} ]
 table.insert(globalStatements, "{Assignment}")
 table.insert(localStatements, "{Assignment}")
 rule([[ AssignOperator <- ':=' ]], " = " )
-rule([[ Expression <- {Identifier} / {Literal} ]], basic.subs )
+rule([[ Expression <- {Atomic} ]], basic.subs )
+rule([[ Atomic <- {Identifier} / {Literal} ]], basic.subs )
 rule([[ Literal <- [0-9]+ ]], basic.subs )
 rule([[ ExpressionList <- {Expression} (_ ',' _ {Expression})* ]], basic.forward )
 table.insert(localStatements, "{Expression} _ {break}")

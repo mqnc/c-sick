@@ -27,6 +27,14 @@ somehow make a concat that concats all tbl[i].str
 also create a list for expressions and atomics
 
 maybe generate a table instead of a string and do a huge concat for all the source code in the end
+
+redo the match function
+
+work more with position inside the original text instead of strings
+
+have an "until" macro for bodys of things
+
+actually I should not need the subs action at all...
 ]]
 
 print(_VERSION)
@@ -58,6 +66,7 @@ dofile("language" .. sep .. "loop.lua")
 dofile("language" .. sep .. "function.lua")
 dofile("language" .. sep .. "expression.lua")
 
+print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
 table.insert(globalStatements, "{LocalStatement}") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
 
 table.insert(globalStatements, "{SyntaxError}")
@@ -75,10 +84,10 @@ rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.subs
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.subs)
 
 
-local input = utils.readAll("snippets/test.mon")
+local input = utils.readAll("snippets/all.mon")
 
---print(transpiler.grammar())
---utils.writeToFile("testgrammar.peg", transpiler.grammar())
+print(transpiler.grammar())
+utils.writeToFile("testgrammar.peg", transpiler.grammar())
 
 local t0 = os.clock()
 
