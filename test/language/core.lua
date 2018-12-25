@@ -55,7 +55,8 @@ rule([[ Assignment <- {Identifier} _ {AssignOperator} _ {Expression} _ {break} ]
 table.insert(globalStatements, "{Assignment}")
 table.insert(localStatements, "{Assignment}")
 rule([[ AssignOperator <- ':=' ]], " = " )
-rule([[ Expression <- [0-9]+ / {Identifier} ]], basic.subs )
+rule([[ Expression <- {Identifier} / {Literal} ]], basic.subs )
+rule([[ Literal <- [0-9]+ ]], basic.subs )
 rule([[ ExpressionList <- {Expression} (_ ',' _ {Expression})* ]], basic.forward )
 table.insert(localStatements, "{Expression} _ {break}")
 

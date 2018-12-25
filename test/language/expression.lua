@@ -159,7 +159,7 @@ for ic, class in ipairs(OperatorClasses) do
 end
 
 rule(" Expression <- {" .. OperatorClasses[#OperatorClasses].name .. "} ", basic.subs )
-rule([[ Atomic <- '(' _ {Expression} _ ')' / {Identifier} / [0-9]+ ]], basic.subs)
+rule([[ Atomic <- '(' _ {Expression} _ ')' / {Identifier} / {Literal} ]], basic.subs)
 
 -- helper function: turn {{peg='a'}, {peg='b'}, {peg='c'}} into "a / b / c"
 function choice(tbl)

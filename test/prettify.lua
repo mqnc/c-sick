@@ -23,7 +23,7 @@ rule([[ MultiLineString <- 'R"' $delim<[a-zA-Z_0-9]*> '(' (!(')' $delim '"') .)*
 rule([[ Anything <- . ]])
 
 rule([[ _ <- [ \t]+ ]], " " )
-rule([[ nl <- _* <('\r\n' / '\n' / !.)+> _* {IndentDec}?]],
+rule([[ nl <- _* <(('\r\n' / '\n' / !.) _*)+> {IndentDec}?]],
 	function(arg)
 		local result = sv(arg)
 		result.str = "\n"

@@ -52,6 +52,7 @@ localStatements = {}
 
 local sep = package.config:sub(1,1) -- platform specific path seperator
 dofile("language" .. sep .. "core.lua")
+dofile("language" .. sep .. "literal.lua")
 dofile("language" .. sep .. "rawcpp.lua")
 dofile("language" .. sep .. "branch.lua")
 dofile("language" .. sep .. "loop.lua")
