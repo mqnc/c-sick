@@ -36,13 +36,13 @@ rule([[ nl <- _* <(('\r\n' / '\n' / !.) _*)+> {IndentDec}?]],
 		return result
 	end
 )
-rule([[ IndentInc <- <"(" / "[" / "{"> ]],
+rule([[ IndentInc <- <"(" / "{"> ]],
 	function(arg)
 		indent = indent + 1
 		return basic.token(arg)
 	end
 )
-rule([[ IndentDec <- <")" / "]" / "}"> ]],
+rule([[ IndentDec <- <")" / "}"> ]],
 	function(arg)
 		indent = indent - 1
 		if indent<0 then indent=0 end

@@ -1,8 +1,9 @@
 
 rule([[ Cinnamon <- {skip} ({GlobalStatement} {skip})* ]], basic.subs )
 
-rule([[ Comment <- {SingleLineComment} / {MultiLineComment} / {NestableComment} ]], basic.subs )
-rule([[ SingleLineComment <- '//' (!nl .)* ]], basic.match )
+rule([[ Comment <- {LineEndComment} / {InlineComment} ]], basic.subs )
+rule([[ LineEndComment <- '//' <(!nl .)*> ]], basic.match )
+rule([[ InlineComment <- {MultiLineComment} / {NestableComment} ]], basic.subs )
 rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]], basic.match )
 rule([[ NestableComment <- '(*' <(NestableComment / !'*)' .)*> '*)' ]],
     function(arg)
@@ -60,8 +61,22 @@ rule([[ Literal <- [0-9]+ ]], basic.subs )
 rule([[ ExpressionList <- {Expression} (_ ',' _ {Expression})* ]], basic.forward )
 table.insert(localStatements, "{Expression} _ {break}")
 
-rule([[ ws <- ([ \t] / ('...' _ nl) / {Comment})* ]], basic.subs ) -- definite whitespace
+rule([[ ws <- ([ \t] / {InlineComment})* ]], basic.subs ) -- definite whitespace
+
+-- continues disabled until I figured out how to deal with them
+--rule([[ ws <- ([ \t] / {continue} / {InlineComment})* ]], basic.subs ) -- definite whitespace
+--rule([[ continue <- ('...' _ nl) ]], " " )
 rule([[ _ <- {ws}? ]], basic.subs ) -- optional whitespace
-rule([[ nl <- '\r\n' / '\n' / !. ]], "\n" ) -- definite new line
+rule([[ nl <- {LineEndComment}? ('\r\n' / '\n' / !.) ]],
+	function(arg)
+		local result = sv(arg)
+		if arg.values[1] then
+			result.str = arg.values[1].str .. "\n"
+		else
+			result.str = "\n"
+		end
+		return result
+	end
+)
 rule([[ break <- nl / ';' ]], ";\n")
 rule([[ skip <- {_} (nl {_})* ]], basic.subs ) -- consume all new lines and whitespaces (and comments)

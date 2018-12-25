@@ -44,7 +44,6 @@ rule = transpiler.rule
 basic = transpiler.basicActions
 sv = transpiler.semanticValue.new
 
-
 keywords = {}
 identifiers = {}
 globalStatements = {}
@@ -63,8 +62,8 @@ table.insert(globalStatements, "{LocalStatement}") -- TODO: THIS IS FOR DEBUGGIN
 
 table.insert(globalStatements, "{SyntaxError}")
 table.insert(localStatements, "{SyntaxError}")
---rule([[ SyntaxError <- (!nl .)* nl ]],  col("{match}", "brightred") )
-rule([[ SyntaxError <- (!nl .)* nl ]],  "//!\\\\{match}" )
+rule([[ SyntaxError <- (!nl .)* nl ]],  col("{match}", "brightred") )
+--rule([[ SyntaxError <- (!nl .)* nl ]],  "//!\\\\{match}" )
 
 if #keywords == 0 then
     rule( "Keyword <- !. .", "")
@@ -76,7 +75,7 @@ rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.subs
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.subs)
 
 
-local input = utils.readAll("snippets/all.mon")
+local input = utils.readAll("snippets/test.mon")
 
 --print(transpiler.grammar())
 --utils.writeToFile("testgrammar.peg", transpiler.grammar())
