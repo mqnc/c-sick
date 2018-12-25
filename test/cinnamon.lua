@@ -29,6 +29,8 @@ also create a list for expressions and atomics
 maybe generate a table instead of a string and do a huge concat for all the source code in the end
 ]]
 
+print(_VERSION)
+
 local utils = require "utils"
 ss = utils.stringstream
 append = utils.append
@@ -42,12 +44,13 @@ rule = transpiler.rule
 basic = transpiler.basicActions
 sv = transpiler.semanticValue.new
 
+
 keywords = {}
 identifiers = {}
 globalStatements = {}
 localStatements = {}
 
-sep = package.config:sub(1,1) -- platform specific path seperator
+local sep = package.config:sub(1,1) -- platform specific path seperator
 dofile("language" .. sep .. "core.lua")
 dofile("language" .. sep .. "rawcpp.lua")
 dofile("language" .. sep .. "branch.lua")
@@ -59,7 +62,8 @@ table.insert(globalStatements, "{LocalStatement}") -- TODO: THIS IS FOR DEBUGGIN
 
 table.insert(globalStatements, "{SyntaxError}")
 table.insert(localStatements, "{SyntaxError}")
-rule([[ SyntaxError <- (!nl .)* nl ]],  col("{match}", "brightred") )
+--rule([[ SyntaxError <- (!nl .)* nl ]],  col("{match}", "brightred") )
+rule([[ SyntaxError <- (!nl .)* nl ]],  "//!\\\\{match}" )
 
 if #keywords == 0 then
     rule( "Keyword <- !. .", "")
@@ -71,15 +75,18 @@ rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.subs
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.subs)
 
 
-input = utils.readAll("snippets/all.mon")
+local input = utils.readAll("snippets/all.mon")
 
-
-
-print(transpiler.grammar())
+--print(transpiler.grammar())
 --utils.writeToFile("testgrammar.peg", transpiler.grammar())
 
-t0 = os.clock()
+local t0 = os.clock()
 
-print(transpiler.transpile(input))
+local result = transpiler.transpile(input).str
 
 print(os.clock() - t0)
+
+transpiler.clear()
+local prettify = require "prettify"
+
+print(prettify(result))

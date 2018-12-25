@@ -4,13 +4,17 @@
 local utils = require "utils"
 log = utils.log
 col = utils.colorize
-ss = utils.stringStream.new
 
 local transpiler = require "transpiler"
 rule = transpiler.rule
 basic = transpiler.basicActions
 sv = transpiler.semanticValue.new
 
+local prettify = require "prettify"
+
+print(prettify("a(){\nhallo;\necho;\n\n\n\n}"))
+
+fehler()
 local testText = [[
 rule them all
 match cannot work outside transpiler
