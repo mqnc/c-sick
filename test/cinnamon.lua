@@ -35,6 +35,9 @@ work more with position inside the original text instead of strings
 have an "until" macro for bodys of things
 
 actually I should not need the subs action at all...
+and I don't, if I use only terminals and non-terminals
+
+maybe decide between terminals and non-terminals due to capitalization in parser.cpp already
 ]]
 
 print(_VERSION)
