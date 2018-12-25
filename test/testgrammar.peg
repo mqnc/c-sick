@@ -1,0 +1,127 @@
+Cinnamon <- skip (GlobalStatement skip)*   # -> subs
+Comment <- LineEndComment / InlineComment   # -> subs
+LineEndComment <- '//' <(!('\r\n' / '\n') .)*>   # -> match
+InlineComment <- MultiLineComment / NestableComment   # -> subs
+MultiLineComment <- '/*' (!'*/' .)* '*/'   # -> match
+NestableComment <- '(*' <(~NestableComment / !'*)' .)*> '*)'   # -> special action
+Name <- ~NameStart ~NameMid* ~NameEnd   # -> match
+NameStart <- [a-zA-Z_]   # (no action)
+NameMid <- [a-zA-Z_0-9]   # (no action)
+NameEnd <- !~NameMid   # (no action)
+SimpleDeclaration <- DeclarationWithInit / DeclarationWithoutInit   # -> special action
+DeclarationWithInit <- Identifier ~_ (Identifier ~_)+ AssignOperator ~_ Expression   # -> special action
+DeclarationWithoutInit <- Identifier (~_ Identifier)+   # -> special action
+Assignment <- Identifier ~_ AssignOperator ~_ Expression ~_ break   # -> subs
+AssignOperator <- ':='   # -> ' = '
+Expression <- Throw   # -> subs
+Atomic <- '(' ~_ Expression ~_ ')' / Identifier / Literal   # -> subs
+Literal <- Boolean / CharLiteral / StringLiteral / NumericLiteral   # -> subs
+ExpressionList <- Expression (~_ ',' ~_ Expression)*   # -> forward
+ws <- ([ \t] / InlineComment)*   # -> subs
+_ <- ws?   # -> subs
+nl <- LineEndComment? ('\r\n' / '\n' / !.)   # -> special action
+break <- ~nl / ';'   # -> ';\n'
+skip <- _ (~nl _)*   # -> subs
+Boolean <- "true" / "false"   # -> match
+CharLiteral <- '\'' (('\\' .) / .) '\''   # -> match
+StringLiteral <- '"' (('\\' .) / (!'"' .))* '"'   # -> match
+NumericLiteral <- FloatLiteral / HexLiteral / IntegerLiteral   # -> '{1}'
+IntegerLiteral <- [0-9]+   # -> match
+FloatLiteral <- [0-9]+ '.' [0-9]+ (('e' / 'E') '-'? [0-9]+)?   # -> match
+HexLiteral <- '0' ('x' / 'X') [0-9]+   # -> match
+RawCpp <- ~CppDelimiter <~CppCode*> ~CppDelimiter   # -> token
+CppDelimiter <- '$'   # (no action)
+CppCode <- ~CppComment / ~CppStringLiteral / ~CppAnything   # (no action)
+CppComment <- ~CppMultiLineComment   # (no action)
+CppSingleLineComment <- '//' (!~nl .)* ~nl   # (no action)
+CppMultiLineComment <- '/*' (!'*/' .)* '*/'   # (no action)
+CppStringLiteral <- ~CppCharConstant / ~CppSimpleString / ~CppMultiLineString   # (no action)
+CppCharConstant <- '\'' (('\\' .) / .) '\''   # (no action)
+CppSimpleString <- '"' (('\\' .) / (!'"' .))* '"'   # (no action)
+CppMultiLineString <- 'R"' $delim<[a-zA-Z_0-9]*> '(' (!(')' $delim '"') .)* ')' $delim '"'   # (no action)
+CppAnything <- (!~CppDelimiter .)   # (no action)
+IfStatement <- IfPart (ElseIfPart)* ElsePart? ~EndIfKeyword ~_ ~break   # -> concat
+IfPart <- ~IfKeyword ~_ Condition ~_ ~break IfBody   # -> 'if( {1} ){\n{2}\n}\n'
+IfKeyword <- 'if'   # (no action)
+Condition <- Expression   # -> subs
+IfBody <- skip (!~ElseIfKeyword !~ElseKeyword !~EndIfKeyword LocalStatement skip)*   # -> subs
+ElseIfPart <- ~ElseIfKeyword ~_ Condition ~_ ~break IfBody   # -> 'else if( {1} ){\n{2}\n}\n'
+ElseIfKeyword <- 'elseif'   # (no action)
+ElsePart <- ~ElseKeyword ~_ ~break IfBody   # -> 'else{\n{1}\n}\n'
+ElseKeyword <- 'else'   # (no action)
+EndIfKeyword <- 'end'   # (no action)
+SwitchStatement <- ~SwitchKeyword ~_ Expression ~_ ~break ~skip (Case ~skip)* ~EndSwitchKeyword   # -> special action
+SwitchKeyword <- 'switch'   # (no action)
+Case <- (CaseCondition / DefaultKeyword) ~break OptionalCaseBody (FallKeyword ~_ ~break)? ~skip   # -> special action
+CaseCondition <- ~CaseKeyword ~_ (Expression / DefaultKeyword) ~_ (',' ~_ (Expression / DefaultKeyword) ~_)*   # -> special action
+CaseKeyword <- 'case'   # (no action)
+FallKeyword <- 'fall'   # (no action)
+DefaultKeyword <- 'default'   # -> 'default: '
+EndSwitchKeyword <- 'end'   # (no action)
+OptionalCaseBody <- skip (!~FallKeyword !~CaseKeyword !~DefaultKeyword !~EndSwitchKeyword LocalStatement skip)*   # -> subs
+WhileStatement <- ~WhileKeyword ~_ Expression ~_ ~break WhileBody ~EndWhileKeyword   # -> special action
+WhileKeyword <- 'while'   # (no action)
+WhileBody <- skip (!~EndWhileKeyword LocalStatement skip)*   # -> subs
+EndWhileKeyword <- 'end'   # (no action)
+RepeatStatement <- ~RepeatKeyword ~_ ~break RepeatBody (RepWhileKeyword / UntilKeyword) ~_ Expression ~_ ~break   # -> special action
+RepeatKeyword <- 'repeat'   # (no action)
+RepeatBody <- skip (!~RepWhileKeyword !~UntilKeyword LocalStatement skip)*   # -> subs
+RepWhileKeyword <- 'whilst'   # (no action)
+UntilKeyword <- 'until'   # (no action)
+ForStatement <- CountingForLoop   # -> subs
+CountingForLoop <- ~ForKeyword ~_ CountingRange ~_ ~break ForBody ~EndForKeyword   # -> special action
+ForKeyword <- 'for'   # (no action)
+CountingRange <- DoubleComparison (~_ ',' ~_ Expression)?   # -> special action
+DoubleComparison <- Atomic ~_ Relation ~_ Identifier ~_ Relation ~_ Atomic   # -> forward
+Relation <- "<=" / "<" / ">=" / ">"   # -> match
+ForBody <- skip (!~EndForKeyword LocalStatement skip)*   # -> subs
+EndForKeyword <- 'end'   # (no action)
+FunctionDeclaration <- ~FunctionKeyword ~_ Identifier ~_ FunctionSpecifiers ~_ ParameterList ~_ ReturnValues ~_ ~break
+	FunctionBody ~EndFunctionKeyword ~_ ~break   # -> special action
+FunctionKeyword <- 'function'   # (no action)
+FunctionSpecifiers <- ('[' ~_ (Identifier ~_)* ']')?   # -> concat
+ParameterList <- ('(' ~_ (SimpleDeclaration (~_ ',' ~_ SimpleDeclaration)*)? ~_ ')')?   # -> forward
+ReturnValues <- ('->' ~_ (DeclarationWithInit / ReturnType / ParameterList))?   # -> forward
+ReturnType <- (Identifier ~_)+   # -> concat
+FunctionBody <- skip (!~EndFunctionKeyword (ReturnStatement / LocalStatement) skip)*   # -> subs
+ReturnStatement <- ~ReturnKeyword ~_ Identifier (~_ ',' ~_ Identifier)* ~_ ~break   # -> special action
+ReturnKeyword <- 'return'   # (no action)
+EndFunctionKeyword <- 'end'   # (no action)
+ScopeBinary <- ('::')  # -> binary
+Scope <- Atomic ( ~_ ScopeBinary ~_ Atomic )*  # -> ltrOperation
+AccessUnary <- ('(' ~_ ExpressionList ~_ ')') / ('[' ~_ ExpressionList ~_ ']')  # -> unary
+AccessBinary <- ('.') / ('->')  # -> binary
+Access <- Scope ( ~_ AccessUnary / ( AccessBinary ~_ Scope ) )*  # -> ltrOperation
+PrefixUnary <- ('+') / ('-') / ('not') / ('bitnot') / ('^') / ('@') / ('sizeof')  # -> unary
+Prefix <- ( PrefixUnary ~_ )* Access  # -> rtlOperation
+ExponentiationBinary <- ('^')  # -> binary
+Exponentiation <- Prefix ( ~_ ExponentiationBinary ~_ Prefix )*  # -> rtlOperation
+MultiplicationBinary <- ('*') / ('/') / ('div') / ('mod')  # -> binary
+Multiplication <- Exponentiation ( ~_ MultiplicationBinary ~_ Exponentiation )*  # -> ltrOperation
+AdditionBinary <- ('+') / ('-')  # -> binary
+Addition <- Multiplication ( ~_ AdditionBinary ~_ Multiplication )*  # -> ltrOperation
+ShiftingBinary <- ('<<') / ('>>')  # -> binary
+Shifting <- Addition ( ~_ ShiftingBinary ~_ Addition )*  # -> ltrOperation
+BitConjunctionBinary <- ('bitand')  # -> binary
+BitConjunction <- Shifting ( ~_ BitConjunctionBinary ~_ Shifting )*  # -> ltrOperation
+BitExclusiveDisjunctionBinary <- ('bitxor')  # -> binary
+BitExclusiveDisjunction <- BitConjunction ( ~_ BitExclusiveDisjunctionBinary ~_ BitConjunction )*  # -> ltrOperation
+BitDisjunctionBinary <- ('bitor')  # -> binary
+BitDisjunction <- BitExclusiveDisjunction ( ~_ BitDisjunctionBinary ~_ BitExclusiveDisjunction )*  # -> ltrOperation
+ComparisonBinary <- ('==') / ('!=') / ('<') / ('<=') / ('>') / ('>=')  # -> binary
+Comparison <- BitDisjunction ( ~_ ComparisonBinary ~_ BitDisjunction )*  # -> ltrOperation
+ConjunctionBinary <- ('and')  # -> binary
+Conjunction <- Comparison ( ~_ ConjunctionBinary ~_ Comparison )*  # -> ltrOperation
+ExclusiveDisjunctionBinary <- ('xor')  # -> binary
+ExclusiveDisjunction <- Conjunction ( ~_ ExclusiveDisjunctionBinary ~_ Conjunction )*  # -> ltrOperation
+DisjunctionBinary <- ('or')  # -> binary
+Disjunction <- ExclusiveDisjunction ( ~_ DisjunctionBinary ~_ ExclusiveDisjunction )*  # -> ltrOperation
+ConditionalBinary <- ('?' ~_ Expression ~_ ':')  # -> binary
+Conditional <- Disjunction ( ~_ ConditionalBinary ~_ Disjunction )*  # -> rtlOperation
+ThrowUnary <- ('throw')  # -> unary
+Throw <- ( ThrowUnary ~_ )* Conditional  # -> rtlOperation
+SyntaxError <- (!~nl .)* ~nl   # -> '[91m{match}[0m'
+Keyword <- (~Boolean / ~IfKeyword / ~ElseIfKeyword / ~ElseKeyword / ~EndIfKeyword / ~SwitchKeyword / ~CaseKeyword / ~FallKeyword / ~DefaultKeyword / ~EndSwitchKeyword / ~WhileKeyword / ~EndWhileKeyword / ~RepeatKeyword / ~RepWhileKeyword / ~UntilKeyword / ~ForKeyword / ~EndForKeyword / ~FunctionKeyword / ~ReturnKeyword / ~EndFunctionKeyword ) ~NameEnd  # -> subs
+Identifier <- !~Keyword ( Name / RawCpp )  # -> subs
+GlobalStatement <- SimpleDeclaration ~_ break / Assignment / FunctionDeclaration / LocalStatement / SyntaxError  # -> subs
+LocalStatement <- SimpleDeclaration ~_ break / Assignment / Expression ~_ break / IfStatement / SwitchStatement / WhileStatement / RepeatStatement / ForStatement / SyntaxError  # -> subs

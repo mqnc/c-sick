@@ -1,0 +1,27 @@
+
+if 123
+	a := 2
+elseif 456
+	a := 3
+else
+	a := 4
+end
+
+switch thing
+	case 1
+		a := 5
+	case 2
+		a := 6
+		fall
+	case 3,4,5
+		a := 7
+	default
+		a := 8
+end
+
+switch thing
+	case 1, default, 2
+		a := 9
+	case 3
+		a := 10
+end

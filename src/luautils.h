@@ -202,6 +202,15 @@ namespace lua {
 		}
 
 		/**
+		 * Return an integer representation for this value.
+		 */
+		int tointeger() const {
+			push();
+			stack_scope ss;
+			return lua_tointeger(scope::state(), -1);
+		}
+
+		/**
 		 * Return a string representation for this value.
 		 */
 		std::string tostring() const {
@@ -418,5 +427,3 @@ namespace lua {
 		}
 	};
 }
-
-bool lua_loadutils(lua_State *L);
