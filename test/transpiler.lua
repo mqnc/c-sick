@@ -14,223 +14,95 @@ transpiler.clear = function()
 	parsingText = ""
 end
 
-
--- wrapper class for semantic values
--- the str field should store the resulting output text
--- see standard actions below for examples how to use
-transpiler.semanticValue = {
-
-	mt = {
-		__tostring = function(value)
-			return value.str
-		end
-	},
-
-	new = function(arg)
-		local value = {}
-		setmetatable(value, transpiler.semanticValue.mt)
-		value.pos = arg.position
-		value.len = arg.length
-		value.rule = arg.rule
-		value.match = function()
-			return parsingText:sub(arg.position, arg.position + arg.length - 1)
-		end
-		value.str = ""
-		return value
-	end
-}
+-- return the matched text from a table containing a pos and len reference to the parsing text
+transpiler.match = function(arg)
+	return parsingText:sub(arg.pos, arg.pos + arg.len - 1)
+end
 
 -- set of standard reduction actions
 transpiler.basicActions = {
 
 	-- output the name of the rule that was reduced
 	rule = function(arg)
-		local result = transpiler.semanticValue.new(arg)
-		result.str = result.rule
-		return result
+		return {result.rule}
 	end,
 
 	-- output the matched text
 	match = function(arg)
-		local result = transpiler.semanticValue.new(arg)
-		result.str = result.match()
-		return result
+		return {transpiler.match(arg)}
 	end,
 
 	-- output the first captured token (raw text)
 	token = function(arg)
-		local result = transpiler.semanticValue.new(arg)
-		result.str = arg.tokens[1]
-		return result
+		return {arg.tokens[1]}
 	end,
 
-	-- concat all captured semantic values with a space in between
+	-- concat all captured semantic values
 	concat = function(arg)
-		local result = transpiler.semanticValue.new(arg)
+		local result = ""
 		local sep = ""
 		for i = 1, #arg.values do
-			result.str = result.str .. sep .. arg.values[i].str
-			sep = " "
+			result = result .. sep .. arg.values[i][1]
+			--sep = " " -- see if it works without spaces
 		end
-		return result
+		return {result}
 	end,
 
 	-- concat all captured semantic values with a comma in between
 	csv = function(arg)
-		local result = transpiler.semanticValue.new(arg)
+		local result = ""
 		local sep = ""
 		for i = 1, #arg.values do
-			result.str = result.str .. sep .. arg.values[i].str
+			result = result .. sep .. arg.values[i][1]
 			sep = ", "
 		end
-		return result
-	end,
-
-	-- output the matched text but substitute all semantic values at their positions
-	subs = function(arg)
-		local result = transpiler.semanticValue.new(arg)
-		result.str = result.match()
-
-		for i = #arg.values, 1, -1 do
-			local offset = arg.values[i].pos - arg.position
-			result.str = result.str:sub(1, offset) .. arg.values[i].str .. result.str:sub(offset + arg.values[i].len + 1)
-		end
-		return result
+		return {result}
 	end,
 
 	-- just forward all parameters
 	forward = function(arg)
-		local result = transpiler.semanticValue.new(arg)
-		result.values = arg.values
+		local resultTbl = {""}
+		resultTbl.values = arg.values
 		for i, v in ipairs(arg.values) do
-			result.str = result.str .. v.str .. " "
+			resultTbl[1] = resultTbl[1] .. v[1] .. " "
 		end
-		return result
+		return resultTbl
 	end
 }
 
+-- create a parsing rule
+transpiler.rule = function(definition, action, comment)
 
-
--- extended peg grammar for rule transformation
--- turn "rule <- keyword ws {important} ws keyword"
--- into "rule <- ~keyword ~ws important ~ws ~keyword" for peglib
--- so we can highlight considered semantic values instead of highlighting ignored ones
-local xpeg = [[
-	# Hierarchical syntax
-	# Grammar  <- Spacing Definition+ EndOfFile
-	Definition <- Spacing Identifier Spacing LEFTARROW Expression
-	Expression <- Sequence (SLASH Sequence)*
-	Sequence   <- Prefix*
-	Prefix     <- (AND / NOT)? Suffix
-	Suffix     <- Primary (QUESTION / STAR / PLUS)?
-	Primary    <- # Identifier Spacing !LEFTARROW
-	              IgnoredId / IndexedId
-	              / Token / Capture / Reference
-	              / OPEN Expression CLOSE
-	              / Literal / Class / DOT
-
-	IgnoredId <- Identifier Spacing !LEFTARROW # id -> ~id
-	IndexedId <- '{' Identifier '}' Spacing # {id} -> id
-	Token <- TOKENOPEN Expression TOKENCLOSE
-	Capture <- Reference Token
-	Reference <- REF Identifier Spacing
-
-	# Lexical syntax
-	Identifier <- IdentStart IdentCont*
-	IdentStart <- [a-zA-Z_]
-	IdentCont  <- IdentStart / [0-9]
-	Literal    <- ['] (!['] Char)* ['] Spacing
-	              / ["] (!["] Char)* ["] Spacing
-	Class      <- '[' (!']' Range)* ']' Spacing
-	Range      <- Char '-' Char / Char
-	Char       <- '\\' [nrt'"\[\]\\]
-	              / '\\' [0-2][0-7][0-7]
-	              / '\\' [0-7][0-7]?
-	              / !'\\' .
-
-	LEFTARROW <- '<-' Spacing
-	SLASH     <- '/' Spacing
-	AND       <- '&' Spacing
-	NOT       <- '!' Spacing
-	QUESTION  <- '?' Spacing
-	STAR      <- '*' Spacing
-	PLUS      <- '+' Spacing
-	OPEN      <- '(' Spacing
-	CLOSE     <- ')' Spacing
-	DOT       <- '.' Spacing
-	TOKENOPEN <- '<' Spacing
-	TOKENCLOSE<- '>' Spacing
-	REF       <- '$' Spacing
-	Spacing   <- (Space / Comment)*
-	Comment   <- '#' (!EndOfLine .)* EndOfLine
-	Space     <- ' ' / '\t' / EndOfLine
-	EndOfLine <- '\r\n' / '\n' / '\r'
-	EndOfFile <- !.
-]]
-
-local ruleParser = pegparser{
-	grammar = xpeg,
-	actions = {
-		Definition = function(arg)
-			return {
-				name = arg.values[2].str,
-				pattern = arg.values[5].str
-			}
-		end,
-		IndexedId = function(arg)
-			local result = transpiler.semanticValue.new(arg)
-			result.str = arg.values[1].str .. arg.values[2].str
-			return result
-		end,
-		IgnoredId = function(arg)
-			local result = transpiler.semanticValue.new(arg)
-			result.str = '~' .. arg.values[1].str .. arg.values[2].str
-			return result
-		end
-	},
-	default = transpiler.basicActions.subs
-}
-
--- use this function to define parsing rules like this:
--- rule( [[ sum <- {term} _ plus _ {term} ]], basic.subs )
--- use {} to mark semantic values you need
-transpiler.rule = function(entry, action, comment)
-	parsingText = entry
-
-	local definition = ruleParser:parse(entry)
-
-	if definition == nil then
-		error('error while parsing rule "' .. entry .. '"')
-		return
-	end
+	-- extract name of the rule
+	name = definition:match("[%w_]+")
 
 	-- if the rule does not exist yet, associate a new index with it
-	if ruleList[definition.name] == nil then
-		ruleList[#ruleList+1] = definition.name
+	if ruleList[name] == nil then
+		ruleList[#ruleList+1] = name
 	else
-		print('warning: rule "' .. definition.name .. '" will be overwritten')
+		print('warning: rule "' .. name .. '" will be overwritten')
 	end
 
 	-- create action
 	if type(action) == "function" then
 
 		-- just register the provided action
-		actionList[definition.name] = action
+		actionList[name] = action
 		local found = false
 		for fname, f in pairs(transpiler.basicActions) do
 			if action == f then
-				definition.pattern = definition.pattern .. "  # -> " .. fname
+				definition = definition .. "  # -> " .. fname
 				if comment ~= nil then
-					definition.pattern = definition.pattern .. "; " .. comment
+					definition = definition .. "; " .. comment
 				end
 				found = true
 			end
 		end
 		if not found then
 			if comment ~= nil then
-				definition.pattern = definition.pattern .. "  # -> " .. comment
+				definition = definition .. "  # -> " .. comment
 			else
-				definition.pattern = definition.pattern .. "  # -> special action"
+				definition = definition .. "  # -> special action"
 			end
 		end
 
@@ -240,35 +112,31 @@ transpiler.rule = function(entry, action, comment)
  			-- replace "{#}" with the #-th semantic value
 			-- replace "{match}" with the complete match
 
-		definition.pattern = definition.pattern .. "  # -> '" .. action:gsub("\n", "\\n") .. "'"
+		definition = definition .. "  # -> '" .. action:gsub("\n", "\\n") .. "'"
 		if comment ~= nil then
-			definition.pattern = definition.pattern .. "; " .. comment
+			definition = definition .. "; " .. comment
 		end
 
-		actionList[definition.name] = function(arg)
-			local result = transpiler.semanticValue.new(arg)
-			result.str = action
+		actionList[name] = function(arg)
+			result = action
 			for i, v in ipairs(arg.values) do
-				result.str = result.str:gsub("{" .. i .. "}", v.str)
+				result = result:gsub("{" .. i .. "}", v[1])
 			end
-			result.str = result.str:gsub("{match}", result.match())
-			return result
+			result = result:gsub("{match}", transpiler.match(arg))
+			return {result}
 		end
 
 	else
 
-		definition.pattern = definition.pattern .. "  # (no action)"
+		definition = definition .. "  # (no action)"
 
-		actionList[definition.name] = function(arg)
-			local result = transpiler.semanticValue.new(arg)
-			result.str = "UNDEFINED"
-			return result
+		actionList[name] = function(arg)
+			return {"UNDEFINED"}
 		end
-
 	end
 
 	-- create/update rule
-	ruleList[definition.name] = definition.pattern
+	ruleList[name] = definition
 end
 
 
@@ -276,7 +144,7 @@ end
 transpiler.grammar = function()
 	local result = ""
 	for i, r in ipairs(ruleList) do
-		result = result .. r .. ' <- ' .. ruleList[r] .. "\n"
+		result = result .. ruleList[r] .. "\n"
 	end
 	return result
 end

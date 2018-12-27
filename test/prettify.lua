@@ -6,15 +6,14 @@ local col = utils.colorize
 local transpiler = require "transpiler"
 local rule = transpiler.rule
 local basic = transpiler.basicActions
-local sv = transpiler.semanticValue.new
 
 local indent = 0
 
 
 
 rule([[ Code <- ({Comment} / {StringLiteral} / {IndentInc} / {IndentDec} / {nl} / {_} / Anything)* ]], basic.subs)
-rule([[ Comment <- <SingleLineComment / MultiLineComment> ]], basic.token)
-rule([[ SingleLineComment <- '//' (!nl .)* ]])
+rule([[ Comment <- <lineEndComment / MultiLineComment> ]], basic.token)
+rule([[ lineEndComment <- '//' (!nl .)* ]])
 rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]])
 rule([[ StringLiteral <- <CharConstant / SimpleString / MultiLineString> ]], basic.token)
 rule([[ CharConstant <- '\'' (('\\' .) / .) '\'' ]])

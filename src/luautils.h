@@ -193,6 +193,17 @@ namespace lua {
 		}
 
 		/**
+		 * Return the type of this value:
+		 * LUA_TNIL (0), LUA_TNUMBER, LUA_TBOOLEAN, LUA_TSTRING, LUA_TTABLE,
+		 * LUA_TFUNCTION, LUA_TUSERDATA, LUA_TTHREAD, or LUA_TLIGHTUSERDATA
+		 */
+		int type() const {
+			push();
+			stack_scope ss;
+			return lua_type(scope::state(), -1);
+		}
+
+		/**
 		 * Return a boolean representation for this value.
 		 */
 		bool toboolean() const {
