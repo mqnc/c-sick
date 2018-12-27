@@ -10,8 +10,8 @@ OperatorClasses = {
 		name = "Access",
 		order = "ltr",
 		operators = {
-			{peg="'(' _ {ExpressionList} _ ')'", cpp="({<})({1})"},
-			{peg="'[' _ {ExpressionList} _ ']'", cpp="({<})[{1}]"},
+			{peg="'(' ~_ ExpressionList ~_ ')'", cpp="({<})({1})"},
+			{peg="'[' ~_ ExpressionList ~_ ']'", cpp="({<})[{1}]"},
 			{peg="'.'", cpp="({<}).{>}"},
 			{peg="'->'", cpp="({<})->{>}"}
 		}
@@ -107,7 +107,7 @@ OperatorClasses = {
 		name = "Conditional",
 		order = "rtl",
 		operators = {
-			{peg="'?' _ {Expression} _ ':'", cpp="({<})? ({1}):({>})"}
+			{peg="'?' ~_ Expression ~_ ':'", cpp="({<})? ({1}):({>})"}
 		}
 	}, {
 		name = "Throw",
@@ -158,8 +158,10 @@ for ic, class in ipairs(OperatorClasses) do
 	end
 end
 
-rule(" Expression <- {" .. OperatorClasses[#OperatorClasses].name .. "} ", basic.subs )
-rule([[ Atomic <- '(' _ {Expression} _ ')' / {Identifier} / {Literal} ]], basic.subs)
+rule(" Expression <- " .. OperatorClasses[#OperatorClasses].name, basic.concat )
+rule([[ Atomic <- ExpressionLParen ~_ Expression ~_ ExpressionRParen / Identifier / Literal ]], basic.concat )
+rule([[ ExpressionLParen <- '(' ]], '(' )
+rule([[ ExpressionRParen <- ')' ]], ')' )
 
 -- helper function: turn {{peg='a'}, {peg='b'}, {peg='c'}} into "a / b / c"
 function choice(tbl)
@@ -174,9 +176,7 @@ end
 
 -- the action for operations with left to right associativity
 function ltrOperation(arg)
-	local result = sv(arg)
-
-	result.str = arg.values[1].str
+	local resultTbl = {arg.values[1][1]}
 
 	local i = 2
 	while i <= #arg.values do
@@ -186,11 +186,11 @@ function ltrOperation(arg)
 		for is, snippet in ipairs(arg.values[i].cpp) do
 			if type(snippet) == "number" then
 				if snippet == -1 then
-					raw = raw .. result.str
+					raw = raw .. resultTbl[1]
 				elseif snippet == -2 then
-					raw = raw .. arg.values[i+1].str
+					raw = raw .. arg.values[i+1][1]
 				else
-					raw = raw .. arg.values[i].args[snippet].str
+					raw = raw .. arg.values[i].args[snippet][1]
 				end
 			else
 				raw = raw .. snippet
@@ -204,17 +204,15 @@ function ltrOperation(arg)
 			error("invalid operator type")
 		end
 
-		result.str = raw
+		resultTbl[1] = raw
 	end
 
-	return result
+	return resultTbl
 end
 
 -- the action for operations with right to left associativity
 function rtlOperation(arg)
-	local result = sv(arg)
-
-	result.str = arg.values[#arg.values].str
+	local resultTbl = {arg.values[#arg.values][1]}
 
 	local i = #arg.values-1
 	while i >= 1 do
@@ -224,11 +222,11 @@ function rtlOperation(arg)
 		for is, snippet in ipairs(arg.values[i].cpp) do
 			if type(snippet) == "number" then
 				if snippet == -2 then
-					raw = raw .. result.str
+					raw = raw .. resultTbl[1]
 				elseif snippet == -1 then
-					raw = raw .. arg.values[i-1].str
+					raw = raw .. arg.values[i-1][1]
 				else
-					raw = raw .. arg.values[i].args[snippet].str
+					raw = raw .. arg.values[i].args[snippet][1]
 				end
 			else
 				raw = raw .. snippet
@@ -242,10 +240,10 @@ function rtlOperation(arg)
 			error("invalid operator type")
 		end
 
-		result.str = raw
+		resultTbl[1] = raw
 	end
 
-	return result
+	return resultTbl
 end
 
 
@@ -266,20 +264,20 @@ for i, v in ipairs(OperatorClasses) do
 	if unaries ~= "" and binaries == "" then
 		unaries = uname .. " <- " .. unaries
 		if class.order == "ltr" then
-			operation = class.name .. " <- {" .. higherClass .. "} ( _ {" .. uname .. "} )*"
+			operation = class.name .. " <- " .. higherClass .. " ( ~_ " .. uname .. " )*"
 		else
-			operation = class.name .. " <- ( {" .. uname .. "} _ )* {" .. higherClass .. "}"
+			operation = class.name .. " <- ( " .. uname .. " ~_ )* " .. higherClass
 		end
 	elseif unaries == "" and binaries ~= "" then
 		binaries = bname .. " <- " .. binaries
-		operation = class.name .. " <- {" .. higherClass .. "} ( _ {" .. bname .. "} _ {" .. higherClass .. "} )*"
+		operation = class.name .. " <- " .. higherClass .. " ( ~_ " .. bname .. " ~_ " .. higherClass .. " )*"
 	elseif unaries ~= "" and binaries ~= "" then
 		unaries = uname .. " <- " .. unaries
 		binaries = bname .. " <- " .. binaries
 		if class.order == "ltr" then
-			operation = class.name .. " <- {" .. higherClass .. "} ( _ {" .. uname .. "} / ( {" .. bname .. "} _ {" .. higherClass .. "} ) )*"
+			operation = class.name .. " <- " .. higherClass .. " ( ~_ " .. uname .. " / ( " .. bname .. " ~_ " .. higherClass .. " ) )*"
 		else
-			operation = class.name .. " <- ( {" .. uname .. "} / ( {" .. higherClass .. "} _ {" .. bname .. "} ) _ )* {" .. higherClass .. "}"
+			operation = class.name .. " <- ( " .. uname .. " / ( " .. higherClass .. " ~_ " .. bname .. " ) ~_ )* " .. higherClass
 		end
 	end
 

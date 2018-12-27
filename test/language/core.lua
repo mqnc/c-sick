@@ -13,6 +13,7 @@ rule([[ Space <- (WhiteSpace / InlineComment / LineContinue)+ ]], basic.concat )
 rule([[ _ <- Space? ]], basic.concat ) -- optional space
 rule([[ Terminal <- LineBreak / ';' ]], ";\n")
 rule([[ Skip <- _ (LineBreak _)* ]], basic.concat ) -- consume all new lines and whitespaces (and comments)
+rule([[ Comma <- ',' ]], ',')
 
 
 rule([[ Comment <- LineEndComment / InlineComment ]], basic.concat)
@@ -66,5 +67,5 @@ rule([[ AssignOperator <- ':=' ]], "=" )
 rule([[ Expression <- Atomic ]], basic.concat )
 rule([[ Atomic <- Identifier / Literal ]], basic.concat )
 rule([[ Literal <- [0-9]+ ]], basic.match )
-rule([[ ExpressionList <- Expression (_ ',' _ Expression)* ]], basic.forward )
+rule([[ ExpressionList <- Expression (_ Comma _ Expression)* ]], basic.forward )
 table.insert(localStatements, "Expression _ Terminal")

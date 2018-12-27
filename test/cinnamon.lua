@@ -2,18 +2,7 @@
 --[[
 Todo:
 
-speedtest compare:
-f(a,b) and f{a,b}
-and maybe do
-
-action = function(info, values, tokens)
-	info[STRING] = values[1][STRING]
-	return info
-end
-
 create a keys(tbl) and a vals(tbl) iterator
-
-use stringstream
 
 somehow make a concat that concats all tbl[i].str
 
@@ -51,8 +40,8 @@ dofile("language" .. sep .. "core.lua")
 dofile("language" .. sep .. "rawcpp.lua")
 dofile("language" .. sep .. "branch.lua")
 dofile("language" .. sep .. "loop.lua")
-dofile("language" .. sep .. "function.lua")
-dofile("language" .. sep .. "expression.lua")]]
+dofile("language" .. sep .. "function.lua")]]
+dofile("language" .. sep .. "expression.lua")
 
 print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
 table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
@@ -71,10 +60,10 @@ rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.conc
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.concat)
 
 
-local input = utils.readAll("snippets/core.mon")
+local input = utils.readAll("snippets/all.mon")
 
 print(transpiler.grammar())
-utils.writeToFile("testgrammar.peg", transpiler.grammar())
+--utils.writeToFile("testgrammar.peg", transpiler.grammar())
 
 local t0 = os.clock()
 
