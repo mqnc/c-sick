@@ -56,8 +56,8 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 
 		// include additional information
 		if(result.type() == LUA_TTABLE){
-			result["pos"] = (int)(sv.c_str() - sv.ss) + 1;
-			result["len"] = sv.length();
+			//result["pos"] = (int)(sv.c_str() - sv.ss) + 1;
+			//result["len"] = sv.length();
 			result["rule"] = rule;
 		}
 

@@ -60,7 +60,7 @@ rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.conc
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.concat)
 
 
-local input = utils.readAll("snippets/all.mon")
+local input = string.rep(utils.readAll("snippets/all.mon"), 10)
 
 print(transpiler.grammar())
 --utils.writeToFile("testgrammar.peg", transpiler.grammar())
@@ -74,4 +74,4 @@ print(os.clock() - t0)
 transpiler.clear()
 --local prettify = require "prettify"
 
-print((result))
+--print((result))

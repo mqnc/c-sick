@@ -166,10 +166,9 @@ rule([[ ExpressionRParen <- ')' ]], ')' )
 -- helper function: turn {{peg='a'}, {peg='b'}, {peg='c'}} into "a / b / c"
 function choice(tbl)
 	if tbl == nil then return "" end
-
-	local buf = ss()
+	local buf = {}
 	for i, v in ipairs(tbl) do
-		append(buf, "(" .. v.peg .. ")")
+		buf[#buf+1] = "(" .. v.peg .. ")"
 	end
 	return join(buf, " / ")
 end
