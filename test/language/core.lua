@@ -34,7 +34,7 @@ rule([[ NameMid <- [a-zA-Z_0-9] ]])
 rule([[ NameEnd <- !NameMid ]])
 
 -- note that a declaration does not include a trailing break
-rule([[ SimpleDeclaration <- DeclarationWithInit / DeclarationWithoutInit ]], basic.forward )
+rule([[ SimpleDeclaration <- DeclarationWithInit / DeclarationWithoutInit ]], basic.first )
 
 local declarationAction = function(arg)
 	local resultTbl = basic.concat(arg)
@@ -67,5 +67,5 @@ rule([[ AssignOperator <- ':=' ]], "=" )
 rule([[ Expression <- Atomic ]], basic.concat )
 rule([[ Atomic <- Identifier / Literal ]], basic.concat )
 rule([[ Literal <- [0-9]+ ]], basic.match )
-rule([[ ExpressionList <- Expression (_ Comma _ Expression)* ]], basic.forward )
+rule([[ ExpressionList <- Expression (_ Comma _ Expression)* ]], basic.tree )
 table.insert(localStatements, "Expression _ Terminal")

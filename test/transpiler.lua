@@ -37,6 +37,13 @@ transpiler.basicActions = {
 		return {arg.tokens[1]}
 	end,
 
+	-- forward the first value
+	first = function(arg)
+		local resultTbl = arg.values[1]
+		resultTbl.subrule = arg.rule
+		return resultTbl
+	end,
+
 	-- concat all captured semantic values
 	concat = function(arg)
 		local result = ""
@@ -59,8 +66,8 @@ transpiler.basicActions = {
 		return {result}
 	end,
 
-	-- just forward all parameters
-	forward = function(arg)
+	-- propagate all parameters
+	tree = function(arg)
 		local resultTbl = {""}
 		resultTbl.values = arg.values
 		for i, v in ipairs(arg.values) do
