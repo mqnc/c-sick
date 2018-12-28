@@ -28,9 +28,10 @@ transpiler.basicActions = {
 	end,
 
 	-- output the matched text
-	match = function(arg)
+	--[[match = function(arg)
 		return {transpiler.match(arg)}
-	end,
+	end,]]
+	match = "\\match",
 
 	-- output the first captured token (raw text)
 	token = function(arg)
@@ -38,7 +39,7 @@ transpiler.basicActions = {
 	end,
 
 	-- concat all captured semantic values
-	concat = function(arg)
+	concat_ = function(arg)
 		local result = ""
 		local sep = ""
 		for i = 1, #arg.values do
@@ -47,6 +48,7 @@ transpiler.basicActions = {
 		end
 		return {result}
 	end,
+	concat = "\\concat",
 
 	-- concat all captured semantic values with a comma in between
 	csv = function(arg)
@@ -117,15 +119,18 @@ transpiler.rule = function(definition, action, comment)
 			definition = definition .. "; " .. comment
 		end
 
-		actionList[name] = function(arg)
-			result = action
-			for i, v in ipairs(arg.values) do
-				result = result:gsub("{" .. i .. "}", v[1])
+		if action=="\\match" or action=="\\concat" then
+			actionList[name] = action
+		else
+			actionList[name] = function(arg)
+				result = action
+				for i, v in ipairs(arg.values) do
+					result = result:gsub("{" .. i .. "}", v[1])
+				end
+				result = result:gsub("{match}", transpiler.match(arg))
+				return {result}
 			end
-			result = result:gsub("{match}", transpiler.match(arg))
-			return {result}
 		end
-
 	else
 
 		definition = definition .. "  # (no action)"

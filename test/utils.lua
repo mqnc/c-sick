@@ -1,25 +1,8 @@
 
 local utils = {}
 
--- stringstream
-utils.stringstream = function()
-	return {}
-end
-
-utils.append = function(ss, elem)
-	ss[#ss + 1] = elem
-end
-
-utils.remove = function(ss)
-	ss[#ss + 1] = nil
-end
-
-utils.join = function(ss, sep)
-	return table.concat(ss, sep)
-end
-
 -- path separator
-utils.sep = package.config:sub(1,1)
+utils.pathSep = package.config:sub(1,1)
 
 -- read complete file into string
 utils.readAll = function(file)

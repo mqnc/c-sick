@@ -26,43 +26,68 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 	// rule = the name of the PEG definition that invoked the reduction rule (NAME <- A / B / C)
 	// reduce = a lua handle of the associated reduce function
 
-	pegParser[rule.c_str()] = [rule, reduce](const SemanticValues& sv, any&) {
 
-		// push input parameters on stack
-		// 0-based c++ indices are converted to 1-based lua indices
-		const lua::value params = lua::newtable();
-		params["choice"] = sv.choice() + 1;
-		//params["line"] = sv.line_info().first;
-		//params["column"] = sv.line_info().second;
-		//params["matched"] = StringPtr(sv.c_str(), sv.length());
-		params["pos"] = (int)(sv.c_str() - sv.ss) + 1;
-		params["len"] = sv.length();
-		params["rule"] = rule;
-
-		const lua::value values = lua::newtable();
-		for (size_t i = 0; i != sv.size(); ++i){
-			values[i+1] = sv[i].get<lua::value>();
-		}
-		params["values"] = values;
-
-		const lua::value tokens = lua::newtable();
-		for (size_t i = 0; i != sv.tokens.size(); ++i) {
-			tokens[i+1] = StringPtr(sv.tokens[i].first, sv.tokens[i].second);
-		}
-		params["tokens"] = tokens;
-
-		// call lua function
-		auto result = reduce(params);
-
-		// include additional information
-		if(result.type() == LUA_TTABLE){
+	if(reduce.type() == LUA_TSTRING && reduce.tostring() == "\\match"){
+		pegParser[rule.c_str()] = [rule](const SemanticValues& sv, any&) {
+			const lua::value result = lua::newtable();
 			result["pos"] = (int)(sv.c_str() - sv.ss) + 1;
 			result["len"] = sv.length();
 			result["rule"] = rule;
-		}
+			result[1] = StringPtr(sv.c_str(), sv.length());
+			return result;
+		};
+	}
 
-		return result;
-	};
+	// THIS FUNCTION DOES NOT ACTUALLY CONCAT, IT WAS JUST FOR TIME MEASUREMENT
+	else if(reduce.type() == LUA_TSTRING && reduce.tostring() == "\\concat"){
+		pegParser[rule.c_str()] = [rule](const SemanticValues& sv, any&) {
+			const lua::value result = lua::newtable();
+			result["pos"] = (int)(sv.c_str() - sv.ss) + 1;
+			result["len"] = sv.length();
+			result["rule"] = rule;
+			result[1] = StringPtr(sv.c_str(), sv.length());
+			return result;
+		};
+	}
+	else{
+		pegParser[rule.c_str()] = [rule, reduce](const SemanticValues& sv, any&) {
+
+			// push input parameters on stack
+			// 0-based c++ indices are converted to 1-based lua indices
+			const lua::value params = lua::newtable();
+			params["choice"] = sv.choice() + 1;
+			//params["line"] = sv.line_info().first;
+			//params["column"] = sv.line_info().second;
+			//params["matched"] = StringPtr(sv.c_str(), sv.length());
+			params["pos"] = (int)(sv.c_str() - sv.ss) + 1;
+			params["len"] = sv.length();
+			params["rule"] = rule;
+
+			const lua::value values = lua::newtable();
+			for (size_t i = 0; i != sv.size(); ++i){
+				values[i+1] = sv[i].get<lua::value>();
+			}
+			params["values"] = values;
+
+			const lua::value tokens = lua::newtable();
+			for (size_t i = 0; i != sv.tokens.size(); ++i) {
+				tokens[i+1] = StringPtr(sv.tokens[i].first, sv.tokens[i].second);
+			}
+			params["tokens"] = tokens;
+
+			// call lua function
+			auto result = reduce(params);
+
+			// include additional information
+			if(result.type() == LUA_TTABLE){
+				result["pos"] = (int)(sv.c_str() - sv.ss) + 1;
+				result["len"] = sv.length();
+				result["rule"] = rule;
+			}
+
+			return result;
+		};
+	}
 }
 
 

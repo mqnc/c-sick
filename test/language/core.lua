@@ -37,7 +37,7 @@ rule([[ NameEnd <- !NameMid ]])
 rule([[ SimpleDeclaration <- DeclarationWithInit / DeclarationWithoutInit ]], basic.forward )
 
 local declarationAction = function(arg)
-	local resultTbl = basic.concat(arg)
+	local resultTbl = basic.concat_(arg)
 	resultTbl.specifiers = {}
 
 	local i = 1
