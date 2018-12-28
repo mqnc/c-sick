@@ -20,7 +20,6 @@ print(_VERSION)
 local utils = require "utils"
 ss = utils.stringstream
 append = utils.append
-remove = utils.remove
 join = utils.join
 log = utils.log
 col = utils.colorize
@@ -34,7 +33,7 @@ identifiers = {}
 globalStatements = {}
 localStatements = {}
 
-local sep = package.config:sub(1,1) -- platform specific path seperator
+local sep = utils.pathSep -- platform specific path seperator
 dofile("language" .. sep .. "core.lua")
 --[[dofile("language" .. sep .. "literal.lua")
 dofile("language" .. sep .. "rawcpp.lua")
@@ -60,18 +59,19 @@ rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.conc
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.concat)
 
 
-local input = utils.readAll("snippets/all.mon")
+local input = string.rep(utils.readAll("snippets/all.mon"),10)
 
 print(transpiler.grammar())
 --utils.writeToFile("testgrammar.peg", transpiler.grammar())
 
 local t0 = os.clock()
 
-local result = transpiler.transpile(input)[1]
+--local result = join(transpiler.transpile(input)[1])
+local result = transpiler.transpile(input)
 
 print(os.clock() - t0)
 
 transpiler.clear()
 --local prettify = require "prettify"
 
-print((result))
+--print((result))

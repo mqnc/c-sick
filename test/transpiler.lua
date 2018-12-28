@@ -39,11 +39,12 @@ transpiler.basicActions = {
 
 	-- concat all captured semantic values
 	concat = function(arg)
-		local result = ""
-		local sep = ""
-		for i = 1, #arg.values do
-			result = result .. sep .. arg.values[i][1]
-			--sep = " " -- see if it works without spaces
+		if #arg.values == 0 then
+			return {""}
+		end
+		local result = ss(arg.values[1][1])
+		for i = 2, #arg.values do
+			append(result, arg.values[i][1])
 		end
 		return {result}
 	end,
@@ -63,8 +64,9 @@ transpiler.basicActions = {
 	forward = function(arg)
 		local resultTbl = {""}
 		resultTbl.values = arg.values
+		resultTbl[1] = ss()
 		for i, v in ipairs(arg.values) do
-			resultTbl[1] = resultTbl[1] .. v[1] .. " "
+			append(resultTbl[1], v[1], " ")
 		end
 		return resultTbl
 	end
@@ -133,6 +135,7 @@ transpiler.rule = function(definition, action, comment)
 		actionList[name] = function(arg)
 			return {"UNDEFINED"}
 		end
+
 	end
 
 	-- create/update rule

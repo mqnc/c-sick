@@ -1,17 +1,27 @@
 
 local utils = {}
 
--- stringstream
-utils.stringstream = function()
-	return {}
+utils.stringstream = function(arg)
+	if arg == nil then
+		return {}
+	elseif type(arg) == "table" then
+		return arg
+	elseif type(arg) == "string" then
+		return {arg}
+	end
 end
 
-utils.append = function(ss, elem)
-	ss[#ss + 1] = elem
-end
-
-utils.remove = function(ss)
-	ss[#ss + 1] = nil
+utils.append = function(ss, ...)
+	for i = 1, select('#', ...) do
+		obj = select(i, ...)
+		if type(obj) == "string" then
+			ss[#ss+1] = obj
+		elseif type(obj) == "table" then
+			for j, elem in ipairs(obj) do
+				ss[#ss+1] = elem
+			end
+		end
+	end
 end
 
 utils.join = function(ss, sep)
@@ -19,7 +29,7 @@ utils.join = function(ss, sep)
 end
 
 -- path separator
-utils.sep = package.config:sub(1,1)
+utils.pathSep = package.config:sub(1,1)
 
 -- read complete file into string
 utils.readAll = function(file)

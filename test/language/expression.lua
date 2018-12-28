@@ -176,24 +176,25 @@ end
 
 -- the action for operations with left to right associativity
 function ltrOperation(arg)
-	local resultTbl = {arg.values[1][1]}
+
+	local result = ss(arg.values[1][1])
 
 	local i = 2
 	while i <= #arg.values do
 
-		local raw = ""
+		local raw = ss()
 
 		for is, snippet in ipairs(arg.values[i].cpp) do
 			if type(snippet) == "number" then
 				if snippet == -1 then
-					raw = raw .. resultTbl[1]
+					append(raw, result)
 				elseif snippet == -2 then
-					raw = raw .. arg.values[i+1][1]
+					append(raw, arg.values[i+1][1])
 				else
-					raw = raw .. arg.values[i].args[snippet][1]
+					append(raw, arg.values[i].args[snippet][1])
 				end
 			else
-				raw = raw .. snippet
+				append(raw, snippet)
 			end
 		end
 		if arg.values[i].typ == "u" then
@@ -204,32 +205,33 @@ function ltrOperation(arg)
 			error("invalid operator type")
 		end
 
-		resultTbl[1] = raw
+		result = raw
 	end
 
-	return resultTbl
+	return {join(result)}
 end
 
 -- the action for operations with right to left associativity
 function rtlOperation(arg)
-	local resultTbl = {arg.values[#arg.values][1]}
+
+	local result = ss(arg.values[#arg.values][1])
 
 	local i = #arg.values-1
 	while i >= 1 do
 
-		local raw = ""
+		local raw = ss()
 
 		for is, snippet in ipairs(arg.values[i].cpp) do
 			if type(snippet) == "number" then
 				if snippet == -2 then
-					raw = raw .. resultTbl[1]
+					append(raw, result)
 				elseif snippet == -1 then
-					raw = raw .. arg.values[i-1][1]
+					append(raw, arg.values[i-1][1])
 				else
-					raw = raw .. arg.values[i].args[snippet][1]
+					append(raw, arg.values[i].args[snippet][1])
 				end
 			else
-				raw = raw .. snippet
+				append(raw, snippet)
 			end
 		end
 		if arg.values[i].typ == "u" then
@@ -240,10 +242,10 @@ function rtlOperation(arg)
 			error("invalid operator type")
 		end
 
-		resultTbl[1] = raw
+		result = raw
 	end
 
-	return resultTbl
+	return {join(result)}
 end
 
 
