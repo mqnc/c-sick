@@ -39,12 +39,14 @@ dofile("language" .. sep .. "core.lua")
 dofile("language" .. sep .. "literal.lua")
 dofile("language" .. sep .. "rawcpp.lua")
 dofile("language" .. sep .. "branch.lua")
---dofile("language" .. sep .. "loop.lua")
+dofile("language" .. sep .. "loop.lua")
 --dofile("language" .. sep .. "function.lua")
 dofile("language" .. sep .. "expression.lua")
 
 print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
 table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
+
+table.insert(localStatements, "Expression _ Terminal")
 
 table.insert(globalStatements, "SyntaxError")
 table.insert(localStatements, "SyntaxError")

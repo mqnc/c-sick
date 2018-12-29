@@ -68,7 +68,7 @@ table.insert(globalStatements, "Assignment")
 table.insert(localStatements, "Assignment")
 rule([[ AssignOperator <- ':=' ]], "=" )
 rule([[ Expression <- Atomic ]], basic.concat )
+-- expression will be added to the list of local statements later in order to check it last since it's such a recursion hole
 rule([[ Atomic <- Identifier / Literal ]], basic.concat )
 rule([[ Literal <- [0-9]+ ]], basic.match )
 rule([[ ExpressionList <- Expression (_ Comma _ Expression)* ]], basic.tree )
-table.insert(localStatements, "Expression _ Terminal")
