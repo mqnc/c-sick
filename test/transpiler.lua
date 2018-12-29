@@ -46,13 +46,11 @@ transpiler.basicActions = {
 
 	-- concat all captured semantic values
 	concat = function(arg)
-		local result = ""
-		local sep = ""
+		local buf = {}
 		for i = 1, #arg.values do
-			result = result .. sep .. arg.values[i][1]
-			--sep = " " -- see if it works without spaces
+			buf[#buf+1] = arg.values[i][1]
 		end
-		return {result}
+		return {table.concat(buf)}
 	end,
 
 	-- concat all captured semantic values with a comma in between
@@ -138,7 +136,7 @@ transpiler.rule = function(definition, action, comment)
 		definition = definition .. "  # (no action)"
 
 		actionList[name] = function(arg)
-			return {"UNDEFINED"}
+			return {col(arg.rule, "brightcyan")}
 		end
 	end
 

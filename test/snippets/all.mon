@@ -53,8 +53,8 @@ function main()
 	val b:=3 // const auto
 	// single "=" is never valid in order to avoid confusion between assignment and comparison
 	var c:=7; var d:=8 // ";" and linebreak are equal
-	(*var e:= ... // line continuation
-		17*)
+	var e:= ... // line continuation
+		17
 
 	if 123
 		print(a, "<", b)

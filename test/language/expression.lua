@@ -170,7 +170,7 @@ function choice(tbl)
 	for i, v in ipairs(tbl) do
 		buf[#buf+1] = "(" .. v.peg .. ")"
 	end
-	return join(buf, " / ")
+	return table.concat(buf, " / ")
 end
 
 -- the action for operations with left to right associativity

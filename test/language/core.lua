@@ -6,12 +6,15 @@ rule([[ SyntaxError <- (!NewLine .)* NewLine ]],  col("{match}", "brightred") )
 --rule([[ SyntaxError <- (!nl .)* nl ]],  "//!\\\\{match}" )
 
 rule([[ NewLine <- '\r\n' / '\n' ]], '\n')
-rule([[ LineBreak <- _ LineEndComment? NewLine ]], basic.concat )
-rule([[ LineContinue <- '...' _ LineEndComment? NewLine ]], basic.concat )
+rule([[ LineBreak <- LineEndComment? NewLine ]], basic.concat )
+rule([[ LineContinue <- '...' _ LineBreak ]], basic.concat )
 rule([[ WhiteSpace <- [ \t]+ ]], " " )
 rule([[ Space <- (WhiteSpace / InlineComment / LineContinue)+ ]], basic.concat ) -- definite space
 rule([[ _ <- Space? ]], basic.concat ) -- optional space
-rule([[ Terminal <- LineBreak / ';' ]], ";\n")
+rule([[ Semicolon <- ';' ]], '')
+rule([[ SilentTerminal <- LineBreak / Semicolon ]], basic.first)
+rule([[ Terminal <- SilentTerminal ]], ";{1}")
+
 rule([[ Skip <- _ (LineBreak _)* ]], basic.concat ) -- consume all new lines and whitespaces (and comments)
 rule([[ Comma <- ',' ]], ',')
 
