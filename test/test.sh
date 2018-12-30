@@ -1,1 +1,0 @@
-../program cinnamon.lua

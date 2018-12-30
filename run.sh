@@ -1,1 +1,0 @@
-./program test/cinnamon.lua
