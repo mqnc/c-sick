@@ -43,6 +43,6 @@ function fullMonty(int x:=0, int y) -> (...
 	/*q-pre-comment*/ int q:=x/y /*q-post-comment*/, ...
 	int r)
 
-	int r = 5;
+	int r := 5
 	return q, r
 end

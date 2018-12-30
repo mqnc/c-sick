@@ -1,3 +1,7 @@
+--[[
+This module provides raw c++ code in the form of
+$ i++; $ which can be in place of an identifier and therefore also be a statement.
+]]
 
 rule( [[ RawCpp <- CppDelimiter <CppCode*> CppDelimiter ]], basic.token )
 rule( [[ CppDelimiter <- '$' ]] )

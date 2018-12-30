@@ -1,3 +1,14 @@
+--[[
+This module provides the core features of the language:
+syntax errors
+line breaks
+white spaces
+comments
+terminators
+identifiers
+simple declarations
+mockups for atomics, expressions and literals
+]]
 
 rule([[ Cinnamon <- Skip (GlobalStatement Skip)* ]], basic.concat )
 

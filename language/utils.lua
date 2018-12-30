@@ -2,7 +2,7 @@
 local utils = {}
 
 -- path separator
-utils.sep = package.config:sub(1,1)
+utils.pathSep = package.config:sub(1,1)
 
 -- read complete file into string
 utils.readAll = function(file)

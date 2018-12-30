@@ -11,7 +11,8 @@ A cinnamon source code file specifies in its header which language modules it us
 ## Usage
 
 ```
-$ scons
+$ python3 buildtools/scons-local-3.0.0/scons.py
+	(or just scons if that's installed)
 $ cd language
 $ ../program cinnamon.lua
 ```
@@ -60,17 +61,19 @@ _name_ defines the name of the operator class. _order_ specifies its associativi
 
 ## Dependencies
 
-Cinnamon uses [Peglib](https://github.com/yhirose/cpp-peglib) and [Lua](https://www.lua.org/home.html), both of which are included. The build system requires [Scons](https://scons.org/).
+Cinnamon uses [Peglib](https://github.com/yhirose/cpp-peglib) and [Lua](https://www.lua.org/home.html), both of which are included. The build system requires [Scons](https://scons.org/) which is also included.
 
 ## Todos
 
-- The modular system for the grammar construction is so far just a bunch of dofile statements. Also, right now it loads just all modules for a file and there is no way to specify anything. All that needs redesign.
+- The modular system for the grammar construction is so far just a bunch of dofile statements. Also, right now it loads just all modules for a file and there is no way to specify anything. All that needs redesign. It should also support allowing different versions of language modules.
 
 - The predecessors of Cinnamon were all producing lzz files which needed further processing by Lazy C++. However, the number of dependencies should be minimized and we want to be able to use the latest C++ features without relying on Lazy C++ being up-to-date and bug-free. So the Cinnamon transpiler will have to generate cpp and h files itself.
 
 - Include kwargs and ranges by jkuebart.
 
 - How to deal with classes, structs, pointers and references?
+
+- How to deal with the inclusion of libraries and modules into source files?
 
 - Wrap destructuring assignments for function returns with multiple returns.
 
@@ -81,5 +84,7 @@ Cinnamon uses [Peglib](https://github.com/yhirose/cpp-peglib) and [Lua](https://
 - Create a module for MATLAB-like matrix manipulation.
 
 - Allow Unicode in identifiers.
+
+- Parsing errors are so far dealt with by providing a SyntaxError in the grammar which is the last option of LocalStatement and swallows everything and turns it red. There might be a better way.
 
 - So far, the c++ parser outsources all actions to lua and passes things around as lua values. However, most actions either just return the matched string or concatenate all their semantic values. So it would be better to have everything in naked c++ with a native c++ struct containing all relevant information and only in case a special action is needed, a lua function is wrapped and called. However, for the prototype of the transpiler, things will remain in lua as they still change frequently.

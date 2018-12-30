@@ -164,7 +164,7 @@ function fullMonty(int x:=0, int y) -> (...
 	/*q-pre-comment*/ int q:=x/y /*q-post-comment*/, ...
 	int r)
 
-	int r = 5;
+	int r := 5
 	return q, r
 end
 
@@ -175,8 +175,7 @@ assignments aren't operators
 direct assignment
 :=
 
-compound assignment:
-
+compound assignment like this?
 x ::= ^3
 translates to
 x := x^3

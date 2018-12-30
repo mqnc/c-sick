@@ -1,6 +1,8 @@
+--[[
+This module provides functions. See function.mon for further details.
+]]
 
-
-rule([[ FunctionDeclaration <- ~FunctionKeyword ~_ Identifier ~_ FunctionSpecifiers ~_ ParameterList ~_ ReturnValues ~_ SilentTerminal
+rule([[ FunctionDeclaration <- ~FunctionKeyword ~_ Identifier ~_ FunctionSpecifiers ~_ ParameterList ~_ ReturnValues _ SilentTerminal
 	FunctionBody ~EndFunctionKeyword ]],
 	function(arg)
 		local result = ""
@@ -9,7 +11,8 @@ rule([[ FunctionDeclaration <- ~FunctionKeyword ~_ Identifier ~_ FunctionSpecifi
 		local specifiers = arg.values[2]
 		local parameters = arg.values[3]
 		local returns = arg.values[4]
-		local body = arg.values[5]
+		local comment = arg.values[5][1] .. arg.values[6][1]
+		local body = arg.values[7]
 
 		local buf = {}
 		for i=2, #parameters.values, 3 do
@@ -20,18 +23,18 @@ rule([[ FunctionDeclaration <- ~FunctionKeyword ~_ Identifier ~_ FunctionSpecifi
 
 		if #returns.values == 0 then
 			result =
-				specifiers[1] .. " void " .. name[1] .. "(" .. paramstr .. ")" ..
+				specifiers[1] .. " void " .. name[1] .. "(" .. paramstr .. ")" .. comment ..
 				"{\n" .. body[1] .. "\n}\n"
 
 		elseif returns.values[1].rule == "ReturnType" then
 			result =
-				specifiers[1] .. " " .. returns.values[1][1] .. " " .. name[1] .. "(" .. paramstr .. ")" ..
+				specifiers[1] .. " " .. returns.values[1][1] .. " " .. name[1] .. "(" .. paramstr .. ")" .. comment ..
 				"{\n" .. body[1] .. "\n}\n"
 
 		elseif returns.values[1].rule == "DeclarationWithInit" then
 			result =
 				specifiers[1] .. " " .. table.concat(returns.values[1].specifiers, " ") .. " " ..
-				name[1] .. "(" .. paramstr .. ")" ..
+				name[1] .. "(" .. paramstr .. ")" .. comment ..
 				"{\n" .. returns.values[1][1] .. ";\n" ..
 				body[1] .. "\n" ..
 				"return " .. returns.values[1].variable .. ";\n}\n"
@@ -56,7 +59,7 @@ rule([[ FunctionDeclaration <- ~FunctionKeyword ~_ Identifier ~_ FunctionSpecifi
 					allInitialized = false
 				end
 			end
-			result = result .. "}\n" .. specifiers[1] .. name[1] .. "__result " .. name[1] .. "(" .. paramstr .. ")\n{\n"
+			result = result .. "}\n" .. specifiers[1] .. name[1] .. "__result " .. name[1] .. "(" .. paramstr .. ") " .. comment .. "\n{\n"
 			if allInitialized then
 				for i, decl in ipairs(decls) do
 					result = result .. decl[1] .. ";\n"
@@ -90,13 +93,18 @@ rule([[ ParameterList <- ('(' _ (SimpleDeclaration _ (',' _ SimpleDeclaration _)
 rule([[ ReturnValues <- ('->' ~_ (DeclarationWithInit / ReturnType / ParameterList))? ]], basic.tree )
 rule([[ ReturnType <- (Identifier _)+ ]], basic.concat )
 rule([[ FunctionBody <- Skip (!EndFunctionKeyword (ReturnStatement / LocalStatement) Skip)* ]], basic.concat )
-rule([[ ReturnStatement <- ReturnKeyword _ Identifier (_ ',' _ Identifier)* _ Terminal ]],
+rule([[ ReturnStatement <- ~ReturnKeyword ~_ Identifier (~_ ',' ~_ Identifier)* _ SilentTerminal ]],
 	function(arg)
 		local buf = {}
 		for i, val in ipairs(arg.values) do
 			buf[#buf+1] = val[1]
 		end
-		return {"return {" .. table.concat(buf, ", ") .. "};\n"}
+		local comment2 = buf[#buf]
+		buf[#buf] = nil
+		local comment1 = buf[#buf]
+		buf[#buf] = nil
+
+		return {"return {" .. table.concat(buf, ", ") .. "}; " .. comment1 .. comment2}
 	end
 )
 rule([[ ReturnKeyword <- 'return' ]])

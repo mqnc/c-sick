@@ -1,3 +1,6 @@
+--[[
+This module constructs the grammar for expression parsing from a table of operators. Refer to the readme for further explanations.
+]]
 
 OperatorClasses = {
 	{
@@ -119,7 +122,6 @@ OperatorClasses = {
 }
 
 -- turn "{<}?{1}:{>}" into {-1, "?", 1, ":", -2} and infer unaries and binaries from the presence of {<} and {>}
-
 opparser = pegparser{
 	grammar = [[
 		snippet <- (lref / mref / rref / other)*
@@ -245,7 +247,7 @@ function rtlOperation(arg)
 	return resultTbl
 end
 
-
+-- construct and register the actual grammar text for all operator classes
 for i, v in ipairs(OperatorClasses) do
 	local class = OperatorClasses[i]
 	if i==1 then

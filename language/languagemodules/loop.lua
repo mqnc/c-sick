@@ -1,3 +1,11 @@
+--[[
+This module provides loops:
+while
+repeat whilst
+repeat while
+simple for
+a range-based for loop with nested and parallel ranges is planned
+]]
 
 rule([[ WhileStatement <- ~WhileKeyword _ Expression _ SilentTerminal WhileBody ~EndWhileKeyword ]], 'while( {1}{2}{3} ){4}{\n{5}\n}\n' )
 rule([[ WhileKeyword <- 'while' ]])

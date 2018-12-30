@@ -1,4 +1,8 @@
-
+--[[
+This module provides branching:
+if then else
+switch case
+]]
 
 rule([[ IfStatement <- IfPart (ElseIfPart)* ElsePart? ~EndIfKeyword ]], basic.concat )
 rule([[ IfPart <- ~IfKeyword _ Expression _ SilentTerminal IfBody ]], "if( {1}{2}{3} ){4}{\n{5}\n}\n" )

@@ -1,3 +1,15 @@
+--[[
+This module provides literals:
+true and false
+'c' for chars
+"string" for strings
+123 for integers
+0x123 for hex notation of integers
+123.456e78 for doubles
+future plans include:
+123.456x10^78
+some way for verbatim multiline string literals, probably the cpp one
+]]
 
 rule([[ Literal <- Boolean / CharLiteral / StringLiteral / NumericLiteral ]], basic.first )
 
