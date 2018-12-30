@@ -40,7 +40,7 @@ dofile("language" .. sep .. "literal.lua")
 dofile("language" .. sep .. "rawcpp.lua")
 dofile("language" .. sep .. "branch.lua")
 dofile("language" .. sep .. "loop.lua")
---dofile("language" .. sep .. "function.lua")
+dofile("language" .. sep .. "function.lua")
 dofile("language" .. sep .. "expression.lua")
 
 print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
@@ -61,7 +61,7 @@ rule( "Identifier <- !Keyword ( " .. table.concat(identifiers, " / ") .. " )", b
 rule( "GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.concat)
 rule( "LocalStatement <- " .. table.concat(localStatements, " / "), basic.concat)
 
-
+-- repetition for increasing work load to measure performance
 local input = string.rep(utils.readAll("snippets/all.mon"), 1)
 
 print(transpiler.grammar())

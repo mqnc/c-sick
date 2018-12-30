@@ -160,7 +160,12 @@ function returnStructMultipleDefaultValues -> (int q:=0, int r:=7)
 	// implicit return q, r in the end when all return values are initialized
 end
 
-function fullMonty(int x:=0, int y) -> (int q:=0, int r)
+function fullMonty(int x:=0, int y) -> (...
+	/*q-pre-comment*/ int q:=x/y /*q-post-comment*/, ...
+	int r)
+
+	int r = 5;
+	return q, r
 end
 
 /*
@@ -170,7 +175,12 @@ assignments aren't operators
 direct assignment
 :=
 
-compound assignment works with any infix operator
-a &:= b  translates to  a := a & b
+compound assignment:
+
+x ::= ^3
+translates to
+x := x^3
+
+(aligns well with the lua a:method() call thing)
 
 */

@@ -1,7 +1,4 @@
 
-function awa(int x) -> const unsigned long int
-end
-
 function oneLine; end
 
 function noParams
@@ -42,5 +39,10 @@ function returnStructMultipleDefaultValues -> (int q:=0, int r:=7)
 	// implicit return q, r in the end when all return values are initialized
 end
 
-function fullMonty(int x:=0, int y) -> (int q:=0, int r)
+function fullMonty(int x:=0, int y) -> (...
+	/*q-pre-comment*/ int q:=x/y /*q-post-comment*/, ...
+	int r)
+
+	int r = 5;
+	return q, r
 end

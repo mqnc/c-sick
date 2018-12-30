@@ -46,12 +46,12 @@ local declarationAction = function(arg)
 	local i = 1
 	while #arg.values>=i and arg.values[i].rule == "Identifier" do
 		table.insert(resultTbl.specifiers, arg.values[i][1])
-		i = i+1
+		i = i+2 -- consider comments
 	end
-	i = i-1
+	-- i now points to the assign operator
 
-	resultTbl.variable = resultTbl.specifiers[i]
-	resultTbl.specifiers[i] = nil
+	resultTbl.variable = resultTbl.specifiers[#resultTbl.specifiers]
+	resultTbl.specifiers[#resultTbl.specifiers] = nil
 	if arg.rule == "DeclarationWithInit" then
 		resultTbl.init = arg.values[i+2][1]
 	end

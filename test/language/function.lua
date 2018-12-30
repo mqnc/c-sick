@@ -1,9 +1,9 @@
 
 
-rule([[ FunctionDeclaration <- FunctionKeyword _ {Identifier} _ {FunctionSpecifiers} _ {ParameterList} _ {ReturnValues} _ break
-	{FunctionBody} EndFunctionKeyword _ break ]],
+rule([[ FunctionDeclaration <- ~FunctionKeyword ~_ Identifier ~_ FunctionSpecifiers ~_ ParameterList ~_ ReturnValues ~_ SilentTerminal
+	FunctionBody ~EndFunctionKeyword ]],
 	function(arg)
-		local result = sv(arg)
+		local result = ""
 
 		local name = arg.values[1]
 		local specifiers = arg.values[2]
@@ -11,87 +11,92 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ {Identifier} _ {FunctionSpecifi
 		local returns = arg.values[4]
 		local body = arg.values[5]
 
-		local sep = ""
-		local paramstr = ""
-		for i, par in ipairs(parameters.values) do
-			paramstr = paramstr .. sep .. par.str
-			sep = ", "
+		local buf = {}
+		for i=2, #parameters.values, 3 do
+			-- declaration and comments
+			buf[#buf+1] = parameters.values[i-1][1] .. " " .. parameters.values[i][1] .. " " .. parameters.values[i+1][1]
 		end
+		local paramstr = table.concat(buf, ", ")
 
 		if #returns.values == 0 then
-			result.str =
-				specifiers.str .. " void " .. name.str .. "(" .. paramstr .. ")" ..
-				"{\n" .. body.str .. "\n}\n"
+			result =
+				specifiers[1] .. " void " .. name[1] .. "(" .. paramstr .. ")" ..
+				"{\n" .. body[1] .. "\n}\n"
 
 		elseif returns.values[1].rule == "ReturnType" then
-			result.str =
-				specifiers.str .. " " .. returns.values[1].str .. " " .. name.str .. "(" .. paramstr .. ")" ..
-				"{\n" .. body.str .. "\n}\n"
+			result =
+				specifiers[1] .. " " .. returns.values[1][1] .. " " .. name[1] .. "(" .. paramstr .. ")" ..
+				"{\n" .. body[1] .. "\n}\n"
 
 		elseif returns.values[1].rule == "DeclarationWithInit" then
-			result.str =
-				specifiers.str .. " " .. table.concat(returns.values[1].specifiers, " ") .. " " ..
-				name.str .. "(" .. paramstr .. ")" ..
-				"{\n" .. returns.values[1].str .. ";\n" ..
-				body.str .. "\n" ..
+			result =
+				specifiers[1] .. " " .. table.concat(returns.values[1].specifiers, " ") .. " " ..
+				name[1] .. "(" .. paramstr .. ")" ..
+				"{\n" .. returns.values[1][1] .. ";\n" ..
+				body[1] .. "\n" ..
 				"return " .. returns.values[1].variable .. ";\n}\n"
 
 		else -- parameter list -> we want to return a struct
-			local decls = returns.values[1].values
-			result.str = "struct " .. name.str .. "__result{\n"
+			local decls = {}
+			for i=2, #returns.values[1].values, 3 do -- comment, declaration, comment
+				decls[#decls+1] = returns.values[1].values[i]
+				decls[#decls].preComment = returns.values[1].values[i-1][1]
+				decls[#decls].postComment = returns.values[1].values[i+1][1]
+			end
+
+			result = "struct " .. name[1] .. "__result{\n"
 			local allInitialized = true
 			for i, decl in ipairs(decls) do
+				result = result .. decl.preComment .. " "
 				for j, spec in ipairs(decl.specifiers) do
-					result.str = result.str .. spec .. " "
+					result = result .. spec .. " "
 				end
-				result.str = result.str .. decl.variable .. ";\n"
+				result = result .. decl.variable .. "; " .. decl.postComment .. "\n"
 				if decl.init == nil then
 					allInitialized = false
 				end
 			end
-			result.str = result.str .. "}\n" .. specifiers.str .. name.str .. "__result " .. "(" .. paramstr .. ")\n{\n"
+			result = result .. "}\n" .. specifiers[1] .. name[1] .. "__result " .. name[1] .. "(" .. paramstr .. ")\n{\n"
 			if allInitialized then
 				for i, decl in ipairs(decls) do
-					result.str = result.str .. decl.str .. ";\n"
+					result = result .. decl[1] .. ";\n"
 				end
-				result.str = result.str .. body.str .. "\nreturn {"
+				result = result .. body[1] .. "\nreturn {"
 				local sep = ""
 				for i, ret in ipairs(decls) do
-					result.str = result.str .. sep .. ret.variable
+					result = result .. sep .. ret.variable
 					sep = ", "
 				end
-				result.str = result.str .. "};\n}\n"
+				result = result .. "};\n}\n"
 			else
 				for i, decl in ipairs(decls) do
 					if decl.init ~= nil then
-						result.str = result.str .. decl.str .. ";\n"
+						result = result .. decl[1] .. ";\n"
 					end
 				end
-				result.str = result.str .. body.str .. "\n}\n"
+				result = result .. body[1] .. "\n}\n"
 			end
 		end
 
-		return result
+		return {result}
 	end
 )
-table.insert(globalStatements, "{FunctionDeclaration}")
+table.insert(globalStatements, "FunctionDeclaration")
 
 rule([[ FunctionKeyword <- 'function' ]])
 table.insert(keywords, "FunctionKeyword")
-rule([[ FunctionSpecifiers <- ('[' _ ({Identifier} _)* ']')? ]], basic.concat )
-rule([[ ParameterList <- ('(' _ ({SimpleDeclaration} (_ ',' _ {SimpleDeclaration})*)? _ ')')? ]], basic.forward )
-rule([[ ReturnValues <- ('->' _ ({DeclarationWithInit} / {ReturnType} / {ParameterList}))? ]], basic.forward )
-rule([[ ReturnType <- ({Identifier} _)+ ]], basic.concat )
-rule([[ FunctionBody <- {skip} (!EndFunctionKeyword ({ReturnStatement} / {LocalStatement}) {skip})* ]], basic.subs )
-rule([[ ReturnStatement <- ReturnKeyword _ {Identifier} (_ ',' _ {Identifier})* _ break ]],
+rule([[ FunctionSpecifiers <- ('[' _ (Identifier _)* ']')? ]], basic.concat )
+rule([[ ParameterList <- ('(' _ (SimpleDeclaration _ (',' _ SimpleDeclaration _)*)? ')')? ]], basic.tree )
+rule([[ ReturnValues <- ('->' ~_ (DeclarationWithInit / ReturnType / ParameterList))? ]], basic.tree )
+rule([[ ReturnType <- (Identifier _)+ ]], basic.concat )
+rule([[ FunctionBody <- Skip (!EndFunctionKeyword (ReturnStatement / LocalStatement) Skip)* ]], basic.concat )
+rule([[ ReturnStatement <- ReturnKeyword _ Identifier (_ ',' _ Identifier)* _ Terminal ]],
 	function(arg)
-		local result = sv(arg)
-		local buf = ss()
+		local buf = {}
 		for i, val in ipairs(arg.values) do
-			append(buf, val.str)
+			buf[#buf+1] = val[1]
 		end
-		result.str = "return {" .. join(buf, ", ") .. "};\n"
-		return result
+		return {"return {" .. table.concat(buf, ", ") .. "};\n"}
 	end
 )
 rule([[ ReturnKeyword <- 'return' ]])

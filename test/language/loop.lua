@@ -31,7 +31,6 @@ rule([[ ForKeyword <- 'for' ]])
 table.insert(keywords, "ForKeyword")
 rule([[ CountingRange <- DoubleComparison (~_ ',' ~_ Expression)? ]],
 	function(arg)
-		log(arg)
 
 		local result = ""
 		local dblcmp = arg.values[1].values
