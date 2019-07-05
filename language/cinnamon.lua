@@ -35,8 +35,8 @@ dofile("languagemodules" .. sep .. "expression.lua")
 print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
 table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
 
+-- these elements need to be the last ones that are tested
 table.insert(localStatements, "Expression _ Terminal")
-
 table.insert(globalStatements, "SyntaxError")
 table.insert(localStatements, "SyntaxError")
 
