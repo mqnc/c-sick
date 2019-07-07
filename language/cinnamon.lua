@@ -25,12 +25,12 @@ local sep = utils.pathSep -- platform specific path seperator
 dofile(scriptPath .. "modules" .. sep .. "core.lua")
 dofile(scriptPath .. "modules" .. sep .. "literal.lua")
 dofile(scriptPath .. "modules" .. sep .. "expression.lua")
+dofile(scriptPath .. "modules" .. sep .. "tuple.lua")
 dofile(scriptPath .. "modules" .. sep .. "declaration.lua")
 dofile(scriptPath .. "modules" .. sep .. "function.lua")
 
--- include grammar elements that have to be tested after everything else
-print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
-table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
+--print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
+--table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
 
 -- these elements need to be the last ones that are tested
 table.insert(localStatements, "Expression _ Terminal")

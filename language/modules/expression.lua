@@ -159,7 +159,7 @@ end
 
 rule(" Expression <- " .. OperatorClasses[#OperatorClasses].name, basic.concat )
 rule([[ ExpressionList <- Expression (_ ExpressionSep _ Expression)* ]], basic.concat )
-rule([[ Atomic <- ExpressionLParen _ Expression _ ExpressionRParen / Identifier / Literal ]], basic.concat )
+rule([[ Atomic <- ExpressionLParen _ Expression _ ExpressionRParen / Identifier / Literal / Tuple ]], basic.concat )
 rule([[ ExpressionLParen <- '(' ]], '(' )
 rule([[ ExpressionRParen <- ')' ]], ')' )
 rule([[ ExpressionSep <- ',' ]], ',' )
