@@ -3,7 +3,7 @@ print(_VERSION)
 
 local scriptPath = string.gsub(arg[0], "cinnamon.lua$", "")
 
-local codefile = arg[1]
+local inputfile = arg[1]
 local outputfile = arg[2]
 
 local utils = require (scriptPath .. "utils")
@@ -51,27 +51,32 @@ end
 rule( " GlobalStatement <- " .. table.concat(globalStatements, " / "), basic.concat)
 rule( " LocalStatement <- " .. table.concat(localStatements, " / "), basic.concat)
 
--- repetition for increasing work load to measure performance
-local input = string.rep(utils.readAll(codefile), 1)
+if inputfile == nil then
 
--- display grammar
-print(transpiler.grammar())
+	-- display grammar
+	print(transpiler.grammar())
 
--- store grammar
---utils.writeToFile("testgrammar.peg", transpiler.grammar())
+	-- store grammar
+	--utils.writeToFile("testgrammar.peg", transpiler.grammar())
 
--- transpile
-local t0 = os.clock()
-local result = transpiler.transpile(input)[1]
-local t1 = os.clock()
+else
+	local input = string.rep(utils.readAll(inputfile), 1)
 
--- prettify
-transpiler.clear()
-local prettify = require (scriptPath .. "prettify")
-result = prettify(result)
+	-- transpile
+	local t0 = os.clock()
+	local result = transpiler.transpile(input)[1]
+	local t1 = os.clock()
 
--- display results
-print(prettify(result))
-print("transpile CPU time: " .. t1-t0 .. "s")
+	-- prettify
+	transpiler.clear()
+	local prettify = require (scriptPath .. "prettify")
+	result = prettify(result)
 
-utils.writeToFile(outputfile, result)
+	-- display results
+	print("")
+	print(prettify(result))
+	print("")
+	print("transpile CPU time: " .. t1-t0 .. "s")
+
+	utils.writeToFile(outputfile, result)
+end
