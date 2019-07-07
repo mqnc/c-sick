@@ -1,13 +1,2 @@
-*.exe
-*.pyc
-/.sconf_temp/
-/.sconsign.dblite
-/build/
-/config.log
-/csickVS/.vs/
-/csickVS/Debug/
-/csickVS/Release/
-/csickVS/x64/
-/program
-/test/temp/
-__pycache__
+/cinnamon
+/test/

@@ -1,16 +1,16 @@
 
-local utils = require "utils"
+local scriptPath = string.gsub((...), "prettify$", "")
+
+local utils = require (scriptPath .. "utils")
 local log = utils.log
 local col = utils.colorize
 
-local transpiler = require "transpiler"
+local transpiler = require (scriptPath .. "transpiler")
 local rule = transpiler.rule
 local basic = transpiler.basicActions
 local match = transpiler.match
 
 local indent = 0
-
-
 
 rule([[ Code <- (Comment / StringLiteral / IndentInc / IndentDec / NewLine / WhiteSpace / Anything)* ]], basic.concat)
 rule([[ Comment <- LineEndComment / MultiLineComment ]], basic.match)

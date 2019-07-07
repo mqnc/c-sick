@@ -32,7 +32,7 @@ if "msvc" in env["TOOLS"]:
 else:
 	env.AppendUnique(CCFLAGS=["-Wall", "-Wextra", "-g", "-pedantic", "-pthread"])
 	env.AppendUnique(CFLAGS=["-std=gnu99"])
-	env.AppendUnique(CXXFLAGS=["-std=c++14"])
+	env.AppendUnique(CXXFLAGS=["-std=c++17"])
 	env.AppendUnique(LINKFLAGS=["-pthread"])
 
 #
@@ -54,4 +54,4 @@ if not GetOption("clean") and not GetOption("help"):
 luasrc = Glob("build/lua/src/*.c", exclude="build/lua/src/lua*.c")
 #env.Program("lua", ["build/lua/src/lua.c"] + luasrc)
 #env.Program("luac", ["build/lua/src/luac.c"] + luasrc)
-env.Program("program", ["build/luautils.cpp", "build/main.cpp", "build/parser.cpp"] + luasrc)
+env.Program("cinnamon", ["build/luautils.cpp", "build/main.cpp", "build/parser.cpp"] + luasrc)

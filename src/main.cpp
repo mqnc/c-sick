@@ -15,7 +15,7 @@ int Main(vector<string> args)
 
 	// check arguments
 	if(args.size()<2){
-		cout << "usage: " << args[0] << " file.lua" << endl;
+		cout << "usage: " << args[0] << " file.lua [arg1 [arg2 [...]]]" << endl;
 		return EXIT_FAILURE;
 	}
 
@@ -29,6 +29,13 @@ int Main(vector<string> args)
 
 	// register makeParser as pegparser in lua
 	lua::globals()["pegparser"] = lua::invoke<makeParser>;
+
+	// forward args to lua script
+	const lua::value lua_args = lua::newtable();
+	for (size_t i=0; i < args.size(); i++) {
+		lua_args[i-1] = args[i];
+	}
+	lua::globals()["arg"] = lua_args;
 
 	// load parser script
 	auto result = luaL_loadfile(L.get(), args[1].c_str()) || lua_pcall(L.get(), 0, 0, 0);

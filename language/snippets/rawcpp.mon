@@ -1,4 +1,0 @@
-
-$ std::string literal = R"mean(test)mean)moon")mean"; /* $ */ // $
-
-a := $ (pTestpm->*pmfn)() $
