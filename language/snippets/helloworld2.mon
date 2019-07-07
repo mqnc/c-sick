@@ -1,0 +1,4 @@
+function start
+	print("Hello ", "World2!")
+	return 0
+end
