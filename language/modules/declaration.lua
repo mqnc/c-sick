@@ -9,11 +9,11 @@ rule([[ StructBindOpen <- '' ]], '[')
 rule([[ StructBindClose <- '' ]], ']')
 
 rule([[ Assignment <- Assignee _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
-rule([[ Assignee <- Tie / Identifier ]], basic.concat )
-rule([[ Tie <- IdentifierListMulti ]], 'std::tie({1})' )
+rule([[ Assignee <- AssigneeTie / Identifier ]], basic.concat )
+rule([[ AssigneeTie <- IdentifierListMulti ]], 'std::tie({1})' )
 
-rule([[ Assigned <- Tuple / Expression ]], basic.concat )
-rule([[ Tuple <- ExpressionListMulti ]], 'std::make_tuple({1})' )
+rule([[ Assigned <- AssignedTuple / Expression ]], basic.concat )
+rule([[ AssignedTuple <- ExpressionListMulti ]], 'std::make_tuple({1})' )
 
 rule([[ SimpleDeclarationList <- SimpleDeclaration (_ DeclarationSep _ SimpleDeclaration)* ]], basic.concat )
 rule([[ DeclarationSep <- ',' ]], ',' )

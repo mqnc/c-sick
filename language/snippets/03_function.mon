@@ -1,0 +1,37 @@
+
+function oneLine; end
+
+function noParams
+end
+
+function emptyParams()
+end
+
+function oneParam(var a:=0)
+end
+
+function oneConstParam(val a:=0)
+end
+
+function twoParams(var i:=257, val b:="covfefe")
+end
+
+function emptyReturn
+	return
+end
+
+function oneReturn
+	return 1
+end
+
+function tupleReturn
+	return "HAL", 9000
+end
+
+function divide(var num:=0, var den:=1)
+	return num div den, num mod den
+end
+
+function start
+	return 0
+end

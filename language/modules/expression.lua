@@ -40,7 +40,7 @@ OperatorClasses = {
 			{peg="'*'", cpp="({<})*({>})"},
 			{peg="'/'", cpp="double({<})/double({>})"},
 			{peg="'div'", cpp="int({<})/int({>})"},
-			{peg="'mod'", cpp="({<})%({>})"}
+			{peg="'mod'", cpp="({<})%%({>})"} -- % is the gsub escape character
 		}
 	}, {
 		name = "Addition",

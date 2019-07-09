@@ -1,0 +1,10 @@
+function start
+	var a := 1000
+	val b := " mal berührt"
+	var ab := a, b
+	var A, B := ab
+	A, B := ab
+	a, B := A, b
+	print(A, B)
+	return 0
+end

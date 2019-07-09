@@ -1,0 +1,118 @@
+
+Comments:
+
+// for single line comments because # might be a nice operator, eg for number of elements like in lua
+
+/* */ will be kept because it allows nice constructs like
+/*
+either
+/*/
+or
+/**/
+
+for nestable comments I was looking through rosetta code and liked /+ +/ as in D and (* *) as in applething the most and decided for (* *) because a paren emphasizes the nestability the best
+
+Declarations:
+
+I decided to use := for assignments and == for comparisons so there is no way someone could accidentally put an assignment into a condition. I was also considering <- or <= but they are already occupied by "x smaller than minus y" and "x smaller than or equal to y"
+
+Expressions:
+
+Operator precedence is mainly inspired by c++ except that bitwise operators have now higher precedence than comparisons like in python and as it should be
+
+For the ternary operator I am still unsure about the best way:
+
+1) sign := -1 if x<0 else 1 if x>0 else 0
+2) sign := x<0 ? -1 : x>0 ? 1 : 0
+3) sign := when x<0 then -1 elseif x>0 then 1 else 0
+4) sign := {-1 if x<0, 1 if x>0, 0 otherwise
+
+1 is Python but for some reason I don't really like that the condition is between the options and I am not sure the parser can always distinguish it from a normal if branch thing
+2 is traditional and probably well established but it looks confusing for noobs and cinnemon is all about intuitive readability
+3 would be a new thing
+4 is beautifully mathematical but it blocks the { (which so far doesn't have another meaning but then maybe we can't have {}) and "otherwise" is a pretty long word
+
+Functions:
+
+the most difficult aspect of functions is how to implement multiple return values
+
+options are:
+
+return a struct
+return a tuple
+use output parameters
+
+I think the best way is a return struct since it's most readable and every parameter has a name
+
+it would be really nice for every variable to be initialized with a default value and have an implicit return (or user-chosen returns in between) like this:
+
+function compute -> (int a:=7, string b:="awa")
+	do some stuff
+	if something then
+		b:="oops"
+		return // generates return {a, b} which fills a tuple or a struct
+	end
+	// implicit return {a, b}
+end
+
+but some things are const and can only be constructed in place and cannot be moved or copied afterwards so they have to be constructed within the return statement.
+
+so we can only have implicit return when all values are default initialized. But if we just remove the implicit return otherwise, we have this situation:
+
+function compute -> (int a:=0, int b:=1, int c:=2)
+	a:=17
+	b:=4
+	c:=6
+end
+
+and then we add a difficult value and suddenly we have to write
+
+function compute -> (int a:=0, int b:=1, int c:=2, noisy n)
+	a:=17
+	b:=4
+	c:=6
+	return a,b,c,nFactory(7,3,5)
+end
+
+oooor we only assign difficult values inside the return
+
+function compute -> (int a:=0, int b:=1, int c:=2, noisy n)
+	a:=17
+	b:=4
+	c:=6
+	return n:=nFactory(7,3,5) // becomes return {a,b,c,nFactory(7,3,5)}
+end
+
+which is maybe the nicest but it also looks a bit confusing since a,b and c are also returned
+
+maybe call it differently?
+
+return with n:=nFactory(7,3,5)
+
+set n:=nFactory(7,3,5) and return
+
+finalize
+	m:=mFactory(1,2,3)
+	n:=nFactory(7,3,5)
+return
+
+ok, new approach:
+
+function f(var x:=0, val y:=5)
+	return x+y, x*y
+end
+
+-->
+
+auto f(auto x=0, auto y=5){
+	return std::make_tuple(x+y, x*y);
+}
+
+This is exactly like in python. The only disadvantage is that the return values don't have names anymore and we have to rely on good comments but everything else becomes so much simpler that we just have to do it this way. Now we can also use auto everywhere and no manual types anymore.
+
+now the whole problem is solved by using {} for tuples, structured binds and ties
+
+auto parameters are not allowed, they create templates. I thought
+f(auto x=0) deduces int from the default. Possible fix:
+
+function f(var x=default) --> auto f(decltype(default) x=default)
