@@ -45,6 +45,7 @@ rule([[ WordEnd <- !WordMid ]], "")
 
 rule([[ Identifier <- !Keyword Word ]], basic.match )
 rule([[ IdentifierList <- Identifier (_ IdentifierSep _ Identifier)* ]], basic.concat )
+rule([[ IdentifierListMulti <- Identifier _ IdentifierSep _ Identifier (_ IdentifierSep _ Identifier)* ]], basic.concat )
 rule([[ IdentifierSep <- ',' ]], ',' )
 
 -- this solution does not work with multiple cpp files yet but baby steps

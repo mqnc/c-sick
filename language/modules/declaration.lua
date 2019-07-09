@@ -2,17 +2,18 @@
 
 -- note that a declaration does not include a trailing break because we want to use it in function parameters
 
-rule([[ SimpleDeclaration <- AutoType _ Declaree _ AssignOperator _ Expression ]], basic.concat )
-rule([[ Declaree <- Identifier / StructuredBinding ]], basic.concat )
-rule([[ StructuredBinding <- StructBindOpen _ IdentifierList _ StructBindClose ]], basic.concat )
-rule([[ StructBindOpen <- TupleOpen ]], '[')
-rule([[ StructBindClose <- TupleClose ]], ']')
+rule([[ SimpleDeclaration <- AutoType _ Declaree _ AssignOperator _ Assigned ]], basic.concat )
+rule([[ Declaree <- StructuredBinding / Identifier ]], basic.concat )
+rule([[ StructuredBinding <- StructBindOpen _ IdentifierListMulti _ StructBindClose ]], basic.concat )
+rule([[ StructBindOpen <- '' ]], '[')
+rule([[ StructBindClose <- '' ]], ']')
 
-rule([[ Assignment <- Assignee _ AssignOperator _ Expression _ Terminal ]], basic.concat )
-rule([[ Assignee <- Identifier / Tie ]], basic.concat )
-rule([[ Tie <- TieOpen _ IdentifierList _ TieClose ]], basic.concat )
-rule([[ TieOpen <- TupleOpen ]], 'std::tie(')
-rule([[ TieClose <- TupleClose ]], ')')
+rule([[ Assignment <- Assignee _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
+rule([[ Assignee <- Tie / Identifier ]], basic.concat )
+rule([[ Tie <- IdentifierListMulti ]], 'std::tie({1})' )
+
+rule([[ Assigned <- Tuple / Expression ]], basic.concat )
+rule([[ Tuple <- ExpressionListMulti ]], 'std::make_tuple({1})' )
 
 rule([[ SimpleDeclarationList <- SimpleDeclaration (_ DeclarationSep _ SimpleDeclaration)* ]], basic.concat )
 rule([[ DeclarationSep <- ',' ]], ',' )

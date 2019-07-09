@@ -25,7 +25,6 @@ local sep = utils.pathSep -- platform specific path seperator
 dofile(scriptPath .. "modules" .. sep .. "core.lua")
 dofile(scriptPath .. "modules" .. sep .. "literal.lua")
 dofile(scriptPath .. "modules" .. sep .. "expression.lua")
-dofile(scriptPath .. "modules" .. sep .. "tuple.lua")
 dofile(scriptPath .. "modules" .. sep .. "declaration.lua")
 dofile(scriptPath .. "modules" .. sep .. "function.lua")
 
@@ -57,7 +56,7 @@ if inputfile == nil then
 	print(transpiler.grammar())
 
 	-- store grammar
-	--utils.writeToFile("testgrammar.peg", transpiler.grammar())
+	utils.writeToFile(scriptPath .. "/../test/testgrammar.peg", transpiler.grammar())
 
 else
 	local input = string.rep(utils.readAll(inputfile), 1)

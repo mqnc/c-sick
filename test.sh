@@ -14,8 +14,9 @@ do
 	FILEMON=`echo $INFILE | sed 's/language\/snippets\///'`
 	FILE=`echo $FILEMON | sed 's/.mon//'`
 
+	cp -f $INFILE test/
 	rm test/$FILE
-	./test/cinnamon language/cinnamon.lua language/snippets/$FILE.mon test/$FILE.cpp \
+	./test/cinnamon language/cinnamon.lua test/$FILE.mon test/$FILE.cpp \
 	&& g++ -o test/$FILE -std=c++17 -Wall -Wextra -g -pedantic -pthread test/$FILE.cpp
 
 	echo "\n"
