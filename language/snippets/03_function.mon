@@ -7,13 +7,19 @@ end
 function emptyParams()
 end
 
-function oneParam(var a:=0)
+function oneParam(var a:Int)
 end
 
 function oneConstParam(val a:=0)
 end
 
-function twoParams(var i:=257, val b:="covfefe")
+function oneImplicitlyConstParam(a:=0)
+end
+
+function anotherImplicitlyConstParam(a:Int)
+end
+
+function threeParams(j:Int, var i:Int, val b:="covfefe")
 end
 
 function emptyReturn

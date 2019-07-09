@@ -1,12 +1,15 @@
 
 
--- note that a declaration does not include a trailing break because we want to use it in function parameters
+rule([[ SimpleDeclaration <- SimpleInitializedDeclaration / SimpleDefaultDeclaration ]], basic.concat )
 
-rule([[ SimpleDeclaration <- AutoType _ SimpleDeclaree _ AssignOperator _ Assigned ]], basic.concat )
+rule([[ SimpleInitializedDeclaration <- ConstSpecifier InsertAuto _ SimpleDeclaree _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
 rule([[ SimpleDeclaree <- StructuredBinding / Identifier ]], basic.concat )
 rule([[ StructuredBinding <- StructBindOpen _ IdentifierListMulti _ StructBindClose ]], basic.concat )
 rule([[ StructBindOpen <- '' ]], '[')
 rule([[ StructBindClose <- '' ]], ']')
+
+rule([[ SimpleDefaultDeclaration <- ConstSpecifier InsertAuto _ SimpleDeclaree _ TypeDeclareOperator _ TypeDefaultCaller _ Terminal ]], basic.concat )
+rule([[ TypeDefaultCaller <- Identifier ]], '{1}()')
 
 rule([[ Assignment <- Assignee _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
 rule([[ Assignee <- AssigneeTie / Identifier ]], basic.concat )
@@ -18,13 +21,15 @@ rule([[ AssignedTuple <- ExpressionListMulti ]], 'std::make_tuple({1})' )
 rule([[ SimpleDeclarationList <- SimpleDeclaration (_ DeclarationSep _ SimpleDeclaration)* ]], basic.concat )
 rule([[ DeclarationSep <- ',' ]], ',' )
 
-rule([[ AutoType <- ConstantType / VariableType ]], basic.first )
-rule([[ ConstantType <- 'val' ]], 'const auto' )
-rule([[ VariableType <- 'var' ]], 'auto' )
-table.insert(keywords, "AutoType")
+rule([[ ConstSpecifier <- ConstantType / VariableType ]], basic.first )
+rule([[ InsertAuto <- '' ]], ' auto' )
+rule([[ ConstantType <- 'val' ]], 'const' )
+rule([[ VariableType <- 'var' ]], '' )
+table.insert(keywords, "ConstSpecifier")
 
 rule([[ AssignOperator <- ':=' ]], "=" )
+rule([[ TypeDeclareOperator <- ':' ]], "=" )
 
-table.insert(globalStatements, "SimpleDeclaration _ Terminal")
-table.insert(localStatements, "SimpleDeclaration _ Terminal")
+table.insert(globalStatements, "SimpleDeclaration")
+table.insert(localStatements, "SimpleDeclaration")
 table.insert(localStatements, "Assignment")

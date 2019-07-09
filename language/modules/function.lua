@@ -11,12 +11,16 @@ rule([[ ParameterList <- ParametersLParen _ ParameterDeclarationList _ Parameter
 rule([[ ParametersLParen <- "(" ]], "(")
 rule([[ ParametersRParen <- ")" ]], ")")
 
-rule([[ ParameterDeclaration <- ParameterType _ Identifier _ AssignOperator _ Expression ]], "{1}{2} decltype({7}) {3}{4}{5}{6}{7}")
+rule([[ ParameterDeclaration <- CustomParameter / DefaultConstructedParameter ]], basic.concat)
+rule([[ DefaultConstructedParameter <- ParameterType _ Identifier _ TypeDeclareOperator _ TypeDefaultCaller ]], "{1}{2} decltype({7}) {3}{4}{5}{6}{7}")
+
+rule([[ CustomParameter <- ParameterType _ Identifier _ AssignOperator _ Expression ]], "{1}{2} decltype({7}) {3}{4}{5}{6}{7}")
 rule([[ ParameterDeclarationList <- ParameterDeclaration (_ DeclarationSep _ ParameterDeclaration)* ]], basic.concat )
 
-rule([[ ParameterType <- ConstantParameter / VariableParameter ]], basic.first )
-rule([[ ConstantParameter <- 'val' ]], 'const' )
-rule([[ VariableParameter <- 'var' ]], '' )
+rule([[ ParameterType <- ConstantParameterType / VariableParameterType / ImplicitlyConstantParameterType ]], basic.first )
+rule([[ ConstantParameterType <- 'val' ]], ' const ' )
+rule([[ VariableParameterType <- 'var' ]], '' )
+rule([[ ImplicitlyConstantParameterType <- '' ]], ' const ' )
 
 rule([[ StartFunctionBody <- '' ]], "{\n")
 rule([[ FunctionBody <- Skip (!EndFunctionKeyword (ReturnStatement / LocalStatement) Skip)* ]], basic.concat )

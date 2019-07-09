@@ -1,10 +1,19 @@
 function start
+
+	// default constructed
+	var i:Int
+	val s:String
+
+	// initialized
 	var a := 1000
 	val b := " mal berührt"
+
+	// tuples
 	var ab := a, b
 	var A, B := ab
 	A, B := ab
 	a, B := A, b
 	print(A, B)
+
 	return 0
 end
