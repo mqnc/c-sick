@@ -2,8 +2,8 @@
 
 -- note that a declaration does not include a trailing break because we want to use it in function parameters
 
-rule([[ SimpleDeclaration <- AutoType _ Declaree _ AssignOperator _ Assigned ]], basic.concat )
-rule([[ Declaree <- StructuredBinding / Identifier ]], basic.concat )
+rule([[ SimpleDeclaration <- AutoType _ SimpleDeclaree _ AssignOperator _ Assigned ]], basic.concat )
+rule([[ SimpleDeclaree <- StructuredBinding / Identifier ]], basic.concat )
 rule([[ StructuredBinding <- StructBindOpen _ IdentifierListMulti _ StructBindClose ]], basic.concat )
 rule([[ StructBindOpen <- '' ]], '[')
 rule([[ StructBindClose <- '' ]], ']')
