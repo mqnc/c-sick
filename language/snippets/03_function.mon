@@ -34,7 +34,7 @@ function tupleReturn
 	return "HAL", 9000
 end
 
-function divide(var num:=0, var den:=1)
+function divide(num:=0, den:=1)
 	return num div den, num mod den
 end
 
