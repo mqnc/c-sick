@@ -112,7 +112,114 @@ This is exactly like in python. The only disadvantage is that the return values 
 
 now the whole problem is solved by using {} for tuples, structured binds and ties
 
+we can even get rid of the {}
+
 auto parameters are not allowed, they create templates. I thought
 f(auto x=0) deduces int from the default. Possible fix:
 
 function f(var x=default) --> auto f(decltype(default) x=default)
+
+auto return falls flat. It reintroduces importance of function declaration order.
+
+
+// no parens around return create simple return
+function compute(val i:int) -> int
+	return 2*i
+end
+
+// parenthesized unnamed return value list creates tuple:
+function compute(var a:int, var b:=0, val c, d) -> (var int, string, typeof(c)) // omitting val is implicitly const
+	return a*2, "awa", b*c
+end
+
+// unnamed return value list creates tuple struct
+// omitting type in arguments creates templated function
+function compute(var a:int, var b:=0, val c, d) -> (var x:int, val y:string, val z:typeof(c))
+	return a*2, "awa", b*c
+end
+
+// work with auto, return simple type if just one return, tuple otherwise
+function compute(var a:int, var b:=0, val c)
+	return a*2, "awa", b*c
+end
+
+// provide Joachim-wrapper for use with kwargs:
+kwarg_fn config(width:=0, height:=0, color:="red")
+end
+
+// create Joachim-wrapper to use external library functions with kwargs
+kwarg_wrap GCD(u:int, v:int)
+
+kwargs use templates and thus need to be either optional or we just always generate templated functions and the whole thing can only be header only
+
+an option would be to leave the return tuple and make an optional -> return type definition in case we need it
+
+result structs can become tuple castable
+
+struct wurst__result{
+    int x;
+    std::string y;
+    operator std::tuple<int, std::string>(){return std::make_tuple(x,y);}
+};
+wurst__result wurst(){return {3,"awa"};}
+
+int main()
+{
+  auto [x, y] = wurst();
+  std::tie(x, y) = static_cast<std::tuple<decltype(x), decltype(y)>>(wurst());
+
+  std::cout << x << y << "i"+4;
+}
+
+
+
+get rid of val, use const in declarations and nothing in parameters
+
+
+// const argument, no return
+function compute(val i:int); end
+
+// variable argument
+function compute(var i:int); end
+
+// implicitly const argument
+function compute(i:int); end
+
+// simple return
+function compute() -> int
+	return 0
+end
+
+// tuple return
+function compute() -> (var int, string, typeof(c)) // omitting val is implicitly const
+	return a*2, "awa", b*c
+end
+
+// unnamed return value list creates tuple struct
+// omitting type in arguments creates templated function
+function compute(var a:int, var b:=0, val c, d) -> (var x:int, val y:string, val z:typeof(c))
+	return a*2, "awa", b*c
+end
+
+// work with auto, return simple type if just one return, tuple otherwise
+function compute(var a:int, var b:=0, val c)
+	return a*2, "awa", b*c
+end
+
+// provide Joachim-wrapper for use with kwargs:
+kwarg_fn config(width:=0, height:=0, color:="red")
+end
+
+// create Joachim-wrapper to use external library functions with kwargs
+kwarg_wrap GCD(u:int, v:int)
+
+
+immediately invoked lambda:
+
+const x:=scribble
+	if a>b
+		return a
+	else
+		return b
+	end
+end + 3
