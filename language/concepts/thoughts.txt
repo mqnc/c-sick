@@ -171,34 +171,40 @@ int main()
   std::cout << x << y << "i"+4;
 }
 
+variable declaration:
+const i:=5 // always with initialization
+var j:=7.3
 
-
-get rid of val, use const in declarations and nothing in parameters
-
-
-// const argument, no return
-function compute(val i:int); end
-
-// variable argument
-function compute(var i:int); end
-
-// implicitly const argument
+// implicitly const argument, no return
 function compute(i:int); end
 
+// mutable argument
+function compute(var i:int); end
+
+// default value
+function compute(i:=1338)
+
+// omitting argument type creates templated function
+function compute(var a); end
+
 // simple return
-function compute() -> int
+function compute -> int
 	return 0
 end
 
-// tuple return
-function compute() -> (var int, string, typeof(c)) // omitting val is implicitly const
-	return a*2, "awa", b*c
+// argument-dependent return type
+function compute(a) -> typeof(a)
+	return a*2
 end
 
-// unnamed return value list creates tuple struct
-// omitting type in arguments creates templated function
-function compute(var a:int, var b:=0, val c, d) -> (var x:int, val y:string, val z:typeof(c))
-	return a*2, "awa", b*c
+// tuple return
+function compute -> (string, var int) // omitting var is implicitly const
+	return "take", 5
+end
+
+// struct return
+function compute -> (a:int, b:string, var c:double)
+	return 1, "two", 3.0
 end
 
 // work with auto, return simple type if just one return, tuple otherwise
@@ -206,16 +212,10 @@ function compute(var a:int, var b:=0, val c)
 	return a*2, "awa", b*c
 end
 
-// provide Joachim-wrapper for use with kwargs:
-kwarg_fn config(width:=0, height:=0, color:="red")
-end
-
-// create Joachim-wrapper to use external library functions with kwargs
+// create kwarg-wrapper for using external library functions with kwargs
 kwarg_wrap GCD(u:int, v:int)
 
-
-immediately invoked lambda:
-
+//immediately invoked lambda:
 const x:=scribble
 	if a>b
 		return a
