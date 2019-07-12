@@ -96,19 +96,19 @@ namespace kw {
 
         template<std::size_t N, std::size_t M, std::size_t I, typename T, typename... Ts>
         struct arg_get_helper<N, I, arg_wrap<M, T>, Ts...> {
-            static decltype(auto) apply(arg_wrap<M, T> const& a, Ts&&... ts) {
-                return arg_get_helper_w<N, M, I, T, Ts...>::apply(
-                    a,
-                    std::forward<Ts>(ts)...
-                );
-            }
+        	static decltype(auto) apply(arg_wrap<M, T> const& a, Ts&&... ts) {
+        	    return arg_get_helper_w<N, M, I, T, Ts...>::apply(
+        	        a,
+        	        std::forward<Ts>(ts)...
+        	    );
+        	}
 
-            static decltype(auto) apply(arg_wrap<M, T>&& a, Ts&&... ts) {
-                return arg_get_helper_w<N, M, I, T, Ts...>::apply(
-                    std::move(a),
-                    std::forward<Ts>(ts)...
-                );
-            }
+        	static decltype(auto) apply(arg_wrap<M, T>&& a, Ts&&... ts) {
+        	    return arg_get_helper_w<N, M, I, T, Ts...>::apply(
+        	        std::move(a),
+        	        std::forward<Ts>(ts)...
+        	    );
+        	}
         };
     }
 
@@ -147,7 +147,7 @@ void const_arg(const int i){}
 // function mutable_arg(var i:int); end
 void mutable_arg(int i){}
 
-// function default_arg(i:=1338)
+// function default_arg(i:=1338); end
 void default_arg(decltype(1338) i=1338){}
 
 // function flexible_arg_type(var a); end
@@ -157,7 +157,7 @@ void flexible_arg_type(T0 a){}
 // function simple_return -> int
 //    return 0
 // end
-int simple_return(){
+auto simple_return() -> int{
     return 0;
 }
 
@@ -177,7 +177,7 @@ auto return_tuple() -> std::tuple<std::string, int>{
 }
 
 // function return_struct -> (var a:int, var b:string, var c:double)
-//  // does not work with typeof
+// 	// does not work with typeof
 //     return 1, "two", 3.0
 // end
 struct return_struct__return{
@@ -192,7 +192,7 @@ return_struct__return return_struct(){
     return {1, "two", 3.0};
 }
 
-// function return_auto_tuple(var a:int, b:=0)
+// function return_auto_tuple(var a:int, var b:=0)
 //     // back to medieval define-before-use times tho
 //     return a*2, "awa"
 // end
@@ -235,53 +235,53 @@ int func__kwargs(Ts&&... ts) {
 
 int main(){
 
-    // var k := return_tuple()
-    auto k = return_tuple();
+	// var k := return_tuple()
+	auto k = return_tuple();
 
-    // var k0, k1 := return_tuple()
-    auto [k0, k1] = return_tuple();
+	// var k0, k1 := return_tuple()
+	auto [k0, k1] = return_tuple();
 
-    // k0, k1 := return_tuple()
-    std::tie(k0, k1) = return_tuple();
+	// k0, k1 := return_tuple()
+	std::tie(k0, k1) = return_tuple();
 
-    // k0, k1 := k0, k1+5
-    std::tie(k0, k1) = /*static_cast<...>*/ std::make_tuple(k0, k1+5);
-    // make tuple when right side of assignment is expression list
+	// k0, k1 := k0, k1+5
+	std::tie(k0, k1) = /*static_cast<...>*/ std::make_tuple(k0, k1+5);
+	// make tuple when right side of assignment is expression list
 
-    // k0, k1 := k
-    std::tie(k0, k1) = /*static_cast<...>*/ k;
+	// k0, k1 := k
+	std::tie(k0, k1) = /*static_cast<...>*/ k;
 
-    // var abc:= return_struct()
-    auto abc = return_struct();
-    
-    // var sa, sb, sc := return_struct()
-    auto [sa, sb, sc] = return_struct();
+	// var abc:= return_struct()
+	auto abc = return_struct();
+	
+	// var sa, sb, sc := return_struct()
+	auto [sa, sb, sc] = return_struct();
 
-    // sa, sb, sc := return_struct()
-    std::tie(sa, sb, sc) = static_cast<std::tuple<decltype(sa), decltype(sb), decltype(sc)>>(return_struct());
-    // because of this we will always need the static_cast when using tie
+	// sa, sb, sc := return_struct()
+	std::tie(sa, sb, sc) = static_cast<std::tuple<decltype(sa), decltype(sb), decltype(sc)>>(return_struct());
+	// because of this we will always need the static_cast when using tie
 
-    // func(1, 2)
-    func(1, 2);
+	// func(1, 2)
+	func(1, 2);
 
-    // func(3, c:="cc")
-    func__kwargs(3, kw::arg<func__params::c>("cc"));
+	// func(3, c:="cc")
+	func__kwargs(3, kw::arg<func__params::c>("cc"));
 
-    // const x:=scribble
-    //     if a>b
-    //         return a
-    //     else
-    //         return b
-    //     end
-    // end + 3
-    const auto x=[&](){
-        if(a>2){
-            return a;
-        }
-        else{
-            return -a;
-        }
-    }() + 3;
+	// const x:=scribble
+	//     if a>2
+	//         return a
+	//     else
+	//         return -a
+	//     end
+	// end + 3
+	const auto x=[&](){
+	    if(a>2){
+		return a;
+	    }
+	    else{
+		return -a;
+	    }
+	}() + 3;
 
-    return 0;
+	return 0;
 }
