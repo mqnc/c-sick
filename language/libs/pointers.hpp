@@ -6,20 +6,20 @@
 #include <vector>
 #include "noisy.hpp"
 
-struct Record
-{
-    union {
-        void* target;
-        Record* nextRecord;
-    };
-    std::size_t count{0};
-};
-
 class Registry
 {
     constexpr static std::size_t CHUNK{64};
 
 public:
+    struct Record
+    {
+        union {
+            void* target;
+            Record* nextRecord;
+        };
+        std::size_t count{0};
+    };
+
     static Registry sRegistry;
 
     Record& take(void* target)
@@ -76,7 +76,7 @@ public:
     class Owner;
 
 private:
-    constexpr explicit SlotRef(Record& record) noexcept
+    constexpr explicit SlotRef(Registry::Record& record) noexcept
     : mRecord{&record}
     {
         Registry::sRegistry.retain(record);
@@ -100,13 +100,13 @@ public:
         Registry::sRegistry.release(*mRecord);
     }
 
-    constexpr Record* operator ->() const noexcept
+    constexpr Registry::Record* operator ->() const noexcept
     {
         return mRecord;
     }
 
 private:
-    Record* mRecord{nullptr};
+    Registry::Record* mRecord{nullptr};
 };
 
 class SlotRef::Owner
@@ -134,7 +134,7 @@ public:
     }
 
 private:
-    Record* mRecord{nullptr};
+    Registry::Record* mRecord{nullptr};
 };
 
 /**
