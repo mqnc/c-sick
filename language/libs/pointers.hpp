@@ -6,21 +6,47 @@
 #include <vector>
 #include "noisy.hpp"
 
-struct Record
-{
-    union {
-        void* target;
-        Record* nextRecord;
-    };
-    std::size_t count{0};
-};
+/**
+ * I manage dynamically allocated, reference-counted slots.
+ *
+ * Each slot stores one pointer.
+ */
 
 class Registry
 {
     constexpr static std::size_t CHUNK{64};
 
 public:
+
+/**
+ * Storage for a reference-counted pointer value.
+ *
+ * When a slot is not in use, 0 == count and nextRecord points to the next
+ * free record, or nullptr if none.
+ */
+
+    struct Record
+    {
+        std::size_t count{0};
+        union {
+            void* target;
+            Record* nextRecord;
+        };
+    };
+
+/**
+ * The single global instance of the registry.
+ */
+
     static Registry sRegistry;
+
+/**
+ * Get a record pointing to the given target from the registry.
+ *
+ * @param target The target to store in the slot.
+ * @return A record whose reference count is zero that refers to the given
+ * point.
+ */
 
     Record& take(void* target)
     {
@@ -35,10 +61,24 @@ public:
         return res;
     }
 
+/**
+ * Increase the reference count of the given record.
+ *
+ * @param record The record to retain.
+ */
+
     constexpr void retain(Record& record)
     {
         record.count += 1;
     }
+
+/**
+ * Return the given record to the registry.
+ *
+ * @note Must only be called for records which were just take()n whose
+ * reference count is still zero.
+ * @param record The record to return.
+ */
 
     constexpr void put(Record& record)
     {
@@ -46,6 +86,13 @@ public:
         record.nextRecord = mFreeRecord;
         mFreeRecord = &record;
     }
+
+/**
+ * Release the given record.
+ *
+ * @note Calls put() when the record's reference count reaches zero.
+ * @param record The record to release.
+ */
 
     constexpr void release(Record& record)
     {
@@ -61,55 +108,71 @@ private:
     Record* mFreeRecord{nullptr};
 };
 
-/**
- * I take care of reference counting for registry slots.
- */
-class RecordRef
-{
-public:
 
 /**
- * I own a registry slot. I am empty after initialisation and
- * consume at most one registry slot.
+ * I take care of reference counting for registry slots.
+ *
+ * Instances can only be created by Owner's get() method and always refer
+ * to exactly one registry slot over their lifetime. The registry slot is
+ * retained on creation and released (and possibly returned) on
+ * destruction.
  */
+
+class SlotRef
+{
+public:
 
     class Owner;
 
 private:
-    constexpr explicit RecordRef(Record& record) noexcept
+    constexpr explicit SlotRef(Registry::Record& record) noexcept
     : mRecord{&record}
     {
         Registry::sRegistry.retain(record);
     }
 
 public:
-    constexpr RecordRef(RecordRef const& recordRef) noexcept
-    : RecordRef{*recordRef.mRecord}
+    constexpr SlotRef(SlotRef const& slotRef) noexcept
+    : SlotRef{*slotRef.mRecord}
     {}
 
-    constexpr RecordRef& operator =(RecordRef const& recordRef) noexcept
+    constexpr SlotRef& operator =(SlotRef const& slotRef) noexcept
     {
-        Registry::sRegistry.retain(*recordRef.mRecord);
+        Registry::sRegistry.retain(*slotRef.mRecord);
         Registry::sRegistry.release(*mRecord);
-        mRecord = recordRef.mRecord;
+        mRecord = slotRef.mRecord;
         return *this;
     }
 
-    ~RecordRef() noexcept
+    ~SlotRef() noexcept
     {
         Registry::sRegistry.release(*mRecord);
     }
 
-    constexpr Record* operator ->() const noexcept
+/**
+ * @return A pointer to the referenced registry record.
+ */
+
+    constexpr Registry::Record* operator ->() const noexcept
     {
         return mRecord;
     }
 
 private:
-    Record* mRecord{nullptr};
+    Registry::Record* mRecord{nullptr};
 };
 
-class RecordRef::Owner
+
+/**
+ * I own a registry slot.
+ *
+ * I am empty after initialisation and consume at most one registry slot
+ * when given a target pointer. I provide counted references to that slot
+ * that remain valid even after I have expired and cleared the stored
+ * target pointer.
+ */
+
+class SlotRef::Owner
 {
 public:
     Owner() = default;
@@ -123,35 +186,45 @@ public:
         }
     }
 
-    RecordRef get(void* const target)
+/**
+ * Occupy a registry slot with the given target pointer.
+ *
+ * @note This method must always be called with the same target pointer.
+ * @return A reference to the owned registry slot.
+ */
+
+    SlotRef get(void* const target)
     {
         if (!mRecord) {
             mRecord = &Registry::sRegistry.take(target);
             Registry::sRegistry.retain(*mRecord);
         }
         assert(target == mRecord->target);
-        return RecordRef{*mRecord};
+        return SlotRef{*mRecord};
     }
 
 private:
-    Record* mRecord{nullptr};
+    Registry::Record* mRecord{nullptr};
 };
 
+
 /**
- * A VolatilePointer represents an entity in the registry. It becomes invalid
- * when that entity expires.
+ * I provide a typed pointer for a pointer stored in the registry.
+ *
+ * I become invalid when that entity expires.
  */
+
 template<typename Value>
 class VolatilePtr
 {
 public:
-    constexpr VolatilePtr(RecordRef const& recordRef) noexcept
-    : mRecordRef{recordRef}
+    constexpr VolatilePtr(SlotRef const& slotRef) noexcept
+    : mSlotRef{slotRef}
     {}
 
     constexpr Value* get() const noexcept
     {
-        return static_cast<Value*>(mRecordRef->target);
+        return static_cast<Value*>(mSlotRef->target);
     }
 
     constexpr Value& operator *() const noexcept
@@ -165,13 +238,16 @@ public:
     }
 
 private:
-    RecordRef mRecordRef;
+    SlotRef mSlotRef;
 };
 
+
 /**
- * Target holds an instance of Value. It can provide pointers from a registry
- * which are invalidated when the instance is destroyed.
+ * I hold an instance of Value.
+ *
+ * I can provide pointers which are invalidated when I have expired.
  */
+
 template<typename Value>
 class Target
 {
@@ -182,8 +258,8 @@ public:
  * Convenience function for invoking forwarding c'tor.
  */
 
-    template<typename ...Args>
-    static constexpr Target create(Args&& ...args)
+    template<typename... Args>
+    static constexpr Target create(Args&&... args)
     {
         return Target(forwardCtor{}, std::forward<Args>(args)...);
     }
@@ -193,8 +269,8 @@ public:
  * the instance in-place.
  */
 
-    template<typename ...Args>
-    constexpr explicit Target(forwardCtor, Args&& ...args)
+    template<typename... Args>
+    constexpr explicit Target(forwardCtor, Args&&... args)
     : mValue{std::forward<Args>(args)...}
     , mOwner{}
     {}
@@ -241,10 +317,11 @@ public:
         return &mValue;
     }
 
-    /**
-     * Yields a volatile pointer to the Value of this object which
-     * expires when it is destroyed.
-     */
+/**
+ * @return A volatile pointer to the Value of this object which expires
+ * when it is destroyed.
+ */
+
     VolatilePtr<Value> ptr()
     {
         return VolatilePtr<Value>{mOwner.get(&mValue)};
@@ -252,7 +329,7 @@ public:
 
 private:
     Value mValue{};
-    RecordRef::Owner mOwner{};
+    SlotRef::Owner mOwner{};
 };
 
 Registry Registry::sRegistry{};
