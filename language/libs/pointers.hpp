@@ -64,7 +64,7 @@ private:
 /**
  * I take care of reference counting for registry slots.
  */
-class RecordRef
+class SlotRef
 {
 public:
 
@@ -76,26 +76,26 @@ public:
     class Owner;
 
 private:
-    constexpr explicit RecordRef(Record& record) noexcept
+    constexpr explicit SlotRef(Record& record) noexcept
     : mRecord{&record}
     {
         Registry::sRegistry.retain(record);
     }
 
 public:
-    constexpr RecordRef(RecordRef const& recordRef) noexcept
-    : RecordRef{*recordRef.mRecord}
+    constexpr SlotRef(SlotRef const& slotRef) noexcept
+    : SlotRef{*slotRef.mRecord}
     {}
 
-    constexpr RecordRef& operator =(RecordRef const& recordRef) noexcept
+    constexpr SlotRef& operator =(SlotRef const& slotRef) noexcept
     {
-        Registry::sRegistry.retain(*recordRef.mRecord);
+        Registry::sRegistry.retain(*slotRef.mRecord);
         Registry::sRegistry.release(*mRecord);
-        mRecord = recordRef.mRecord;
+        mRecord = slotRef.mRecord;
         return *this;
     }
 
-    ~RecordRef() noexcept
+    ~SlotRef() noexcept
     {
         Registry::sRegistry.release(*mRecord);
     }
@@ -109,7 +109,7 @@ private:
     Record* mRecord{nullptr};
 };
 
-class RecordRef::Owner
+class SlotRef::Owner
 {
 public:
     Owner() = default;
@@ -123,14 +123,14 @@ public:
         }
     }
 
-    RecordRef get(void* const target)
+    SlotRef get(void* const target)
     {
         if (!mRecord) {
             mRecord = &Registry::sRegistry.take(target);
             Registry::sRegistry.retain(*mRecord);
         }
         assert(target == mRecord->target);
-        return RecordRef{*mRecord};
+        return SlotRef{*mRecord};
     }
 
 private:
@@ -145,13 +145,13 @@ template<typename Value>
 class VolatilePtr
 {
 public:
-    constexpr VolatilePtr(RecordRef const& recordRef) noexcept
-    : mRecordRef{recordRef}
+    constexpr VolatilePtr(SlotRef const& slotRef) noexcept
+    : mSlotRef{slotRef}
     {}
 
     constexpr Value* get() const noexcept
     {
-        return static_cast<Value*>(mRecordRef->target);
+        return static_cast<Value*>(mSlotRef->target);
     }
 
     constexpr Value& operator *() const noexcept
@@ -165,7 +165,7 @@ public:
     }
 
 private:
-    RecordRef mRecordRef;
+    SlotRef mSlotRef;
 };
 
 /**
@@ -252,7 +252,7 @@ public:
 
 private:
     Value mValue{};
-    RecordRef::Owner mOwner{};
+    SlotRef::Owner mOwner{};
 };
 
 Registry Registry::sRegistry{};
