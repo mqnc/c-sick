@@ -6,134 +6,7 @@
 #include <utility>
 #include <vector>
 
-// kwargs.hpp
-/**
- * Return an lvalue ref if the argument is an lvalue (ref), or an rvalue ref
- * otherwise. That is, return an rvalue ref if and only if the argument is
- * owned.
- */
-#define move_if_owned(e) (std::forward<decltype(e)>(e))
-
-namespace kw {
-    namespace detail {
-        /**
-         * An arg_wrap<I, T> contains a single argument value tagged with its
-         * index.
-         */
-        template<std::size_t I, typename T>
-        struct arg_wrap {
-            T t;
-        };
-    }
-
-    template<std::size_t I, typename T>
-    auto arg(T&& t) {
-        return detail::arg_wrap<I, decltype(t)>{ std::forward<T>(t) };
-    }
-
-    namespace detail {
-        /**
-         * The function arg_get_helper extracts the first arg_wrap<> with index
-         * N or the positional argument at index I, whichever is found first.
-         */
-        template<std::size_t N, std::size_t I, typename... Ts>
-        struct arg_get_helper {
-            static int apply(Ts&&...) {
-                static_assert(0 != sizeof...(Ts), "Missing required parameter.");
-            }
-        };
-
-        /**
-         * The function arg_get_helper_i extracts the first argument if I == 0
-         * or calls arg_get_helper with I - 1 and the remaining arguments.
-         */
-        template<std::size_t N, std::size_t I, typename T, typename... Ts>
-        struct arg_get_helper_i {
-            static decltype(auto) apply(T&&, Ts&&... ts) {
-                return arg_get_helper<N, I - 1, Ts...>::apply(std::forward<Ts>(ts)...);
-            }
-        };
-
-        template<std::size_t N, typename T, typename... Ts>
-        struct arg_get_helper_i<N, 0, T, Ts...> {
-            static decltype(auto) apply(T&& t, Ts&&...) {
-                return std::forward<T>(t);
-            }
-        };
-
-        /**
-         * The function arg_get_helper_w unwraps the first argument if it is
-         * arg_wrap<M, T> and M == N or calls arg_get_helper with the remaining
-         * arguments.
-         */
-        template<std::size_t N, std::size_t M, std::size_t I, typename T, typename... Ts>
-        struct arg_get_helper_w {
-            static decltype(auto) apply(arg_wrap<M, T>, Ts&&... ts) {
-                return arg_get_helper<N, I, Ts...>::apply(std::forward<Ts>(ts)...);
-            }
-        };
-
-        template<std::size_t N, std::size_t I, typename T, typename... Ts>
-        struct arg_get_helper_w<N, N, I, T, Ts...> {
-            static decltype(auto) apply(arg_wrap<N, T> const& a, Ts&&...) {
-                return a.t;
-            }
-
-            static decltype(auto) apply(arg_wrap<N, T>&& a, Ts&&...) {
-                return move_if_owned(a.t);
-            }
-        };
-
-        template<std::size_t N, std::size_t I, typename T, typename... Ts>
-        struct arg_get_helper<N, I, T, Ts...> {
-            static decltype(auto) apply(T&& t, Ts&&... ts) {
-                return arg_get_helper_i<N, I, T, Ts...>::apply(
-                    std::forward<T>(t),
-                    std::forward<Ts>(ts)...
-                );
-            }
-        };
-
-        template<std::size_t N, std::size_t M, std::size_t I, typename T, typename... Ts>
-        struct arg_get_helper<N, I, arg_wrap<M, T>, Ts...> {
-        	static decltype(auto) apply(arg_wrap<M, T> const& a, Ts&&... ts) {
-        	    return arg_get_helper_w<N, M, I, T, Ts...>::apply(
-        	        a,
-        	        std::forward<Ts>(ts)...
-        	    );
-        	}
-
-        	static decltype(auto) apply(arg_wrap<M, T>&& a, Ts&&... ts) {
-        	    return arg_get_helper_w<N, M, I, T, Ts...>::apply(
-        	        std::move(a),
-        	        std::forward<Ts>(ts)...
-        	    );
-        	}
-        };
-    }
-
-    /**
-     * The function arg_get extracts the first argument with the given index
-     * from a sequence of positional arguments and arg_wrap<>s.
-     */
-    template<std::size_t I, typename... Ts>
-    decltype(auto) arg_get(Ts&&... ts) {
-        return detail::arg_get_helper<I, I, Ts...>::apply(std::forward<Ts>(ts)...);
-    }
-
-    /**
-     * Invoke the given function with the arguments indicated by the index
-     * sequence extracted from the argument sequence.
-     */
-    template<typename Func, std::size_t... Is, typename... Ts>
-    auto invoke(Func&& func, std::index_sequence<Is...>, Ts&&... ts) {
-        return std::forward<Func>(func)(arg_get<Is>(std::forward<Ts>(ts)...)...);
-    }
-}
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+#include "kwargs.hpp"
 
 // const a:=4 // always initialized
 const auto a=4;
@@ -153,6 +26,9 @@ void default_arg(decltype(1338) i=1338){}
 // function flexible_arg_type(var a); end
 template <typename T0>
 void flexible_arg_type(T0 a){}
+
+// function[inline] with_specifiers;
+inline void with_specifiers(){}
 
 // function simple_return -> int
 //    return 0
@@ -209,7 +85,6 @@ auto inc(T0 x){
 }
 
 // kwargs can be used to kwargs-wrap functions of c++ libs
-// implicitly done for functions defined in cinnamon (?)
 int func(int a, double b=.5, std::string c="c"){
     std::cout << a << b << c;
 }
@@ -232,6 +107,9 @@ int func__kwargs(Ts&&... ts) {
                 (ts)..., kw::arg<2>("c"))
     );
 }
+
+// are kwargs implicitly done for cinnamon functions?
+// or only when there is a kwargs specifier (like an inline specifier)
 
 int main(){
 

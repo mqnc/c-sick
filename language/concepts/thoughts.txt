@@ -1,4 +1,6 @@
 
+After letting the whole project rest for a while and then getting back to it, I figured that I considered some decisions stupid, then thought about it more, then remade the old decisions after the same research/thinking process as back then, so I shall start to write the reasoning behind decisions down for future reference.
+
 Comments:
 
 // for single line comments because # might be a nice operator, eg for number of elements like in lua
@@ -223,3 +225,10 @@ const x:=scribble
 		return b
 	end
 end + 3
+
+
+KWARGS:
+
+there are two major options for kwargs: the template thing by Joachim and the named parameter class idiom.
+I think the class thing looks much better in the generated code and we wouldn't need another lib.
+However, I think the Joachim thing constructs things in their final place which is really nice. But maybe the optimizer would optimize the other thing the same way?
