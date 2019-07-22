@@ -237,7 +237,8 @@ private:
 /**
  * I provide a typed pointer for a pointer stored in the registry.
  *
- * I become invalid when that entity expires.
+ * My target changes when the slot is re-targetted and I become invalid
+ * when it is cleared.
  */
 
 template<typename Value>
@@ -346,8 +347,20 @@ public:
     }
 
 /**
- * @return A volatile pointer to the Value of this object which expires
- * when it is destroyed.
+ * The pointer-like objects created by this method behave as follows:
+ * 1) They refer to the value held by this Target instance.
+ * 2) They expire (i.e. become equivalent to nullptr) when this Target
+ *    instance is destroyed.
+ * 3) When this Target instance appears as the source of a
+ *    move-construction, all previously created pointers behave as if they
+ *    were created by the newly constructed Target.
+ *
+ * @note New pointers created *after* this Target appeared as the source of
+ * a move-construction will again refer to *this* instance.
+ * @note This Target instance appearing as the source of a move-assignment
+ * has no effect on any pointers.
+ *
+ * @return A volatile pointer to the Value of this object.
  */
 
     VolatilePtr<Value> ptr()
