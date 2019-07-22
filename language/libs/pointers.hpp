@@ -176,7 +176,19 @@ class SlotRef::Owner
 {
 public:
     Owner() = default;
-    Owner(Owner const&) = delete;
+
+/**
+ * Take ownership of another owner's slot.
+ *
+ * @param owner The owner to be disowned.
+ */
+
+    Owner(Owner&& owner) noexcept
+    : mRecord{owner.mRecord}
+    {
+        owner.mRecord = nullptr;
+    }
+
     Owner& operator =(Owner const&) = delete;
 
     ~Owner() noexcept {
@@ -201,6 +213,20 @@ public:
         }
         assert(target == mRecord->target);
         return SlotRef{*mRecord};
+    }
+
+/**
+ * Re-target the owned slot.
+ *
+ * @note Ignored when no slot is owned.
+ * @param target The new target.
+ */
+
+    void retarget(void* const target)
+    {
+        if (mRecord) {
+            mRecord->target = target;
+        }
     }
 
 private:
@@ -282,8 +308,10 @@ public:
 
     Target(Target&& target) noexcept(std::is_nothrow_move_constructible_v<Value>)
     : mValue{std::forward<decltype(target.mValue)>(target.mValue)}
-    , mOwner{}
-    {}
+    , mOwner{std::move(target.mOwner)}
+    {
+        mOwner.retarget(&mValue);
+    }
 
     Target& operator =(Target const& target) noexcept(std::is_nothrow_copy_assignable_v<Value>)
     {
@@ -371,7 +399,7 @@ int main()
     for (int i{0}; i != 4; ++i) {
         noisies.emplace_back(Target<Noisy>::forwardCtor{}, "goodbye");
     }
-    std::cout << "vecRef=" << vecRef.get() << '\n';
+    std::cout << "vecRef=" << vecRef->name << '\n';
 
     std::cout << '\n' << R"(return 0;)" << '\n';
     return 0;
