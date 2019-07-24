@@ -1,4 +1,5 @@
 #include <string>
+#include <string_view>
 
 class Noisy
 {
@@ -8,8 +9,8 @@ public:
 		std::cout << "constructed without name\n";
 	}
 
-	explicit Noisy(std::string const& name)
-	: name{name}
+	explicit Noisy(std::string_view const& nm)
+	: name{nm}
 	{
 		std::cout << "constructed " << name << '\n';
 	}

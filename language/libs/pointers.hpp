@@ -1,7 +1,7 @@
 #include <cassert>
 #include <deque>
 #include <iostream>
-#include <string>
+#include <string_view>
 #include <type_traits>
 #include <vector>
 #include "noisy.hpp"
@@ -245,6 +245,10 @@ template<typename Value>
 class VolatilePtr
 {
 public:
+    VolatilePtr()
+    : mSlotRef{SlotRef::Owner{}.get(nullptr)}
+    {}
+
     constexpr VolatilePtr(SlotRef const& slotRef) noexcept
     : mSlotRef{slotRef}
     {}
@@ -393,6 +397,27 @@ VolatilePtr<Noisy> foo()
     return stackRef;
 }
 
+struct Producer
+{
+    Target<Noisy> create(std::string_view const& name)
+    {
+        auto result{Target<Noisy>::create(name)};
+        // lastCreated will follow the returned Target.
+        lastCreated = result.ptr();
+        return result;
+    }
+
+    void consume(Target<Noisy> target) const
+    {
+        std::cout <<
+            "consume(target=" << &*target <<
+            ") lastCreated=" << lastCreated.get() <<
+            '\n';
+    }
+
+    VolatilePtr<Noisy> lastCreated{};
+};
+
 int main()
 {
     std::cout << '\n' << R"(auto stackRef{foo()};)" << '\n';
@@ -413,6 +438,20 @@ int main()
         noisies.emplace_back(Target<Noisy>::forwardCtor{}, "goodbye");
     }
     std::cout << "vecRef=" << vecRef->name << '\n';
+
+    {
+        Producer producer{};
+        std::cout << '\n' << R"(auto const result{producer.create("producer")};)" << '\n';
+        auto result{producer.create("producer")};
+        std::cout <<
+            "result=" << result->name <<
+            " lastCreated=" << producer.lastCreated->name <<
+            '\n';
+        // lastCreated will follow the moved Target.
+        std::cout << R"(producer.consume(std::move(result));)" << '\n';
+        producer.consume(std::move(result));
+        std::cout << "lastCreated=" << producer.lastCreated.get() << '\n';
+    }
 
     std::cout << '\n' << R"(return 0;)" << '\n';
     return 0;
