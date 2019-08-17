@@ -1,0 +1,41 @@
+
+for debugging, it would be nice to just add @ at the beginning of the line (contianing an expression or assignment) and then debug output is generated
+@ because it looks like a breakpoint
+we could optionally require a key press
+
+// @ x := f(t)
+std::cout << "x := f(t) --> "
+waitkey();
+x = f(t);
+std::cout << x << "\n"
+
+// @ g(u)
+std::cout << "g(u) --> "
+waitkey();
+std::cout << g(u) << "\n"
+
+so @ is a break point
+does it wait for input?
+does it just print a single word?
+does it print both the expression and the evaluation?
+is all of it removed in non #define DEBUG mode?
+
+// @ "here" // just the value
+cout << "here" << "\n"
+
+// @$ "here" // just the value and requires input
+
+@$// I stop
+I stop [press any key]
+@// I don't
+I don't
+@ a := b + c
+a := b + c <-- 17
+@ f(x)
+f(x) <-- 23
+@@ a + b //I am a pure debug thing that only gets done in debug mode
+a + b //I am a pure debug thing that only gets done in debug mode <-- 521
+@$(
+// every line here is debug moded
+a + b = 7
+)@ <- wait for input

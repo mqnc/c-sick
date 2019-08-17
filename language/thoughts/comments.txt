@@ -1,0 +1,11 @@
+
+// for single line comments because # might be a nice operator, eg for number of elements like in lua
+
+/* */ will be kept because it allows nice constructs like
+/*
+either
+/*/
+or
+/**/
+
+for nestable comments I was looking through rosetta code and liked /+ +/ as in D and (* *) as in applething the most and decided for (* *) because a paren emphasizes the nestability the best

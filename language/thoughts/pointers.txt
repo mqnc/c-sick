@@ -1,0 +1,66 @@
+
+I hate to differentiate between -> and . but it's probably useful considering the propagation of ->
+
+referencing is no longer necessary considering the pointer mechanisms we use
+
+dereferencing:
+
+value := @adress
+
+this would be nice because @ kinda means "the value (at) that address" but then we have this problem:
+consider
+
+p_outer points to object containing p_inner points to object containing value
+
+how do we access value?
+
+c++:
+p_outer->p_inner->value
+
+cinnamon:
+@p_outer.@p_inner.value
+
+can we even adjust precedence in order to mean this:
+
+(                 ).value
+ @(              )
+   (      ).inner
+    @outer
+
+?
+
+better to make dereference postfix but then the "value (at) that address" becomes value = address at
+
+we could in general use this in every object:
+
+myObject* operator->(){return this;}
+
+and just translate . into -> always, maybe provide another syntax to translate into actual c++ . like ~
+
+so a.b.c translates into
+a->b->c and anything is dereferenced in case it's a pointer
+
+pa points to a
+a contains b
+b contains pc
+c is an int
+
+// pa
+pa
+
+// pa.
+*(pa)
+
+// pa.b
+pa->b
+
+// pa.b.
+*(pa->b) // error
+
+// pa.b.pc
+pa->b->pc
+
+// pa.b.pc.
+*(pa->b->pc)
+
+use a(.)b to translate to the actual c++ a.b ?

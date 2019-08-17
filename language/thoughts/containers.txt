@@ -1,0 +1,19 @@
+
+naming
+
+std::vector can't be called vector since we want to be mathematical and vector is clearly a math thing.
+
+dynarray will be std::vector
+
+array will be std::array
+
+hashmap will be std::unordered_map / python's dict
+
+list will be doubly linked list
+
+deque will be std::deque
+
+I want {} for json
+https://github.com/nlohmann/json
+
+http://www.cplusplus.com/reference/stl/

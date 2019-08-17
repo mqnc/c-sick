@@ -1,38 +1,5 @@
 
-Comments:
-
-// for single line comments because # might be a nice operator, eg for number of elements like in lua
-
-/* */ will be kept because it allows nice constructs like
-/*
-either
-/*/
-or
-/**/
-
-for nestable comments I was looking through rosetta code and liked /+ +/ as in D and (* *) as in applething the most and decided for (* *) because a paren emphasizes the nestability the best
-
-Declarations:
-
 I decided to use := for assignments and == for comparisons so there is no way someone could accidentally put an assignment into a condition. I was also considering <- or <= but they are already occupied by "x smaller than minus y" and "x smaller than or equal to y"
-
-Expressions:
-
-Operator precedence is mainly inspired by c++ except that bitwise operators have now higher precedence than comparisons like in python and as it should be
-
-For the ternary operator I am still unsure about the best way:
-
-1) sign := -1 if x<0 else 1 if x>0 else 0
-2) sign := x<0 ? -1 : x>0 ? 1 : 0
-3) sign := when x<0 then -1 elseif x>0 then 1 else 0
-4) sign := {-1 if x<0, 1 if x>0, 0 otherwise
-
-1 is Python but for some reason I don't really like that the condition is between the options and I am not sure the parser can always distinguish it from a normal if branch thing
-2 is traditional and probably well established but it looks confusing for noobs and cinnemon is all about intuitive readability
-3 would be a new thing
-4 is beautifully mathematical but it blocks the { (which so far doesn't have another meaning but then maybe we can't have {}) and "otherwise" is a pretty long word
-
-Functions:
 
 the most difficult aspect of functions is how to implement multiple return values
 
@@ -177,7 +144,7 @@ get rid of val, use const in declarations and nothing in parameters
 
 
 // const argument, no return
-function compute(val i:int); end
+function compute(i:int); end
 
 // variable argument
 function compute(var i:int); end
@@ -223,3 +190,15 @@ const x:=scribble
 		return b
 	end
 end + 3
+
+
+division and subtraction:
+a / b maps to
+__slash__(a, b)
+
+which is implemented as
+auto __slash__(auto a, auto b){return a/b;}
+for everything except two integral types, then it is
+double __slash__(auto a, auto b){return 1.0*a/b;}
+
+minus of two unsigneds becomes signed in the same way

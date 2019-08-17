@@ -1,0 +1,30 @@
+
+c++:
++ most libraries and community
++ no garbage collection
++ fast af
++ flexible
++ language is called cinnamon cuz c-in-a-moon :P
+- declarations all over the place
+- ->, *, &
+- class methods needed for dynamic dispatch
+- no easy multiple dispatch (do we need that tho?)
+- does not need self. in classes
+- no coroutines
+
+python:
++ beautiful
+- scripted -> small
+
+julia:
++ has it all
+- no binaries
+- garbage collected
+
+D:
+- garbage collected
+
+Rust:
+
+Swift:
+Apple only provides Swift binaries that run well on Ubuntu, and users of other distros will have a fun time trying to get them to work. It’s hard to share Swift applications you’ve built, and the majority of the ecosystem, being Mac-and-iOS-focused, tends to create libraries that don’t work under Linux.

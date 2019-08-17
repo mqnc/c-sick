@@ -1,0 +1,86 @@
+
+only free functions instead of members:
+problem: doesn't allow virtual dispatch which is pretty kewl
+hence: just wrap c++
+
+work on rvalues
+work on inheritance stuffs
+work on operators
+work on templates
+--> https://stackoverflow.com/questions/7923369/when-is-the-typename-keyword-necessary
+protected? friend?
+
+things with ~ are private (maybe a bad idea since I also want to use ~ for dereferencing)
+
+we could translate "self.mem" to "this->m__mem" so that a naked "mem" causes an error and users are forced to use the self thing like in python
+but then we have to do that from the outside also... nah, that sucks
+or maybe do that? always translate . to ->m__ ?
+is maybe actually not bad but makes it more difficult to bind c++ libraries
+
+maybe prefix public methods and variables with . because they will be accessible from the outside using .
+
+class myclass{T1, T2} inherits .parent, secret
+
+	.ctor
+		init
+			var .mu := 5 // member declaration
+			const mv := 7
+		end
+
+		// do stuff
+	end
+
+	.ctor(u:int, v:int)
+		init
+			var mu := u // all constructors must have the same variables in the init block (or delegate)
+			const .mv := v
+		end
+
+		// do different stuff
+	end
+
+	.ctor(u:int)
+		delegate(u, 15)
+
+	end
+
+	.copy // parameter is called other
+	end
+
+	.assign // copy assignment, parameter is called other
+	end
+
+	.assign:int // parameter is called other
+	end
+
+	.call(x:int, y:int) // () operator
+	end
+
+	.access(x:int, y:int) // [] operator ([x, y] translates to .access(x, y) in order to allow multiple parameters)
+	end
+
+	method .hustle(x:int, y:int) -> int
+	end
+
+	method private(x:int, y:int) -> int
+	end
+
+	.dtor
+	end
+
+end
+
+or do we also want the python __init__ __assign__ notation?
+
+maybe leave template parameters out in the first iteration
+
+it is not easy to find a nice way for template parameter syntax
+I don't want to get into the < > confusion with less and greater, I can't take () or [] because that's call and access
+
+I was thinking [] should work because a class constructor call also needs () and then we know we're in such a call when both is there
+myclass[int, string]()
+but it could also be [] access and then a () call to the result, so nah
+
+I want to use {} also for dict/json kinda notation but that probably still works as template parameters always appear after an identifier
+
+actually, bla[...] should call the .access(...) member only for multiple arguments and call bla[arg] for a single argument which forwards to .access(arg) if .access is defined. Otherwise we're no longer compatible with the [] operator of external c++ classes
