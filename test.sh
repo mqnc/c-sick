@@ -1,7 +1,7 @@
 
 ./test/cinnamon language/cinnamon.lua
 
-cp -f language/cinnamon.h test/
+cp -f language/libs/* test/
 
 FILES=language/snippets/*
 

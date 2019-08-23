@@ -1,4 +1,4 @@
-// g++ -o declarations -std=c++17 declarations.cpp && ./declarations
+// g++ -o declarations_functions -std=c++17 declarations_functions.cpp && ./declarations_functions
 
 #include <string>
 #include <tuple>
@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "kwargs.hpp"
+#include "../libs/kwargs.hpp"
 
 // const a:=4 // always initialized
 const auto a=4;
@@ -27,7 +27,7 @@ void default_arg(decltype(1338) i=1338){}
 template <typename T0>
 void flexible_arg_type(T0 a){}
 
-// function[inline] with_specifiers;
+// function[inline, kwargs] with_specifiers;
 inline void with_specifiers(){}
 
 // function simple_return -> int
@@ -45,11 +45,11 @@ auto dependeng_return_type(T0 a) -> decltype(a){
     return a*2;
 }
 
-// function return_tuple -> (string, var int)
+// function return_tuple -> (var string, var int)
 //    return "take", 5
 // end
 auto return_tuple() -> std::tuple<std::string, int>{
-    return std::tuple<const std::string, int>{"take", 5};
+    return std::make_tuple("take", 5);
 }
 
 // function return_struct -> (var a:int, var b:string, var c:double)
@@ -99,12 +99,9 @@ namespace func__params {
 template<typename... Ts>
 int func__kwargs(Ts&&... ts) {
     return func(
-        kw::arg_get<0>(std::forward<Ts>
-                (ts)...),
-        kw::arg_get<1>(std::forward<Ts>
-                (ts)..., kw::arg<1>(.5)),
-        kw::arg_get<2>(std::forward<Ts>
-                (ts)..., kw::arg<2>("c"))
+        kw::arg_get<0>(std::forward<Ts>(ts)...),
+        kw::arg_get<1>(std::forward<Ts>(ts)..., kw::arg<1>(.5)),
+        kw::arg_get<2>(std::forward<Ts>(ts)..., kw::arg<2>("c"))
     );
 }
 
@@ -131,7 +128,7 @@ int main(){
 
 	// var abc:= return_struct()
 	auto abc = return_struct();
-	
+
 	// var sa, sb, sc := return_struct()
 	auto [sa, sb, sc] = return_struct();
 

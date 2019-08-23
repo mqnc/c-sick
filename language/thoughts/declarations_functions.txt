@@ -202,3 +202,30 @@ for everything except two integral types, then it is
 double __slash__(auto a, auto b){return 1.0*a/b;}
 
 minus of two unsigneds becomes signed in the same way
+
+
+
+
+in the simple declaration lua I found
+
+rule([[ SimpleDeclaration <- SimpleInitializedDeclaration / SimpleDefaultDeclaration ]], basic.concat )
+rule([[ SimpleDefaultDeclaration <- ConstSpecifier InsertAuto _ SimpleDeclaree _ TypeDeclareOperator _ TypeDefaultCaller _ Terminal ]], basic.concat )
+rule([[ TypeDefaultCaller <- Identifier ]], '{1}()')
+
+which facilitates this:
+
+// var b:MyClass
+MyClass b();
+
+but we don't actually want that. Just allowing
+
+// var b := MyClass()
+auto b = MyClass()
+
+which is better because people might write  var i:int  but will probably rather write  var i:=0  than  var i:=int()
+
+
+
+
+with return tuples and structs we don't actually need the parens since for one value we won't need a tuple
+if we allowed a tuple for one value, the return statement needs to be different for one value vs single-value-tuple

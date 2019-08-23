@@ -44,9 +44,17 @@ rule([[ WordMid <- [a-zA-Z_0-9] ]], basic.match)
 rule([[ WordEnd <- !WordMid ]], "")
 
 rule([[ Identifier <- !Keyword Word ]], basic.match )
-rule([[ IdentifierList <- Identifier (_ IdentifierSep _ Identifier)* ]], basic.concat )
-rule([[ IdentifierListMulti <- Identifier _ IdentifierSep _ Identifier (_ IdentifierSep _ Identifier)* ]], basic.concat )
-rule([[ IdentifierSep <- ',' ]], ',' )
+rule([[ IdentifierList <- Identifier (_ Comma _ Identifier)* ]], basic.concat )
+rule([[ IdentifierListMulti <- Identifier _ Comma _ Identifier (_ Comma _ Identifier)* ]], basic.concat )
 
 -- this solution does not work with multiple cpp files yet but baby steps
 rule([[ CinnamonFooter <- '' ]], 'int main(){return start();}' )
+
+
+rule([[ Comma <- ',' ]], ',' )
+rule([[ LParen <- '(' ]], '(' )
+rule([[ RParen <- ')' ]], ')' )
+rule([[ LBracket <- '[' ]], '[' )
+rule([[ RBracket <- ']' ]], ']' )
+rule([[ LBrace <- '{' ]], '{' )
+rule([[ RBrace <- '}' ]], '}' )

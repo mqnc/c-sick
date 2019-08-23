@@ -1,12 +1,7 @@
 function start
 
-	// default constructed
-	var i:Int
-	val s:String
-
-	// initialized
 	var a := 1000
-	val b := " mal berührt"
+	const b := " mal berührt"
 
 	// tuples
 	var ab := a, b

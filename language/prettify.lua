@@ -42,7 +42,11 @@ rule([[ IndentDec <- ")" / "}" ]],
 	function(arg)
 		indent = indent - 1
 		if indent<0 then indent=0 end
-		return {match(arg)}
+		if match(arg) == "}" then
+			return {"}\n"}
+		else
+			return {")"}
+		end
 	end
 )
 

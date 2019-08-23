@@ -1,0 +1,9 @@
+new structure for the transpiler:
+
+the integer accessors contain the values directly
+
+.gen contains generated text
+
+the rest is up to the specific function
+
+top-level rules call cpp/h/log/doc generators

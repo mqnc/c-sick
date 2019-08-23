@@ -1,0 +1,1879 @@
+
+
+<html>
+<head>
+<title>pegdebug</title>
+<style>
+
+#tree {
+	float: left;
+	width: 50%;
+	height: 100%;
+	overflow: scroll;
+}
+#tree div{
+	display: block;
+	overflow: hidden;
+	color: #800000;
+	background-color:#ffbbaa;
+	font-weight: bold;
+	font-family: monospace;
+	font-size: 12pt;
+	padding: 1pt 1pt 1pt 3pt;
+	border: solid 1px grey;
+	margin: 1pt 1pt 1pt 6pt;
+	cursor: default;
+}
+#tree div.collapsed div{
+	background-color:red;
+	display: none;
+}
+#tree div.hasChildren{
+	cursor: pointer;
+}
+#tree div.hasChildren.collapsed::before{
+	content: "\25B6\00A0";
+}
+#tree div.hasChildren:not(.collapsed)::before{
+	content: "\25BC\00A0";
+}
+#tree div:not(.hasChildren)::before{
+	content: "\25B7\00A0";
+}
+#tree div.match{
+	color: #008080;
+	background-color:#ddffff;
+}
+#tree div span{
+	color: #808080;
+	pointer-events: none;
+	font-size: 10pt;
+	font-weight: normal;
+	font-style: italic;
+	white-space: nowrap;
+}
+#tree span.matchbox{
+	padding: 0pt 2pt 0pt 2pt;
+	color: #000000;
+	background-color:#80ff80;
+}
+#tree div.highlight{
+	background-color:#fafaff;
+	color:#0000ff;
+	border-color:#0000ff;
+}
+#tree div.highlight span.matchbox{
+	background-color:#fafaff;
+	background-color:#80e0ff;
+}
+
+#source {
+	float: left;
+	width: 50%;
+	height: 100%;
+	overflow: scroll;
+}
+#source div{
+	display:inline;
+	font-family:monospace;
+	padding: 0pt;
+	margin: 0pt;
+	font-size:14pt;
+	cursor:pointer;
+}
+#source i{
+	color:lightgray;
+	pointer-events: none;
+}
+#source div.highlight,
+#source div.highlight div,
+#source div.mark,
+#source div.mark div{
+	background-color:rgba(150,220,255,0.5);
+}
+
+#info{
+	display:block;
+	position:fixed;
+	top:30px;
+	right:30px;
+	border:solid 1px black;
+	background-color:#ffffaa;
+	font-size:14pt;
+	font-family:monospace;
+	padding:20pt;
+	visibility:hidden;
+}
+#info a{
+	cursor:pointer;
+}
+
+</style>
+</head>
+<body>
+
+<span id="tree">
+<div title="Cinnamon" data-pos=0>
+  <div title="CinnamonHeader" data-pos=0>
+    <span data-match=0></span>
+  </div>
+  <div title="Skip" data-pos=0>
+    <div title="_" data-pos=0>
+      <div title="Space" data-pos=0>
+        <div title="WhiteSpace" data-pos=0>
+          <span data-match=-1></span>
+        </div>
+        <div title="InlineComment" data-pos=0>
+          <div title="MultiLineComment" data-pos=0>
+            <span data-match=-1></span>
+          </div>
+          <div title="NestableComment" data-pos=0>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <div title="LineContinue" data-pos=0>
+          <div title="Ellipsis" data-pos=0>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <span data-match=-1></span>
+      </div>
+      <span data-match=0></span>
+    </div>
+    <div title="LineBreak" data-pos=0>
+      <div title="LineEndComment" data-pos=0>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=0>
+        <span data-match=1></span>
+      </div>
+      <span data-match=1></span>
+    </div>
+    <div title="_" data-pos=1>
+      <div title="Space" data-pos=1>
+        <div title="WhiteSpace" data-pos=1>
+          <span data-match=-1></span>
+        </div>
+        <div title="InlineComment" data-pos=1>
+          <div title="MultiLineComment" data-pos=1>
+            <span data-match=-1></span>
+          </div>
+          <div title="NestableComment" data-pos=1>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <div title="LineContinue" data-pos=1>
+          <div title="Ellipsis" data-pos=1>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <span data-match=-1></span>
+      </div>
+      <span data-match=0></span>
+    </div>
+    <div title="LineBreak" data-pos=1>
+      <div title="LineEndComment" data-pos=1>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=1>
+        <span data-match=-1></span>
+      </div>
+      <span data-match=-1></span>
+    </div>
+    <span data-match=1></span>
+  </div>
+  <div title="GlobalStatement" data-pos=1>
+    <div title="SimpleDeclaration" data-pos=1>
+      <div title="ConstSpecifier" data-pos=1>
+        <div title="ConstantType" data-pos=1>
+          <span data-match=-1></span>
+        </div>
+        <div title="VariableType" data-pos=1>
+          <span data-match=-1></span>
+        </div>
+        <span data-match=-1></span>
+      </div>
+      <span data-match=-1></span>
+    </div>
+    <div title="FunctionDeclaration" data-pos=1>
+      <div title="FunctionKeyword" data-pos=1>
+        <span data-match=8></span>
+      </div>
+      <div title="_" data-pos=9>
+        <div title="Space" data-pos=9>
+          <div title="WhiteSpace" data-pos=9>
+            <span data-match=1></span>
+          </div>
+          <div title="WhiteSpace" data-pos=10>
+            <span data-match=-1></span>
+          </div>
+          <div title="InlineComment" data-pos=10>
+            <div title="MultiLineComment" data-pos=10>
+              <span data-match=-1></span>
+            </div>
+            <div title="NestableComment" data-pos=10>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="LineContinue" data-pos=10>
+            <div title="Ellipsis" data-pos=10>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=1></span>
+        </div>
+        <span data-match=1></span>
+      </div>
+      <div title="FunctionSpecifiers" data-pos=10>
+        <div title="FunctionSpecifierList" data-pos=10>
+          <div title="LBracket" data-pos=10>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <div title="NoFunctionSpecifiers" data-pos=10>
+          <span data-match=0></span>
+        </div>
+        <span data-match=0></span>
+      </div>
+      <div title="_" data-pos=10>
+        <div title="Space" data-pos=10>
+          <div title="WhiteSpace" data-pos=10>
+            <span data-match=-1></span>
+          </div>
+          <div title="InlineComment" data-pos=10>
+            <div title="MultiLineComment" data-pos=10>
+              <span data-match=-1></span>
+            </div>
+            <div title="NestableComment" data-pos=10>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="LineContinue" data-pos=10>
+            <div title="Ellipsis" data-pos=10>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <span data-match=0></span>
+      </div>
+      <div title="Identifier" data-pos=10>
+        <div title="Keyword" data-pos=10>
+          <div title="BooleanLiteral" data-pos=10>
+            <span data-match=-1></span>
+          </div>
+          <div title="ConstSpecifier" data-pos=10>
+            <div title="ConstantType" data-pos=10>
+              <span data-match=-1></span>
+            </div>
+            <div title="VariableType" data-pos=10>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="FunctionKeyword" data-pos=10>
+            <span data-match=-1></span>
+          </div>
+          <div title="FunctionInline" data-pos=10>
+            <span data-match=-1></span>
+          </div>
+          <div title="FunctionKwargs" data-pos=10>
+            <span data-match=-1></span>
+          </div>
+          <div title="EndFunctionKeyword" data-pos=10>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <div title="Word" data-pos=10>
+          <div title="WordStart" data-pos=10>
+            <span data-match=1></span>
+          </div>
+          <div title="WordMid" data-pos=11>
+            <span data-match=1></span>
+          </div>
+          <div title="WordMid" data-pos=12>
+            <span data-match=1></span>
+          </div>
+          <div title="WordMid" data-pos=13>
+            <span data-match=1></span>
+          </div>
+          <div title="WordMid" data-pos=14>
+            <span data-match=1></span>
+          </div>
+          <div title="WordMid" data-pos=15>
+            <span data-match=-1></span>
+          </div>
+          <div title="WordEnd" data-pos=15>
+            <div title="WordMid" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=0></span>
+          </div>
+          <span data-match=5></span>
+        </div>
+        <span data-match=5></span>
+      </div>
+      <div title="_" data-pos=15>
+        <div title="Space" data-pos=15>
+          <div title="WhiteSpace" data-pos=15>
+            <span data-match=-1></span>
+          </div>
+          <div title="InlineComment" data-pos=15>
+            <div title="MultiLineComment" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <div title="NestableComment" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="LineContinue" data-pos=15>
+            <div title="Ellipsis" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <span data-match=0></span>
+      </div>
+      <div title="Parameters" data-pos=15>
+        <div title="ParameterList" data-pos=15>
+          <div title="LParen" data-pos=15>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <div title="NoParameters" data-pos=15>
+          <div title="LParen" data-pos=15>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=0></span>
+        </div>
+        <span data-match=0></span>
+      </div>
+      <div title="_" data-pos=15>
+        <div title="Space" data-pos=15>
+          <div title="WhiteSpace" data-pos=15>
+            <span data-match=-1></span>
+          </div>
+          <div title="InlineComment" data-pos=15>
+            <div title="MultiLineComment" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <div title="NestableComment" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="LineContinue" data-pos=15>
+            <div title="Ellipsis" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <span data-match=0></span>
+      </div>
+      <div title="ReturnDeclaration" data-pos=15>
+        <div title="ExplicitReturnDeclaration" data-pos=15>
+          <div title="ReturnOperator" data-pos=15>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <div title="AutoReturnType" data-pos=15>
+          <span data-match=0></span>
+        </div>
+        <span data-match=0></span>
+      </div>
+      <div title="_" data-pos=15>
+        <div title="Space" data-pos=15>
+          <div title="WhiteSpace" data-pos=15>
+            <span data-match=-1></span>
+          </div>
+          <div title="InlineComment" data-pos=15>
+            <div title="MultiLineComment" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <div title="NestableComment" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="LineContinue" data-pos=15>
+            <div title="Ellipsis" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <span data-match=0></span>
+      </div>
+      <div title="Terminal" data-pos=15>
+        <div title="SilentTerminal" data-pos=15>
+          <div title="LineBreak" data-pos=15>
+            <div title="LineEndComment" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=15>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="Semicolon" data-pos=15>
+            <span data-match=1></span>
+          </div>
+          <span data-match=1></span>
+        </div>
+        <span data-match=1></span>
+      </div>
+      <div title="FunctionBody" data-pos=16>
+        <div title="Skip" data-pos=16>
+          <div title="_" data-pos=16>
+            <div title="Space" data-pos=16>
+              <div title="WhiteSpace" data-pos=16>
+                <span data-match=-1></span>
+              </div>
+              <div title="InlineComment" data-pos=16>
+                <div title="MultiLineComment" data-pos=16>
+                  <span data-match=-1></span>
+                </div>
+                <div title="NestableComment" data-pos=16>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="LineContinue" data-pos=16>
+                <div title="Ellipsis" data-pos=16>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=0></span>
+          </div>
+          <div title="LineBreak" data-pos=16>
+            <div title="LineEndComment" data-pos=16>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=16>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=0></span>
+        </div>
+        <div title="EndFunctionKeyword" data-pos=16>
+          <span data-match=-1></span>
+        </div>
+        <div title="ReturnStatement" data-pos=16>
+          <div title="ReturnKeyword" data-pos=16>
+            <span data-match=6></span>
+          </div>
+          <div title="_" data-pos=22>
+            <div title="Space" data-pos=22>
+              <div title="WhiteSpace" data-pos=22>
+                <span data-match=1></span>
+              </div>
+              <div title="WhiteSpace" data-pos=23>
+                <span data-match=-1></span>
+              </div>
+              <div title="InlineComment" data-pos=23>
+                <div title="MultiLineComment" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <div title="NestableComment" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="LineContinue" data-pos=23>
+                <div title="Ellipsis" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=1></span>
+            </div>
+            <span data-match=1></span>
+          </div>
+          <div title="Returnee" data-pos=23>
+            <div title="Assignee" data-pos=23>
+              <div title="AssigneeTie" data-pos=23>
+                <div title="IdentifierListMulti" data-pos=23>
+                  <div title="Identifier" data-pos=23>
+                    <div title="Keyword" data-pos=23>
+                      <div title="BooleanLiteral" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="ConstSpecifier" data-pos=23>
+                        <div title="ConstantType" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <div title="VariableType" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="FunctionKeyword" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="FunctionInline" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="FunctionKwargs" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="EndFunctionKeyword" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <span data-match=-1></span>
+                    </div>
+                    <div title="Word" data-pos=23>
+                      <div title="WordStart" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <span data-match=-1></span>
+                    </div>
+                    <span data-match=-1></span>
+                  </div>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="Identifier" data-pos=23>
+                <div title="Keyword" data-pos=23>
+                  <div title="BooleanLiteral" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="ConstSpecifier" data-pos=23>
+                    <div title="ConstantType" data-pos=23>
+                      <span data-match=-1></span>
+                    </div>
+                    <div title="VariableType" data-pos=23>
+                      <span data-match=-1></span>
+                    </div>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="FunctionKeyword" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="FunctionInline" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="FunctionKwargs" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="EndFunctionKeyword" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <span data-match=-1></span>
+                </div>
+                <div title="Word" data-pos=23>
+                  <div title="WordStart" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=-1></span>
+            </div>
+            <div title="ReturnNothing" data-pos=23>
+              <span data-match=0></span>
+            </div>
+            <span data-match=0></span>
+          </div>
+          <div title="_" data-pos=23>
+            <div title="Space" data-pos=23>
+              <div title="WhiteSpace" data-pos=23>
+                <span data-match=-1></span>
+              </div>
+              <div title="InlineComment" data-pos=23>
+                <div title="MultiLineComment" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <div title="NestableComment" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="LineContinue" data-pos=23>
+                <div title="Ellipsis" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=0></span>
+          </div>
+          <div title="Terminal" data-pos=23>
+            <div title="SilentTerminal" data-pos=23>
+              <div title="LineBreak" data-pos=23>
+                <div title="LineEndComment" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <div title="NewLine" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="Semicolon" data-pos=23>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <div title="LocalStatement" data-pos=16>
+          <div title="SimpleDeclaration" data-pos=16>
+            <div title="ConstSpecifier" data-pos=16>
+              <div title="ConstantType" data-pos=16>
+                <span data-match=-1></span>
+              </div>
+              <div title="VariableType" data-pos=16>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="Assignment" data-pos=16>
+            <div title="Assignee" data-pos=16>
+              <div title="AssigneeTie" data-pos=16>
+                <div title="IdentifierListMulti" data-pos=16>
+                  <div title="Identifier" data-pos=16>
+                    <div title="Keyword" data-pos=16>
+                      <div title="BooleanLiteral" data-pos=16>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="ConstSpecifier" data-pos=16>
+                        <div title="ConstantType" data-pos=16>
+                          <span data-match=-1></span>
+                        </div>
+                        <div title="VariableType" data-pos=16>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="FunctionKeyword" data-pos=16>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="FunctionInline" data-pos=16>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="FunctionKwargs" data-pos=16>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="EndFunctionKeyword" data-pos=16>
+                        <span data-match=-1></span>
+                      </div>
+                      <span data-match=-1></span>
+                    </div>
+                    <div title="Word" data-pos=16>
+                      <div title="WordStart" data-pos=16>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="WordMid" data-pos=17>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="WordMid" data-pos=18>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="WordMid" data-pos=19>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="WordMid" data-pos=20>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="WordMid" data-pos=21>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="WordMid" data-pos=22>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="WordEnd" data-pos=22>
+                        <div title="WordMid" data-pos=22>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=0></span>
+                      </div>
+                      <span data-match=6></span>
+                    </div>
+                    <span data-match=6></span>
+                  </div>
+                  <div title="_" data-pos=22>
+                    <div title="Space" data-pos=22>
+                      <div title="WhiteSpace" data-pos=22>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="WhiteSpace" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="InlineComment" data-pos=23>
+                        <div title="MultiLineComment" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <div title="NestableComment" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="LineContinue" data-pos=23>
+                        <div title="Ellipsis" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=-1></span>
+                      </div>
+                      <span data-match=1></span>
+                    </div>
+                    <span data-match=1></span>
+                  </div>
+                  <div title="Comma" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="Identifier" data-pos=16>
+                <div title="Keyword" data-pos=16>
+                  <div title="BooleanLiteral" data-pos=16>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="ConstSpecifier" data-pos=16>
+                    <div title="ConstantType" data-pos=16>
+                      <span data-match=-1></span>
+                    </div>
+                    <div title="VariableType" data-pos=16>
+                      <span data-match=-1></span>
+                    </div>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="FunctionKeyword" data-pos=16>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="FunctionInline" data-pos=16>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="FunctionKwargs" data-pos=16>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="EndFunctionKeyword" data-pos=16>
+                    <span data-match=-1></span>
+                  </div>
+                  <span data-match=-1></span>
+                </div>
+                <div title="Word" data-pos=16>
+                  <div title="WordStart" data-pos=16>
+                    <span data-match=1></span>
+                  </div>
+                  <div title="WordMid" data-pos=17>
+                    <span data-match=1></span>
+                  </div>
+                  <div title="WordMid" data-pos=18>
+                    <span data-match=1></span>
+                  </div>
+                  <div title="WordMid" data-pos=19>
+                    <span data-match=1></span>
+                  </div>
+                  <div title="WordMid" data-pos=20>
+                    <span data-match=1></span>
+                  </div>
+                  <div title="WordMid" data-pos=21>
+                    <span data-match=1></span>
+                  </div>
+                  <div title="WordMid" data-pos=22>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="WordEnd" data-pos=22>
+                    <div title="WordMid" data-pos=22>
+                      <span data-match=-1></span>
+                    </div>
+                    <span data-match=0></span>
+                  </div>
+                  <span data-match=6></span>
+                </div>
+                <span data-match=6></span>
+              </div>
+              <span data-match=6></span>
+            </div>
+            <div title="_" data-pos=22>
+              <div title="Space" data-pos=22>
+                <div title="WhiteSpace" data-pos=22>
+                  <span data-match=1></span>
+                </div>
+                <div title="WhiteSpace" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <div title="InlineComment" data-pos=23>
+                  <div title="MultiLineComment" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <div title="NestableComment" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <span data-match=-1></span>
+                </div>
+                <div title="LineContinue" data-pos=23>
+                  <div title="Ellipsis" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=1></span>
+              </div>
+              <span data-match=1></span>
+            </div>
+            <div title="AssignOperator" data-pos=23>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="Expression" data-pos=16>
+            <div title="Throw" data-pos=16>
+              <div title="ThrowUnary" data-pos=16>
+                <span data-match=-1></span>
+              </div>
+              <div title="Conditional" data-pos=16>
+                <div title="Disjunction" data-pos=16>
+                  <div title="ExclusiveDisjunction" data-pos=16>
+                    <div title="Conjunction" data-pos=16>
+                      <div title="Comparison" data-pos=16>
+                        <div title="BitDisjunction" data-pos=16>
+                          <div title="BitExclusiveDisjunction" data-pos=16>
+                            <div title="BitConjunction" data-pos=16>
+                              <div title="Shifting" data-pos=16>
+                                <div title="Addition" data-pos=16>
+                                  <div title="Multiplication" data-pos=16>
+                                    <div title="Exponentiation" data-pos=16>
+                                      <div title="Prefix" data-pos=16>
+                                        <div title="PrefixUnary" data-pos=16>
+                                          <span data-match=-1></span>
+                                        </div>
+                                        <div title="Access" data-pos=16>
+                                          <div title="Scope" data-pos=16>
+                                            <div title="Atomic" data-pos=16>
+                                              <div title="LParen" data-pos=16>
+                                                <span data-match=-1></span>
+                                              </div>
+                                              <div title="Identifier" data-pos=16>
+                                                <div title="Keyword" data-pos=16>
+                                                  <div title="BooleanLiteral" data-pos=16>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <div title="ConstSpecifier" data-pos=16>
+                                                    <div title="ConstantType" data-pos=16>
+                                                      <span data-match=-1></span>
+                                                    </div>
+                                                    <div title="VariableType" data-pos=16>
+                                                      <span data-match=-1></span>
+                                                    </div>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <div title="FunctionKeyword" data-pos=16>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <div title="FunctionInline" data-pos=16>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <div title="FunctionKwargs" data-pos=16>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <div title="EndFunctionKeyword" data-pos=16>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <span data-match=-1></span>
+                                                </div>
+                                                <div title="Word" data-pos=16>
+                                                  <div title="WordStart" data-pos=16>
+                                                    <span data-match=1></span>
+                                                  </div>
+                                                  <div title="WordMid" data-pos=17>
+                                                    <span data-match=1></span>
+                                                  </div>
+                                                  <div title="WordMid" data-pos=18>
+                                                    <span data-match=1></span>
+                                                  </div>
+                                                  <div title="WordMid" data-pos=19>
+                                                    <span data-match=1></span>
+                                                  </div>
+                                                  <div title="WordMid" data-pos=20>
+                                                    <span data-match=1></span>
+                                                  </div>
+                                                  <div title="WordMid" data-pos=21>
+                                                    <span data-match=1></span>
+                                                  </div>
+                                                  <div title="WordMid" data-pos=22>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <div title="WordEnd" data-pos=22>
+                                                    <div title="WordMid" data-pos=22>
+                                                      <span data-match=-1></span>
+                                                    </div>
+                                                    <span data-match=0></span>
+                                                  </div>
+                                                  <span data-match=6></span>
+                                                </div>
+                                                <span data-match=6></span>
+                                              </div>
+                                              <span data-match=6></span>
+                                            </div>
+                                            <div title="_" data-pos=22>
+                                              <div title="Space" data-pos=22>
+                                                <div title="WhiteSpace" data-pos=22>
+                                                  <span data-match=1></span>
+                                                </div>
+                                                <div title="WhiteSpace" data-pos=23>
+                                                  <span data-match=-1></span>
+                                                </div>
+                                                <div title="InlineComment" data-pos=23>
+                                                  <div title="MultiLineComment" data-pos=23>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <div title="NestableComment" data-pos=23>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <span data-match=-1></span>
+                                                </div>
+                                                <div title="LineContinue" data-pos=23>
+                                                  <div title="Ellipsis" data-pos=23>
+                                                    <span data-match=-1></span>
+                                                  </div>
+                                                  <span data-match=-1></span>
+                                                </div>
+                                                <span data-match=1></span>
+                                              </div>
+                                              <span data-match=1></span>
+                                            </div>
+                                            <div title="ScopeBinary" data-pos=23>
+                                              <span data-match=-1></span>
+                                            </div>
+                                            <span data-match=6></span>
+                                          </div>
+                                          <div title="_" data-pos=22>
+                                            <div title="Space" data-pos=22>
+                                              <div title="WhiteSpace" data-pos=22>
+                                                <span data-match=1></span>
+                                              </div>
+                                              <div title="WhiteSpace" data-pos=23>
+                                                <span data-match=-1></span>
+                                              </div>
+                                              <div title="InlineComment" data-pos=23>
+                                                <div title="MultiLineComment" data-pos=23>
+                                                  <span data-match=-1></span>
+                                                </div>
+                                                <div title="NestableComment" data-pos=23>
+                                                  <span data-match=-1></span>
+                                                </div>
+                                                <span data-match=-1></span>
+                                              </div>
+                                              <div title="LineContinue" data-pos=23>
+                                                <div title="Ellipsis" data-pos=23>
+                                                  <span data-match=-1></span>
+                                                </div>
+                                                <span data-match=-1></span>
+                                              </div>
+                                              <span data-match=1></span>
+                                            </div>
+                                            <span data-match=1></span>
+                                          </div>
+                                          <div title="AccessUnary" data-pos=23>
+                                            <span data-match=-1></span>
+                                          </div>
+                                          <div title="AccessBinary" data-pos=22>
+                                            <span data-match=-1></span>
+                                          </div>
+                                          <span data-match=6></span>
+                                        </div>
+                                        <span data-match=6></span>
+                                      </div>
+                                      <div title="_" data-pos=22>
+                                        <div title="Space" data-pos=22>
+                                          <div title="WhiteSpace" data-pos=22>
+                                            <span data-match=1></span>
+                                          </div>
+                                          <div title="WhiteSpace" data-pos=23>
+                                            <span data-match=-1></span>
+                                          </div>
+                                          <div title="InlineComment" data-pos=23>
+                                            <div title="MultiLineComment" data-pos=23>
+                                              <span data-match=-1></span>
+                                            </div>
+                                            <div title="NestableComment" data-pos=23>
+                                              <span data-match=-1></span>
+                                            </div>
+                                            <span data-match=-1></span>
+                                          </div>
+                                          <div title="LineContinue" data-pos=23>
+                                            <div title="Ellipsis" data-pos=23>
+                                              <span data-match=-1></span>
+                                            </div>
+                                            <span data-match=-1></span>
+                                          </div>
+                                          <span data-match=1></span>
+                                        </div>
+                                        <span data-match=1></span>
+                                      </div>
+                                      <div title="ExponentiationBinary" data-pos=23>
+                                        <span data-match=-1></span>
+                                      </div>
+                                      <span data-match=6></span>
+                                    </div>
+                                    <div title="_" data-pos=22>
+                                      <div title="Space" data-pos=22>
+                                        <div title="WhiteSpace" data-pos=22>
+                                          <span data-match=1></span>
+                                        </div>
+                                        <div title="WhiteSpace" data-pos=23>
+                                          <span data-match=-1></span>
+                                        </div>
+                                        <div title="InlineComment" data-pos=23>
+                                          <div title="MultiLineComment" data-pos=23>
+                                            <span data-match=-1></span>
+                                          </div>
+                                          <div title="NestableComment" data-pos=23>
+                                            <span data-match=-1></span>
+                                          </div>
+                                          <span data-match=-1></span>
+                                        </div>
+                                        <div title="LineContinue" data-pos=23>
+                                          <div title="Ellipsis" data-pos=23>
+                                            <span data-match=-1></span>
+                                          </div>
+                                          <span data-match=-1></span>
+                                        </div>
+                                        <span data-match=1></span>
+                                      </div>
+                                      <span data-match=1></span>
+                                    </div>
+                                    <div title="MultiplicationBinary" data-pos=23>
+                                      <span data-match=-1></span>
+                                    </div>
+                                    <span data-match=6></span>
+                                  </div>
+                                  <div title="_" data-pos=22>
+                                    <div title="Space" data-pos=22>
+                                      <div title="WhiteSpace" data-pos=22>
+                                        <span data-match=1></span>
+                                      </div>
+                                      <div title="WhiteSpace" data-pos=23>
+                                        <span data-match=-1></span>
+                                      </div>
+                                      <div title="InlineComment" data-pos=23>
+                                        <div title="MultiLineComment" data-pos=23>
+                                          <span data-match=-1></span>
+                                        </div>
+                                        <div title="NestableComment" data-pos=23>
+                                          <span data-match=-1></span>
+                                        </div>
+                                        <span data-match=-1></span>
+                                      </div>
+                                      <div title="LineContinue" data-pos=23>
+                                        <div title="Ellipsis" data-pos=23>
+                                          <span data-match=-1></span>
+                                        </div>
+                                        <span data-match=-1></span>
+                                      </div>
+                                      <span data-match=1></span>
+                                    </div>
+                                    <span data-match=1></span>
+                                  </div>
+                                  <div title="AdditionBinary" data-pos=23>
+                                    <span data-match=-1></span>
+                                  </div>
+                                  <span data-match=6></span>
+                                </div>
+                                <div title="_" data-pos=22>
+                                  <div title="Space" data-pos=22>
+                                    <div title="WhiteSpace" data-pos=22>
+                                      <span data-match=1></span>
+                                    </div>
+                                    <div title="WhiteSpace" data-pos=23>
+                                      <span data-match=-1></span>
+                                    </div>
+                                    <div title="InlineComment" data-pos=23>
+                                      <div title="MultiLineComment" data-pos=23>
+                                        <span data-match=-1></span>
+                                      </div>
+                                      <div title="NestableComment" data-pos=23>
+                                        <span data-match=-1></span>
+                                      </div>
+                                      <span data-match=-1></span>
+                                    </div>
+                                    <div title="LineContinue" data-pos=23>
+                                      <div title="Ellipsis" data-pos=23>
+                                        <span data-match=-1></span>
+                                      </div>
+                                      <span data-match=-1></span>
+                                    </div>
+                                    <span data-match=1></span>
+                                  </div>
+                                  <span data-match=1></span>
+                                </div>
+                                <div title="ShiftingBinary" data-pos=23>
+                                  <span data-match=-1></span>
+                                </div>
+                                <span data-match=6></span>
+                              </div>
+                              <div title="_" data-pos=22>
+                                <div title="Space" data-pos=22>
+                                  <div title="WhiteSpace" data-pos=22>
+                                    <span data-match=1></span>
+                                  </div>
+                                  <div title="WhiteSpace" data-pos=23>
+                                    <span data-match=-1></span>
+                                  </div>
+                                  <div title="InlineComment" data-pos=23>
+                                    <div title="MultiLineComment" data-pos=23>
+                                      <span data-match=-1></span>
+                                    </div>
+                                    <div title="NestableComment" data-pos=23>
+                                      <span data-match=-1></span>
+                                    </div>
+                                    <span data-match=-1></span>
+                                  </div>
+                                  <div title="LineContinue" data-pos=23>
+                                    <div title="Ellipsis" data-pos=23>
+                                      <span data-match=-1></span>
+                                    </div>
+                                    <span data-match=-1></span>
+                                  </div>
+                                  <span data-match=1></span>
+                                </div>
+                                <span data-match=1></span>
+                              </div>
+                              <div title="BitConjunctionBinary" data-pos=23>
+                                <span data-match=-1></span>
+                              </div>
+                              <span data-match=6></span>
+                            </div>
+                            <div title="_" data-pos=22>
+                              <div title="Space" data-pos=22>
+                                <div title="WhiteSpace" data-pos=22>
+                                  <span data-match=1></span>
+                                </div>
+                                <div title="WhiteSpace" data-pos=23>
+                                  <span data-match=-1></span>
+                                </div>
+                                <div title="InlineComment" data-pos=23>
+                                  <div title="MultiLineComment" data-pos=23>
+                                    <span data-match=-1></span>
+                                  </div>
+                                  <div title="NestableComment" data-pos=23>
+                                    <span data-match=-1></span>
+                                  </div>
+                                  <span data-match=-1></span>
+                                </div>
+                                <div title="LineContinue" data-pos=23>
+                                  <div title="Ellipsis" data-pos=23>
+                                    <span data-match=-1></span>
+                                  </div>
+                                  <span data-match=-1></span>
+                                </div>
+                                <span data-match=1></span>
+                              </div>
+                              <span data-match=1></span>
+                            </div>
+                            <div title="BitExclusiveDisjunctionBinary" data-pos=23>
+                              <span data-match=-1></span>
+                            </div>
+                            <span data-match=6></span>
+                          </div>
+                          <div title="_" data-pos=22>
+                            <div title="Space" data-pos=22>
+                              <div title="WhiteSpace" data-pos=22>
+                                <span data-match=1></span>
+                              </div>
+                              <div title="WhiteSpace" data-pos=23>
+                                <span data-match=-1></span>
+                              </div>
+                              <div title="InlineComment" data-pos=23>
+                                <div title="MultiLineComment" data-pos=23>
+                                  <span data-match=-1></span>
+                                </div>
+                                <div title="NestableComment" data-pos=23>
+                                  <span data-match=-1></span>
+                                </div>
+                                <span data-match=-1></span>
+                              </div>
+                              <div title="LineContinue" data-pos=23>
+                                <div title="Ellipsis" data-pos=23>
+                                  <span data-match=-1></span>
+                                </div>
+                                <span data-match=-1></span>
+                              </div>
+                              <span data-match=1></span>
+                            </div>
+                            <span data-match=1></span>
+                          </div>
+                          <div title="BitDisjunctionBinary" data-pos=23>
+                            <span data-match=-1></span>
+                          </div>
+                          <span data-match=6></span>
+                        </div>
+                        <div title="_" data-pos=22>
+                          <div title="Space" data-pos=22>
+                            <div title="WhiteSpace" data-pos=22>
+                              <span data-match=1></span>
+                            </div>
+                            <div title="WhiteSpace" data-pos=23>
+                              <span data-match=-1></span>
+                            </div>
+                            <div title="InlineComment" data-pos=23>
+                              <div title="MultiLineComment" data-pos=23>
+                                <span data-match=-1></span>
+                              </div>
+                              <div title="NestableComment" data-pos=23>
+                                <span data-match=-1></span>
+                              </div>
+                              <span data-match=-1></span>
+                            </div>
+                            <div title="LineContinue" data-pos=23>
+                              <div title="Ellipsis" data-pos=23>
+                                <span data-match=-1></span>
+                              </div>
+                              <span data-match=-1></span>
+                            </div>
+                            <span data-match=1></span>
+                          </div>
+                          <span data-match=1></span>
+                        </div>
+                        <div title="ComparisonBinary" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=6></span>
+                      </div>
+                      <div title="_" data-pos=22>
+                        <div title="Space" data-pos=22>
+                          <div title="WhiteSpace" data-pos=22>
+                            <span data-match=1></span>
+                          </div>
+                          <div title="WhiteSpace" data-pos=23>
+                            <span data-match=-1></span>
+                          </div>
+                          <div title="InlineComment" data-pos=23>
+                            <div title="MultiLineComment" data-pos=23>
+                              <span data-match=-1></span>
+                            </div>
+                            <div title="NestableComment" data-pos=23>
+                              <span data-match=-1></span>
+                            </div>
+                            <span data-match=-1></span>
+                          </div>
+                          <div title="LineContinue" data-pos=23>
+                            <div title="Ellipsis" data-pos=23>
+                              <span data-match=-1></span>
+                            </div>
+                            <span data-match=-1></span>
+                          </div>
+                          <span data-match=1></span>
+                        </div>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="ConjunctionBinary" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <span data-match=6></span>
+                    </div>
+                    <div title="_" data-pos=22>
+                      <div title="Space" data-pos=22>
+                        <div title="WhiteSpace" data-pos=22>
+                          <span data-match=1></span>
+                        </div>
+                        <div title="WhiteSpace" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <div title="InlineComment" data-pos=23>
+                          <div title="MultiLineComment" data-pos=23>
+                            <span data-match=-1></span>
+                          </div>
+                          <div title="NestableComment" data-pos=23>
+                            <span data-match=-1></span>
+                          </div>
+                          <span data-match=-1></span>
+                        </div>
+                        <div title="LineContinue" data-pos=23>
+                          <div title="Ellipsis" data-pos=23>
+                            <span data-match=-1></span>
+                          </div>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=1></span>
+                      </div>
+                      <span data-match=1></span>
+                    </div>
+                    <div title="ExclusiveDisjunctionBinary" data-pos=23>
+                      <span data-match=-1></span>
+                    </div>
+                    <span data-match=6></span>
+                  </div>
+                  <div title="_" data-pos=22>
+                    <div title="Space" data-pos=22>
+                      <div title="WhiteSpace" data-pos=22>
+                        <span data-match=1></span>
+                      </div>
+                      <div title="WhiteSpace" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="InlineComment" data-pos=23>
+                        <div title="MultiLineComment" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <div title="NestableComment" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="LineContinue" data-pos=23>
+                        <div title="Ellipsis" data-pos=23>
+                          <span data-match=-1></span>
+                        </div>
+                        <span data-match=-1></span>
+                      </div>
+                      <span data-match=1></span>
+                    </div>
+                    <span data-match=1></span>
+                  </div>
+                  <div title="DisjunctionBinary" data-pos=23>
+                    <span data-match=-1></span>
+                  </div>
+                  <span data-match=6></span>
+                </div>
+                <div title="_" data-pos=22>
+                  <div title="Space" data-pos=22>
+                    <div title="WhiteSpace" data-pos=22>
+                      <span data-match=1></span>
+                    </div>
+                    <div title="WhiteSpace" data-pos=23>
+                      <span data-match=-1></span>
+                    </div>
+                    <div title="InlineComment" data-pos=23>
+                      <div title="MultiLineComment" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <div title="NestableComment" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <span data-match=-1></span>
+                    </div>
+                    <div title="LineContinue" data-pos=23>
+                      <div title="Ellipsis" data-pos=23>
+                        <span data-match=-1></span>
+                      </div>
+                      <span data-match=-1></span>
+                    </div>
+                    <span data-match=1></span>
+                  </div>
+                  <span data-match=1></span>
+                </div>
+                <div title="ConditionalBinary" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=6></span>
+              </div>
+              <span data-match=6></span>
+            </div>
+            <span data-match=6></span>
+          </div>
+          <div title="_" data-pos=22>
+            <div title="Space" data-pos=22>
+              <div title="WhiteSpace" data-pos=22>
+                <span data-match=1></span>
+              </div>
+              <div title="WhiteSpace" data-pos=23>
+                <span data-match=-1></span>
+              </div>
+              <div title="InlineComment" data-pos=23>
+                <div title="MultiLineComment" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <div title="NestableComment" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="LineContinue" data-pos=23>
+                <div title="Ellipsis" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=1></span>
+            </div>
+            <span data-match=1></span>
+          </div>
+          <div title="Terminal" data-pos=23>
+            <div title="SilentTerminal" data-pos=23>
+              <div title="LineBreak" data-pos=23>
+                <div title="LineEndComment" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <div title="NewLine" data-pos=23>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="Semicolon" data-pos=23>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=-1></span>
+          </div>
+          <div title="SyntaxError" data-pos=16>
+            <div title="NewLine" data-pos=16>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=17>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=18>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=19>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=20>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=21>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=22>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=23>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=24>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=25>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=26>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=27>
+              <span data-match=-1></span>
+            </div>
+            <div title="NewLine" data-pos=28>
+              <span data-match=1></span>
+            </div>
+            <div title="NewLine" data-pos=28>
+              <span data-match=1></span>
+            </div>
+            <span data-match=13></span>
+          </div>
+          <span data-match=13></span>
+        </div>
+        <div title="Skip" data-pos=29>
+          <div title="_" data-pos=29>
+            <div title="Space" data-pos=29>
+              <div title="WhiteSpace" data-pos=29>
+                <span data-match=-1></span>
+              </div>
+              <div title="InlineComment" data-pos=29>
+                <div title="MultiLineComment" data-pos=29>
+                  <span data-match=-1></span>
+                </div>
+                <div title="NestableComment" data-pos=29>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <div title="LineContinue" data-pos=29>
+                <div title="Ellipsis" data-pos=29>
+                  <span data-match=-1></span>
+                </div>
+                <span data-match=-1></span>
+              </div>
+              <span data-match=-1></span>
+            </div>
+            <span data-match=0></span>
+          </div>
+          <span data-match=0></span>
+        </div>
+        <span data-match=13></span>
+      </div>
+      <div title="EndFunctionKeyword" data-pos=29>
+        <span data-match=-1></span>
+      </div>
+      <span data-match=-1></span>
+    </div>
+    <div title="SyntaxError" data-pos=1>
+      <div title="NewLine" data-pos=1>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=2>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=3>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=4>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=5>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=6>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=7>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=8>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=9>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=10>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=11>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=12>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=13>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=14>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=15>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=16>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=17>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=18>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=19>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=20>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=21>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=22>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=23>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=24>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=25>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=26>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=27>
+        <span data-match=-1></span>
+      </div>
+      <div title="NewLine" data-pos=28>
+        <span data-match=1></span>
+      </div>
+      <div title="NewLine" data-pos=28>
+        <span data-match=1></span>
+      </div>
+      <span data-match=28></span>
+    </div>
+    <span data-match=28></span>
+  </div>
+  <div title="Skip" data-pos=29>
+    <div title="_" data-pos=29>
+      <div title="Space" data-pos=29>
+        <div title="WhiteSpace" data-pos=29>
+          <span data-match=-1></span>
+        </div>
+        <div title="InlineComment" data-pos=29>
+          <div title="MultiLineComment" data-pos=29>
+            <span data-match=-1></span>
+          </div>
+          <div title="NestableComment" data-pos=29>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <div title="LineContinue" data-pos=29>
+          <div title="Ellipsis" data-pos=29>
+            <span data-match=-1></span>
+          </div>
+          <span data-match=-1></span>
+        </div>
+        <span data-match=-1></span>
+      </div>
+      <span data-match=0></span>
+    </div>
+    <span data-match=0></span>
+  </div>
+  <div title="CinnamonFooter" data-pos=29>
+    <span data-match=0></span>
+  </div>
+  <span data-match=29></span>
+</div>
+
+</span>
+
+<span id="source">
+<div title="Cinnamon" data-pos=0><div title="CinnamonHeader" data-pos=0></div><div title="Skip" data-pos=0><div title="_" data-pos=0></div><div title="LineBreak" data-pos=0><div title="NewLine" data-pos=0><i>&ldsh;</i><br>
+</div></div><div title="_" data-pos=1></div></div><div title="GlobalStatement" data-pos=1><div title="SyntaxError" data-pos=1>function<i>&#x2423;</i>nuffn;return<i>&#x2423;</i>4;end<div title="NewLine" data-pos=28><i>&ldsh;</i><br>
+</div></div></div><div title="Skip" data-pos=29><div title="_" data-pos=29></div></div><div title="CinnamonFooter" data-pos=29></div></div>
+</span>
+
+<span id="info"></span>
+<script>
+
+//////////////////
+// tree browser //
+//////////////////
+
+var text = "\nfunction nuffn;return 4;end\n"
+var len = text.length
+var maxlen = 80
+
+// this has to be done for every line individually so positions aren't messed with
+function htmlsafe(text){
+	buf = text
+	buf = buf.replace(/&/g, "&amp;")
+	buf = buf.replace(/</g, "&lt;")
+	buf = buf.replace(/>/g, "&gt;")
+	buf = buf.replace(/ /g, "&#x2423;")
+	buf = buf.replace(/\t/g, "&rarr;")
+	buf = buf.replace(/\r\n/g, "&ldsh;")
+	buf = buf.replace(/\n/g, "&ldsh;")
+	return buf
+}
+
+var divs = document.getElementById("tree").getElementsByTagName("div")
+
+for(var i=0; i<divs.length; i++){
+	div = divs[i];
+	if(i>0){
+		div.classList.add("collapsed")
+	}
+
+	var nc = div.children.length;
+	if(nc > 1){
+		div.classList.add("hasChildren")
+	}
+
+	var pos = 1 * div.dataset.pos
+	var matched = 1 * div.children[nc-1].dataset.match
+
+	if(matched > maxlen){
+		matched = maxlen
+	}
+
+	var rest = len-pos-matched
+	var elli = ""
+
+	if(matched + rest > maxlen){
+		rest = maxlen - matched;
+		elli = "&hellip;"
+	}
+
+	if( matched >= 0){
+		div.classList.add("match")
+		div.innerHTML =
+			div.title +
+			" <span class='matchbox'>" +
+				htmlsafe(text.substr(pos, matched)) +
+			"</span><span>" +
+				htmlsafe(text.substr(pos+matched, rest)) + elli +
+			"</span>" + div.innerHTML
+	}
+	else{
+		div.innerHTML =
+			div.title +
+			" <span>" +
+				htmlsafe(text.substr(pos, rest)) + elli +
+			"</span>" + div.innerHTML
+	}
+
+	div.onclick = function(evt){
+		if(evt.target.classList.contains("collapsed")){
+			evt.target.classList.remove("collapsed")
+		}
+		else{
+			evt.target.classList.add("collapsed")
+		}
+		event.stopPropagation()
+	}
+}
+
+////////////////////
+// source browser //
+////////////////////
+
+var divs = document.getElementById("source").getElementsByTagName("div")
+var info = document.getElementById("info")
+info.onclick = function(evt){evt.stopPropagation()}
+var marked = null
+var highlighted = null
+
+function mark(dom){ // for onclick, supposed to stay marked
+	if(marked != null){
+		marked.classList.remove("mark")
+	}
+	marked = dom;
+	if(dom != null){
+		dom.classList.add("mark")
+	}
+}
+
+function highlight(dom){ // for hover effects
+	if(highlighted != null){
+		highlighted.classList.remove("highlight")
+	}
+	highlighted = dom;
+	if(dom != null){
+		dom.classList.add("highlight")
+	}
+}
+
+function showInfo(target){ // shows rule stack
+	info.innerHTML = ""
+	if(target == null){
+		info.style.visibility = "hidden"
+	}
+	else{
+		info.style.visibility = "visible"
+
+		parent = target
+		while(parent.id != "source"){
+			var a = document.createElement("a")
+			var t = document.createTextNode(parent.title)
+			a.appendChild(t)
+			a.dataset.link = parent.id
+			a.onmouseover = function(evt){
+				highlight(document.getElementById(evt.target.dataset.link))
+			}
+			a.onclick = function(evt){
+				target = document.getElementById(evt.target.dataset.link)
+				mark(target)
+				showInfo(target)
+				unfold(target)
+				evt.stopPropagation()
+			}
+			a.onmouseout = function(evt){
+				highlight(null)
+			}
+			if(info.childNodes.length == 0){
+				info.appendChild(a)
+			}
+			else{
+				info.insertBefore(document.createElement("br"), info.childNodes[0])
+				info.insertBefore(a, info.childNodes[0])
+			}
+
+			parent = parent.parentElement
+		}
+	}
+}
+
+function unfold(target){ // finds the element in the tree that matches the source part
+
+	// first collapse everything
+	var alldivs = document.getElementById("tree").getElementsByTagName("div")
+	for(var i=0; i<alldivs.length; i++){
+		alldivs[i].classList.add("collapsed")
+		alldivs[i].classList.remove("highlight")
+	}
+
+	// now find the node in the tree
+	var stack = []
+	var parent = target
+	while(parent.id != "source"){
+		stack.unshift(parent)
+		parent = parent.parentElement
+	}
+
+	var branch = document.getElementById("tree")
+	for(var i=0; i<stack.length; i++){
+		token = stack[i];
+
+		subbranches = branch.children
+		for(var j=0; j<subbranches.length; j++){
+			if(
+				subbranches[j].tagName == "DIV" &&
+				subbranches[j].dataset.pos == token.dataset.pos &&
+				subbranches[j].title == token.title &&
+				subbranches[j].classList.contains("match")
+			){
+				if(i < stack.length-1){ // just unfold, no highlight
+					subbranches[j].classList.remove("collapsed")
+				}
+				else{ // innermost element reached, highlight, don't unfold
+					subbranches[j].classList.add("highlight")
+					subbranches[j].scrollIntoView()
+				}
+				branch = subbranches[j]
+				break;
+			}
+		}
+	}
+}
+
+for(var i=0; i<divs.length; i++){
+	divs[i].id = "l" + i // leaf i
+	divs[i].onmouseover = function(evt){
+		highlight(evt.target)
+		if(marked == null){
+			showInfo(evt.target)
+		}
+	}
+	divs[i].onmouseout = function(evt){
+		highlight(null)
+		if(marked == null){
+			showInfo(null)
+		}
+	}
+	divs[i].onclick = function(evt){
+		mark(evt.target)
+		showInfo(evt.target)
+		unfold(evt.target)
+		evt.stopPropagation()
+	}
+}
+
+document.body.onclick = function(evt){
+	mark(null)
+	showInfo(null)
+}
+
+</script>
+</body>
+</html>
+

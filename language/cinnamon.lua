@@ -1,6 +1,8 @@
 
 print(_VERSION)
 
+mark = "m0n_"
+
 local scriptPath = string.gsub(arg[0], "cinnamon.lua$", "")
 
 local inputfile = arg[1]
@@ -9,6 +11,10 @@ local outputfile = arg[2]
 local utils = require (scriptPath .. "utils")
 log = utils.log
 col = utils.colorize
+stringify = utils.stringify
+dump = function(arg)
+	print(stringify(arg))
+end
 
 local transpiler = require (scriptPath .. "transpiler")
 rule = transpiler.rule
@@ -23,6 +29,7 @@ localStatements = {}
 -- load the language modules
 local sep = utils.pathSep -- platform specific path seperator
 dofile(scriptPath .. "modules" .. sep .. "core.lua")
+dofile(scriptPath .. "modules" .. sep .. "type.lua")
 dofile(scriptPath .. "modules" .. sep .. "literal.lua")
 dofile(scriptPath .. "modules" .. sep .. "expression.lua")
 dofile(scriptPath .. "modules" .. sep .. "declaration.lua")
@@ -77,5 +84,9 @@ else
 	print("")
 	print("transpile CPU time: " .. t1-t0 .. "s")
 
-	utils.writeToFile(outputfile, result)
+	if outputfile == nil then
+		print(result)
+	else
+		utils.writeToFile(outputfile, result)
+	end
 end

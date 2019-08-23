@@ -1,0 +1,46 @@
+
+// const argument, no return
+function compute(i:int); end
+
+(*
+// variable argument
+function compute(var i:int); end
+
+// implicitly const argument
+function compute(i:int); end
+
+// simple return
+function compute() -> int
+	return 0
+end
+
+// tuple return
+function compute() -> (var int, string, typeof(c))
+	return a*2, "awa", b*c
+end
+
+// unnamed return value list creates tuple struct
+// omitting type in arguments creates templated function
+function compute(var a:int, var b:=0, val c, d) -> (var x:int, val y:string, val z:typeof(c))
+	return a*2, "awa", b*c
+end
+
+// work with auto, return simple type if just one return, tuple otherwise
+function compute(var a:int, var b:=0, val c)
+	return a*2, "awa", b*c
+end
+
+// create Joachim-wrapper to use a function with kwargs
+kwarg_wrap GCD(u:int, v:int)
+
+
+immediately invoked lambda:
+
+const x:=scribble
+	if a>b
+		return a
+	else
+		return b
+	end
+end + 3
+*)

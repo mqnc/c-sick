@@ -40,9 +40,14 @@ transpiler.basicActions = {
 	-- forward the first value
 	first = function(arg)
 		local resultTbl = arg.values[1]
-		resultTbl.subrule = arg.rule
+		resultTbl.subrule = arg.values[1].rule
 		return resultTbl
 	end,
+
+	second = function(arg) return arg.values[2]	end,
+	third = function(arg) return arg.values[3] end,
+	fourth = function(arg) return arg.values[4]	end,
+	fifth = function(arg) return arg.values[5]	end,
 
 	-- concat all captured semantic values
 	concat = function(arg)
@@ -68,9 +73,9 @@ transpiler.basicActions = {
 	tree = function(arg)
 		local resultTbl = {""}
 		resultTbl.values = arg.values
-		for i, v in ipairs(arg.values) do
-			resultTbl[1] = resultTbl[1] .. v[1] .. " "
-		end
+		--for i, v in ipairs(arg.values) do
+		--	resultTbl[1] = resultTbl[1] .. v[1] .. " "
+		--end
 		return resultTbl
 	end
 }
@@ -136,7 +141,7 @@ transpiler.rule = function(definition, action, comment)
 		definition = definition .. "  # (no action)"
 
 		actionList[name] = function(arg)
-			return {col(arg.rule, "brightcyan")}
+			return {col(arg.rule, "brightmagenta")}
 		end
 	end
 
