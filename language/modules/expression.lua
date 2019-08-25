@@ -10,6 +10,7 @@ OperatorClasses = {
 		name = "Access",
 		order = "ltr",
 		operators = {
+			{peg="'(' ~_ ')'", cpp="({<})()"},
 			{peg="'(' ~_ ExpressionList ~_ ')'", cpp="({<})({1})"},
 			{peg="'[' ~_ ExpressionList ~_ ']'", cpp="({<})[{1}]"},
 			{peg="'.'", cpp="({<}).{>}"},

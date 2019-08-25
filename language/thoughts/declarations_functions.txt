@@ -228,4 +228,21 @@ which is better because people might write  var i:int  but will probably rather 
 
 
 with return tuples and structs we don't actually need the parens since for one value we won't need a tuple
-if we allowed a tuple for one value, the return statement needs to be different for one value vs single-value-tuple
+if we allowed a tuple for one value, the return statement needs to be different for one value vs single-fielded-tuple
+
+we have to forbid single-fielded tuples and structs for this stuff entirely or we need a distinction between something being a single-fielded tuple or a value.
+
+if f() returns a 2 value tuple/struct, we can write
+
+a := f() // <- a contains the tuple
+x, y := f() // <- x and y contain the values
+
+if g() contains a tuple/struct with one value, then how do we distinguish?
+also, what sense does it make to have them? -> kick em out
+
+
+we should create a struple class that can be used for multiple assignment and functions returning multiple parameters
+then we do no longer need this mess:
+
+std::tie(a, b) = static_cast<std::tuple<decltype(a), decltype(b)>(std::make_tuple(c, d));
+(which we need if we want to assign a struct providing an implicit tuple conversion to a tie)

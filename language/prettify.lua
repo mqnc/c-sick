@@ -38,12 +38,12 @@ rule([[ IndentInc <- "(" / "{" ]],
 		return {match(arg)}
 	end
 )
-rule([[ IndentDec <- ")" / "}" ]],
+rule([[ IndentDec <- ')' / '}' ]],
 	function(arg)
 		indent = indent - 1
 		if indent<0 then indent=0 end
 		if match(arg) == "}" then
-			return {"}\n"}
+			return {"}"}
 		else
 			return {")"}
 		end

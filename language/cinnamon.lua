@@ -84,9 +84,7 @@ else
 	print("")
 	print("transpile CPU time: " .. t1-t0 .. "s")
 
-	if outputfile == nil then
-		print(result)
-	else
+	if outputfile ~= nil then
 		utils.writeToFile(outputfile, result)
 	end
 end

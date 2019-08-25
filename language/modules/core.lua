@@ -45,7 +45,17 @@ rule([[ WordEnd <- !WordMid ]], "")
 
 rule([[ Identifier <- !Keyword Word ]], basic.match )
 rule([[ IdentifierList <- Identifier (_ Comma _ Identifier)* ]], basic.concat )
-rule([[ IdentifierListMulti <- Identifier _ Comma _ Identifier (_ Comma _ Identifier)* ]], basic.concat )
+rule([[ IdentifierListMulti <- Identifier _ Comma _ Identifier (_ Comma _ Identifier)* ]], function(arg)
+	local buf = {}
+	for i = 1, #arg.values do
+		buf[#buf+1] = arg.values[i][1]
+	end
+	local idents = {}
+	for i = 1, #arg.values, 4 do
+		idents[#idents+1] = arg.values[i][1]
+	end
+	return {[1]=table.concat(buf), idents=idents}
+end )
 
 -- this solution does not work with multiple cpp files yet but baby steps
 rule([[ CinnamonFooter <- '' ]], 'int main(){return start();}' )
@@ -58,3 +68,19 @@ rule([[ LBracket <- '[' ]], '[' )
 rule([[ RBracket <- ']' ]], ']' )
 rule([[ LBrace <- '{' ]], '{' )
 rule([[ RBrace <- '}' ]], '}' )
+
+rule([[ SilentComma <- ',' ]], '' )
+rule([[ SilentLParen <- '(' ]], '' )
+rule([[ SilentRParen <- ')' ]], '' )
+rule([[ SilentLBracket <- '[' ]], '' )
+rule([[ SilentRBracket <- ']' ]], '' )
+rule([[ SilentLBrace <- '{' ]], '' )
+rule([[ SilentRBrace <- '}' ]], '' )
+
+rule([[ InsertComma <- '' ]], ',' )
+rule([[ InsertLParen <- '' ]], '(' )
+rule([[ InsertRParen <- '' ]], ')' )
+rule([[ InsertLBracket <- '' ]], '[' )
+rule([[ InsertRBracket <- '' ]], ']' )
+rule([[ InsertLBrace <- '' ]], '{' )
+rule([[ InsertRBrace <- '' ]], '}' )

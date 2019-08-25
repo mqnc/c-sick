@@ -2,46 +2,44 @@
 function nothing
 end
 
-function nothing()
+function nothing_with_parens()
 end
 
-function param(var a:int)
+function param_one_param(var a:int)
+	print(a)
 end
 
-function param(c:int)
+function param_one_const_param(c:int)
+	print(c)
 end
 
-function template(var t)
+function template_var(var t)
 end
 
-function template(t)
+function template_const(t)
 end
 
-function voidreturn
+function void_return
 	return
 end
 
-function returntype -> int
+function return_type -> int
 	return 0
 end
 
-function returntuple -> int, int
+function return_tuple -> var int, var int
 	return 1, 2
 end
 
-function returnstruct -> a:int
-	return 5
-end
-
-function returnstruct -> a:int, b:int
+function return_struct -> var a:int, var b:int
 	return 3, 7
 end
 
-function autoreturn
+function auto_return
 	return 5
 end
 
-function autoreturn
+function auto_return_tuple
 	return 3, 7
 end
 
@@ -58,4 +56,23 @@ function[inline] specs
 end
 
 function[kwargs] kwargfn
+end
+
+function start
+	const p := twicen(5)
+	const q := tricen(5.2)
+	print(p, " ", q)
+
+	var s := return_struct()
+	var s1, s2 := return_struct()
+	s1, s2 := return_struct()
+
+	var t := return_tuple()
+	var t1, t2 := return_tuple()
+	t1, t2 := return_tuple()
+
+	s := return_tuple()
+	t := return_struct()
+
+	return 0
 end

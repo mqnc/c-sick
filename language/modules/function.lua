@@ -106,6 +106,7 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 		------------------
 		if arrowReturn then
 			result = result .. " -> "
+
 			if retn.fields.rule == "Type" then
 				result = result .. retn.fields[1]
 
@@ -135,12 +136,12 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 					if i<#retn.fields then struct = struct .. ",\n" end
 				end
 				struct = struct .. "{}\n"
-				struct = struct .. "operator " .. tupleType .. "(){\nreturn{"
+				struct = struct .. "operator " .. tupleType .. "(){\nreturn {"
 				for i=1, #retn.fields do
 					if i>1 then struct = struct .. ", " end
 					struct = struct .. retn.fields[i].name
 				end
-				struct = struct .. "}\n}\n}\n"
+				struct = struct .. "};\n}\n};\n"
 
 				result = struct .. result .. structName
 			end
@@ -157,7 +158,6 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 
 		--dump({specs=specs, name=name, params=params, retn=retn, body=body})
 		--dump(result)
-
 
 		return {result}
 	end
@@ -216,7 +216,7 @@ rule([[ ReturnType <- ReturnTuple / ReturnStruct / Type]],
 rule([[ ReturnTuple <- SpecifiedType _ Comma _  SpecifiedType (_ Comma _  SpecifiedType)* ]], listFilter )
 rule([[ SpecifiedType <- ParameterSpecifier _ Type ]], function(arg) return {spec=arg.values[1][1], name=arg.values[3][1]} end )
 
-rule([[ ReturnStruct <- ReturnStructField (_ Comma _  ReturnStructField)* ]], listFilter )
+rule([[ ReturnStruct <- ReturnStructField _ Comma _ ReturnStructField (_ Comma _  ReturnStructField)* ]], listFilter )
 
 rule([[ ReturnStructField <- ParameterSpecifier _ Identifier _ TypeDeclareOperator _ Type ]],
 	function(arg) return {spec=arg.values[1][1], name=arg.values[3][1], type=arg.values[7][1]} end )
