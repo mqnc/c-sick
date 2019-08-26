@@ -9,8 +9,8 @@ rule([[ AssignToValue <- Identifier _ AssignOperator _ Assigned _ Terminal ]], b
 
 rule([[ TieToValues <- IdentifierListMulti _ AssignOperator _ Assigned _ Terminal ]], function(sv, info)
 	return {txt ="std::tie(" .. sv[1].txt .. ") " .. sv[2].txt .. " = " ..
-			sv[4].txt .. "static_cast<std::tuple<" .. table.concat(sv[1].idents, ", ") ..
- 			">>(" .. sv[5].txt .. ")" .. sv[6].txt .. sv[7].txt}
+			sv[4].txt .. "static_cast<std::tuple<decltype(" .. table.concat(sv[1].idents, "), decltype(") ..
+ 			")>>(" .. sv[5].txt .. ")" .. sv[6].txt .. sv[7].txt}
 end )
 
 rule([[ Assigned <- AssignedTuple / Expression ]], basic.concat )

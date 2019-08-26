@@ -36,6 +36,7 @@ dofile(scriptPath .. "modules" .. sep .. "type.lua")
 dofile(scriptPath .. "modules" .. sep .. "literal.lua")
 dofile(scriptPath .. "modules" .. sep .. "expression.lua")
 dofile(scriptPath .. "modules" .. sep .. "declaration.lua")
+dofile(scriptPath .. "modules" .. sep .. "function_generator.lua")
 dofile(scriptPath .. "modules" .. sep .. "function.lua")
 
 print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
