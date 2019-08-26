@@ -1,0 +1,40 @@
+function start
+
+	const x := 0
+
+	if x < 0
+		print("x < 0")
+	elseif x > 0
+		print("x > 0")
+	else
+		print("x = 0")
+	end
+
+
+	const c := 17
+
+	switch c
+		case 1
+			print("c = 1")
+		case 2
+			print("c = 2")
+			fall
+		case 3, 4, 5
+			print("c = 2/3/4/5")
+		default
+			print("c != 1/2/3/4/5")
+	end
+
+
+	var v := 4
+
+	switch v
+		case 1, default, 2
+			print("v might be 1 or 2 but it's definitely not 3")
+		case 3
+			print("v = 3")
+	end
+
+
+	return 0
+end

@@ -66,7 +66,7 @@ rule([[ ReturnStruct <- ReturnStructField _ Comma _ ReturnStructField (_ Comma _
 rule([[ ReturnStructField <- ParameterSpecifier _ Identifier _ TypeDeclareOperator _ Type ]],
 	function(sv, info) return {spec=sv[1].txt, name=sv[3].txt, type=sv[7].txt} end )
 
-rule([[ FunctionBody <- Skip (!EndFunctionKeyword (ReturnStatement / LocalStatement) Skip)* ]], basic.concat )
+rule([[ FunctionBody <- Skip (!EndFunctionKeyword LocalStatement Skip)* ]], basic.concat )
 
 --rule([[ ReturnStatement <- ReturnKeyword _ Returnee _ Terminal ]], function(sv, info)
 --	return {[1] = sv[1].txt .. sv[2].txt .. sv[3].txt .. sv[4].txt .. sv[5].txt, type = sv[3].rule}
@@ -76,6 +76,7 @@ rule([[ ReturnStatement <- ReturnKeyword _ Returnee _ Terminal ]], function(sv, 
 	functionStack[#functionStack] = sv[3]
 	return basic.concat(sv, info)
 end )
+table.insert(localStatements, "ReturnStatement")
 
 rule([[ Returnee <- Assigned / ReturnNothing ]], basic.choice("nonvoid", "void") )
 
