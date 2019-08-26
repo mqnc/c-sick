@@ -2,8 +2,21 @@ new structure for the transpiler:
 
 the integer accessors contain the values directly
 
-.gen contains generated text
+.txt contains the text that is handed upwards the tree
 
 the rest is up to the specific function
 
 top-level rules call cpp/h/log/doc generators
+
+
+
+this is how the function rule learns about an inner return statement:
+
+when the "function" keyword is parsed, it appends a nil to some global function stack
+
+if a return keyword is successfully parsed (meaning there was definitely a function declaration),
+it writes into the last element of that stack
+
+the "endfunction" keyword parsement reads from this stack and hands the result up to the function rule
+
+this will also be useful for scoped stuff and maybe we can register variables and so on

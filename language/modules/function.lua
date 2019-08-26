@@ -1,24 +1,31 @@
 
 print(col("TODO: SCAN FOR RETURN STATEMENTS INSIDE INNER SCOPES", "brightred"))
+print(col("TODO: KWARGS", "brightred"))
 
 rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier _ Parameters _ ReturnDeclaration _ Terminal FunctionBody EndFunctionKeyword ]],
-	function(arg)
-		local specs = arg.values[3]
-		local name = arg.values[5]
-		local params = arg.values[7]
-		local retn = arg.values[9]
-		local body = arg.values[12]
+	function(sv, info)
+		local specs = sv[3]
+		local name = sv[5]
+		local params = sv[7]
+		local retn = sv[9]
+		local body = sv[12]
+		local lastretn = sv[13]
+
+		--dump({specs=specs, name=name, params=params, retn=retn, body=body, lastretn=lastretn})
+		dump(retn)
+
+		local result = ""
 
 		----------------------
 		-- check specifiers --
 		----------------------
 		local inline = false
 		local kwargs = false
-		if specs.subrule == "FunctionSpecifierList" then
+		if specs.choice == "list" then
 			for i=1, #specs do
- 				if specs[i].subrule == "FunctionInline" then
+ 				if specs[i].txt == "inline" then
 					inline = true
-				elseif specs[i].subrule == "FunctionKwargs" then
+				elseif specs[i].txt == "kwargs" then
 					kwargs = true
 				end
 			end
@@ -27,20 +34,18 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 		------------------------
 		-- scan for templates --
 		------------------------
-		local result = ""
-		local template = "template<"
-		local itparam = 0
 
+		local itparam = 0
+		local templates = {}
 		for i=1, #params do
-			if params[i].decl.subrule == "TemplatedParameter" then
-				if itparam>0 then template = template .. ", " end
+			if params[i].decl.choice == "templated" then
 				itparam = itparam+1
-				template = template .. "typename T" .. itparam
+				table.insert(templates, "typename T" .. itparam)
 			end
 		end
-		template = template .. ">\n"
-
-		if itparam > 0 then result = result .. template end
+		if #templates > 0 then
+			result = result .. "template<" ..table.concat(templates, ", ") .. ">\n"
+		end
 
 		------------------------
 		-- check return types --
@@ -50,33 +55,22 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 		end
 
 		local arrowReturn = false
-		if retn.subrule == "ExplicitReturnDeclaration" then
+		if retn.choice == "explicit" then
 			-- we will use the -> notation
 			result = result .. "auto "
 			arrowReturn = true
 		else
-			-- we have to scan for the return statement
-			local foundReturn
-			for i=1, #body.values do
-				if body.values[i].rule == "ReturnStatement" then
-					foundReturn = true
-					if body.values[i].type == "ReturnNothing" then
-						result = result .. "void "
-					else
-						result = result .. "auto " -- return type deduction
-					end
-					break
-				end
-			end
-			if not foundReturn then
+			if lastretn.retn.choice == nil or lastretn.retn.choice == "void" then
 				result = result .. "void "
+			else
+				result = result .. "auto " -- return type deduction
 			end
 		end
 
 		-------------------
 		-- function name --
 		-------------------
-		result = result .. name[1]
+		result = result .. name.txt
 
 		----------------
 		-- parameters --
@@ -86,17 +80,17 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 		for i=1, #params do
 			if i>1 then result = result .. ", " end
 
-			if params[i].specs.subrule == "ConstantParameterSpecifier" then
+			if params[i].specs.choice == "constant" then
 				result = result .. "const "
 			end
 
-			if params[i].decl.subrule == "TemplatedParameter" then
+			if params[i].decl.choice == "templated" then
 				itparam = itparam+1
-				result = result .. "T" .. itparam .. " " .. params[i].name[1]
-			elseif params[i].decl.subrule == "RequiredParameter" then
-				result = result .. params[i].decl[1] .. " " .. params[i].name[1]
-			elseif params[i].decl.subrule == "DefaultParameter" then
-				result = result .. "decltype(" .. params[i].decl[1] .. ") " .. params[i].name[1] .. " = " .. params[i].decl[1]
+				result = result .. "T" .. itparam .. " " .. params[i].name.txt
+			elseif params[i].decl.choice == "required" then
+				result = result .. params[i].decl.txt .. " " .. params[i].name.txt
+			elseif params[i].decl.choice == "default" then
+				result = result .. "decltype(" .. params[i].decl.txt .. ") " .. params[i].name.txt .. " = " .. params[i].decl.txt
 			end
 		end
 		result = result .. ")"
@@ -107,41 +101,52 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 		if arrowReturn then
 			result = result .. " -> "
 
-			if retn.fields.rule == "Type" then
-				result = result .. retn.fields[1]
+			if retn.subchoice == "single" then
+				result = result .. retn.txt
 
-			elseif retn.fields.rule == "ReturnTuple" then
+			elseif retn.subchoice == "tuple" then
 				result = result .. "std::tuple<"
-				for i=1, #retn.fields do
-					if i>1 then result = result .. ", " end
-					result = result .. retn.fields[i].spec .. " " .. retn.fields[i].name
+				local retnfields = {}
+				for i=1, #retn do
+					table.insert(retnfields, retn[i].spec .. " " .. retn[i].name)
 				end
-				result = result .. ">"
+				result = result .. table.concat(retnfields, ", ") .. ">"
 
-			elseif retn.fields.rule == "ReturnStruct" then
-				local structName = mark .. name[1] .. "_result"
+			elseif retn.subchoice == "struct" then
+
+				-- struct NAME{
+				local structName = mark .. name.txt .. "_result"
 				local struct = "struct " .. structName .. "{\n"
-				for i=1, #retn.fields do
-					struct = struct .. retn.fields[i].spec .. " " .. retn.fields[i].type .. " " .. retn.fields[i].name .. ";\n"
+
+				-- list members
+				local fields = {}
+				for i=1, #retn do
+					table.insert(fields, retn[i].spec .. " " .. retn[i].type .. " " .. retn[i].name .. ";\n")
 				end
-				local tupleType = "std::tuple<"
-				for i=1, #retn.fields do
-					if i>1 then tupleType = tupleType .. ", " end
-					tupleType = tupleType .. retn.fields[i].spec .. " " .. retn.fields[i].type
+				struct = struct .. table.concat(fields)
+
+				-- construct tuple to construct from / cast to
+				local typelist = {}
+				for i=1, #retn do
+					table.insert(typelist, retn[i].spec .. " " .. retn[i].type)
 				end
-				tupleType = tupleType .. ">"
+				local tupleType = "std::tuple<" .. table.concat(typelist) .. ">"
+
+				-- constructor from tuple
 				struct = struct .. structName .. "(" .. tupleType .. " " .. mark .. "tup):\n"
-				for i=1, #retn.fields do
-					struct = struct .. retn.fields[i].name .. "(std::get<" .. i-1 .. ">(" .. mark .. "tup))"
-					if i<#retn.fields then struct = struct .. ",\n" end
+				local coloninits = {}
+				for i=1, #retn do
+					table.insert(coloninits, retn[i].name .. "(std::get<" .. i-1 .. ">(" .. mark .. "tup))")
 				end
-				struct = struct .. "{}\n"
+				struct = struct .. table.concat(coloninits, ",\n") .. "{}\n"
+
+				-- cast to tuple operator
 				struct = struct .. "operator " .. tupleType .. "(){\nreturn {"
-				for i=1, #retn.fields do
-					if i>1 then struct = struct .. ", " end
-					struct = struct .. retn.fields[i].name
+				local bracelist = {}
+				for i=1, #retn do
+					table.insert(bracelist, retn[i].name)
 				end
-				struct = struct .. "};\n}\n};\n"
+				struct = struct .. table.concat(bracelist) .. "};\n}\n};\n"
 
 				result = struct .. result .. structName
 			end
@@ -150,89 +155,93 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 		----------
 		-- body --
 		----------
-		result = result .. "\n{\n"
-		for i=1, #body.values do
-			result = result .. body.values[i][1]
-		end
-		result = result .. "\n}\n"
+		result = result .. "\n{\n" .. body.txt .. "\n}\n"
 
-		--dump({specs=specs, name=name, params=params, retn=retn, body=body})
-		--dump(result)
-
-		return {result}
+		dump(result)
+		return {txt=result}
 	end
 )
 table.insert(globalStatements, "FunctionDeclaration")
 
 -- return the first and then every fourth value (often needed for lists)
-function listFilter(arg)
+function listFilter(sv, info)
 	resultTbl = {}
-	for i=1, #arg.values, 4 do
-		table.insert(resultTbl, arg.values[i])
+	for i=1, #sv, 4 do
+		table.insert(resultTbl, sv[i])
 	end
 	return resultTbl
 end
 
-rule([[ FunctionKeyword <- 'function' ]])
+rule([[ FunctionKeyword <- 'function' ]], function()
+	-- push an empty slot to the function stack for the return statement to store its info in
+	table.insert(functionStack, {})
+	return {}
+end )
 table.insert(keywords, "FunctionKeyword")
 
-rule([[ FunctionSpecifiers <- FunctionSpecifierList / NoFunctionSpecifiers ]], basic.first )
+rule([[ FunctionSpecifiers <- FunctionSpecifierList / NoFunctionSpecifiers ]], basic.choice("list", "none") )
 rule([[ NoFunctionSpecifiers <- "" ]])
-rule([[ FunctionSpecifierList <- LBracket _ SpecifierList _ RBracket ]], basic.third )
+rule([[ FunctionSpecifierList <- LBracket _ SpecifierList _ RBracket ]], basic.forward(3) )
 rule([[ SpecifierList <- FunctionSpecifier (_ Comma _ FunctionSpecifier)* ]], listFilter)
-rule([[ FunctionSpecifier <- FunctionInline / FunctionKwargs ]], basic.first)
+rule([[ FunctionSpecifier <- FunctionInline / FunctionKwargs ]], basic.match )
 rule([[ FunctionInline <- "inline" ]])
 rule([[ FunctionKwargs <- "kwargs" ]])
 table.insert(keywords, "FunctionInline")
 table.insert(keywords, "FunctionKwargs")
 
-rule([[ Parameters <- ParameterList / NoParameters ]], basic.first )
-rule([[ NoParameters <- (LParen _ RParen)? ]], function(arg) return {} end)
-rule([[ ParameterList <- LParen _ ParameterDeclarationList _ RParen ]], basic.third )
+rule([[ Parameters <- ParameterList / NoParameters ]], basic.forward(1) )
+rule([[ NoParameters <- (LParen _ RParen)? ]], function(sv, info) return {} end)
+rule([[ ParameterList <- LParen _ ParameterDeclarationList _ RParen ]], basic.forward(3) )
 
-rule([[ ParameterDeclaration <- ParameterSpecifier _ Identifier _ ParameterTypeDeclaration ]], function(arg)
-	return {specs = arg.values[1], name = arg.values[3], decl = arg.values[5]} end )
+rule([[ ParameterDeclaration <- ParameterSpecifier _ Identifier _ ParameterTypeDeclaration ]], function(sv, info)
+	return {specs = sv[1], name = sv[3], decl = sv[5]} end )
 
-rule([[ ParameterTypeDeclaration <- DefaultParameter / RequiredParameter / TemplatedParameter ]], basic.first )
-rule([[ DefaultParameter <- AssignOperator _ Expression ]], basic.third )
-rule([[ RequiredParameter <- TypeDeclareOperator _ Identifier ]], basic.third )
+rule([[ ParameterTypeDeclaration <- DefaultParameter / RequiredParameter / TemplatedParameter ]], basic.choice("default", "required", "templated") )
+rule([[ DefaultParameter <- AssignOperator _ Expression ]], basic.forward(3) )
+rule([[ RequiredParameter <- TypeDeclareOperator _ Identifier ]], basic.forward(3) )
 rule([[ TemplatedParameter <- '' ]])
 
 rule([[ ParameterDeclarationList <- ParameterDeclaration (_ Comma _ ParameterDeclaration)* ]], listFilter)
 
-rule([[ ParameterSpecifier <- VariableParameterSpecifier / ConstantParameterSpecifier  ]], basic.first )
+rule([[ ParameterSpecifier <- VariableParameterSpecifier / ConstantParameterSpecifier  ]], basic.choice("variable", "constant") )
 rule([[ ConstantParameterSpecifier <- '' ]], 'const' )
 rule([[ VariableParameterSpecifier <- 'var' ]], '' )
 
-rule([[ ReturnDeclaration <- ExplicitReturnDeclaration / AutoReturnType ]], basic.first )
-rule([[ AutoReturnType <- '' ]])
-rule([[ ExplicitReturnDeclaration <- ReturnOperator _ ReturnType ]], basic.third )
+rule([[ ReturnDeclaration <- ExplicitReturnDeclaration / DeduceReturnType ]], basic.choice("explicit", "deduce") )
+rule([[ DeduceReturnType <- '' ]])
+rule([[ ExplicitReturnDeclaration <- ReturnOperator _ ReturnType ]], basic.forward(3) )
 rule([[ ReturnOperator <- '->' ]])
 
-rule([[ ReturnType <- ReturnTuple / ReturnStruct / Type]],
- 	function(arg) return{fields=arg.values[1]} end )
+rule([[ ReturnType <- ReturnTuple / ReturnStruct / Type]], basic.subchoice("tuple", "struct", "single") )
 
 -- tuple when two or more return values
-rule([[ ReturnTuple <- SpecifiedType _ Comma _  SpecifiedType (_ Comma _  SpecifiedType)* ]], listFilter )
-rule([[ SpecifiedType <- ParameterSpecifier _ Type ]], function(arg) return {spec=arg.values[1][1], name=arg.values[3][1]} end )
+rule([[ ReturnTuple <- SpecifiedType _ Comma _ SpecifiedType (_ Comma _ SpecifiedType)* ]], listFilter )
+rule([[ SpecifiedType <- ParameterSpecifier _ Type ]], function(sv, info) return {spec=sv[1].txt, name=sv[3].txt} end )
 
 rule([[ ReturnStruct <- ReturnStructField _ Comma _ ReturnStructField (_ Comma _  ReturnStructField)* ]], listFilter )
 
 rule([[ ReturnStructField <- ParameterSpecifier _ Identifier _ TypeDeclareOperator _ Type ]],
-	function(arg) return {spec=arg.values[1][1], name=arg.values[3][1], type=arg.values[7][1]} end )
+	function(sv, info) return {spec=sv[1].txt, name=sv[3].txt, type=sv[7].txt} end )
 
-rule([[ FunctionBody <- Skip (!EndFunctionKeyword (ReturnStatement / LocalStatement) Skip)* ]], basic.tree )
+rule([[ FunctionBody <- Skip (!EndFunctionKeyword (ReturnStatement / LocalStatement) Skip)* ]], basic.concat )
 
-rule([[ ReturnStatement <- ReturnKeyword _ Returnee _ Terminal ]], function(arg)
-	local v = arg.values
-	return {[1] = v[1][1] .. v[2][1] .. v[3][1] .. v[4][1] .. v[5][1], type = v[3].rule}
+--rule([[ ReturnStatement <- ReturnKeyword _ Returnee _ Terminal ]], function(sv, info)
+--	return {[1] = sv[1].txt .. sv[2].txt .. sv[3].txt .. sv[4].txt .. sv[5].txt, type = sv[3].rule}
+--end )
+rule([[ ReturnStatement <- ReturnKeyword _ Returnee _ Terminal ]], function(sv, info)
+	-- store the returnee in the function stack so the function can access it
+	functionStack[#functionStack] = sv[3]
+	return basic.concat(sv, info)
 end )
 
-rule([[ Returnee <- Assigned / ReturnNothing ]], basic.first )
+rule([[ Returnee <- Assigned / ReturnNothing ]], basic.choice("nonvoid", "void") )
 
 rule([[ ReturnNothing <- '' ]], '')
 
 rule([[ ReturnKeyword <- 'return' ]], 'return')
 
-rule([[ EndFunctionKeyword <- 'end' ]])
+rule([[ EndFunctionKeyword <- 'end' ]], function()
+	-- pop the stored return value from the function stack and return it
+	return {retn = table.remove(functionStack)}
+end )
 table.insert(keywords, "EndFunctionKeyword")

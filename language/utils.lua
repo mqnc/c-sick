@@ -20,6 +20,16 @@ utils.writeToFile = function(fname, text)
 	io.close(fout)
 end
 
+-- from an array of tables, return an array of a certain field of those tables
+-- t = {{x=1, y=11}, {x=2, y=22}, {x=3, y=33}}  fields(t, "x") -> {1, 2, 3}
+utils.fields = function(tbl, fld)
+	res = {}
+	for key,val in pairs(tbl) do
+		res[key] = val[fld]
+	end
+	return res
+end
+
 -- enable/disable colored output
 local ansiColors = true
 utils.ansiColors = function(enable)

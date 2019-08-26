@@ -30,36 +30,37 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 
 		// push input parameters on stack
 		// 0-based c++ indices are converted to 1-based lua indices
-		const lua::value params = lua::newtable();
-		params["choice"] = sv.choice() + 1;
-		//params["line"] = sv.line_info().first;
-		//params["column"] = sv.line_info().second;
-		//params["matched"] = StringPtr(sv.c_str(), sv.length());
-		params["pos"] = (int)(sv.c_str() - sv.ss) + 1;
-		params["len"] = sv.length();
-		params["rule"] = rule;
-
-		const lua::value values = lua::newtable();
+		const lua::value values = lua::newtable(); // contains semantic values
 		for (size_t i = 0; i != sv.size(); ++i){
 			values[i+1] = sv[i].get<lua::value>();
 		}
-		params["values"] = values;
+
+		const lua::value info = lua::newtable(); // contains additional information
+		// the info table can later probably be split into individual arguments once we know what info we need
+		info["choice"] = sv.choice() + 1;
+		//info["line"] = sv.line_info().first;
+		//info["column"] = sv.line_info().second;
+		//info["matched"] = StringPtr(sv.c_str(), sv.length());
+		info["pos"] = (int)(sv.c_str() - sv.ss) + 1;
+		info["len"] = sv.length();
+		info["rule"] = rule;
 
 		const lua::value tokens = lua::newtable();
 		for (size_t i = 0; i != sv.tokens.size(); ++i) {
 			tokens[i+1] = StringPtr(sv.tokens[i].first, sv.tokens[i].second);
 		}
-		params["tokens"] = tokens;
+		info["tokens"] = tokens;
 
 		// call lua function
-		auto result = reduce(params);
-
+		auto result = reduce(values, info);
+		/*
 		// include additional information
 		if(result.type() == LUA_TTABLE){
 			//result["pos"] = (int)(sv.c_str() - sv.ss) + 1;
 			//result["len"] = sv.length();
 			result["rule"] = rule;
 		}
+		*/
 
 		return result;
 	};
@@ -67,6 +68,7 @@ void registerReductionRule(parser& pegParser, const string& rule, const lua::val
 
 
 lua::value pegparser::parse() {
+
 	// text to parse
 	const char* const text = lua_tostring(lua::scope::state(), 2);
 
@@ -146,6 +148,7 @@ pegparser::pegparser() {
 			registerReductionRule(*m_parser, rule, defaultReduce);
 		}
 	}
+
 }
 
 #ifndef _MSC_VER

@@ -15,68 +15,75 @@ transpiler.clear = function()
 end
 
 -- return the matched text from a table containing a pos and len reference to the parsing text
-transpiler.match = function(arg)
-	return parsingText:sub(arg.pos, arg.pos + arg.len - 1)
+transpiler.match = function(info)
+	return parsingText:sub(info.pos, info.pos + info.len - 1)
 end
 
 -- set of standard reduction actions
 transpiler.basicActions = {
 
 	-- output the name of the rule that was reduced
-	rule = function(arg)
-		return {result.rule}
+	rule = function(sv, info)
+		return {rule=info.rule}
 	end,
 
 	-- output the matched text
-	match = function(arg)
-		return {transpiler.match(arg)}
+	match = function(sv, info)
+		return {txt=transpiler.match(info)}
 	end,
 
 	-- output the first captured token (raw text)
-	token = function(arg)
-		return {arg.tokens[1]}
+	token = function(sv)
+		return {txt=info.tokens[1]}
 	end,
 
-	-- forward the first value
-	first = function(arg)
-		local resultTbl = arg.values[1]
-		resultTbl.subrule = arg.values[1].rule
-		return resultTbl
+	-- concat all txt fields of captured semantic values
+	concat = function(sv)
+		return {txt=table.concat(fields(sv, "txt"))}
 	end,
 
-	second = function(arg) return arg.values[2]	end,
-	third = function(arg) return arg.values[3] end,
-	fourth = function(arg) return arg.values[4]	end,
-	fifth = function(arg) return arg.values[5]	end,
-
-	-- concat all captured semantic values
-	concat = function(arg)
-		local buf = {}
-		for i = 1, #arg.values do
-			buf[#buf+1] = arg.values[i][1]
-		end
-		return {table.concat(buf)}
-	end,
-
-	-- concat all captured semantic values with a comma in between
-	csv = function(arg)
-		local result = ""
-		local sep = ""
-		for i = 1, #arg.values do
-			result = result .. sep .. arg.values[i][1]
-			sep = ", "
-		end
-		return {result}
+	-- concat all txt fields of captured semantic values with a comma in between
+	csv = function(sv)
+		return {txt=table.concat(fields(sv, "txt"), ", ")}
 	end,
 
 	-- propagate all parameters
-	tree = function(arg)
-		local resultTbl = {""}
-		resultTbl.values = arg.values
-		--for i, v in ipairs(arg.values) do
-		--	resultTbl[1] = resultTbl[1] .. v[1] .. " "
-		--end
-		return resultTbl
+	tree = function(sv, info)
+		sv.rule = info.rule
+		return sv
+	end,
+
+	concat_and_tree = function(sv, info)
+		sv.rule = info.rule
+		sv.txt = table.concat(fields(sv, "txt"))
+		return sv
+	end,
+
+	-- forward the specified semantic value
+	forward = function(index)
+		return function(sv, info)
+			return sv[index]
+		end
+	end,
+
+	-- for a / b / c rules, forwards the sv of the match and a name for it
+	choice = function(...)
+		local names = {...}
+		return function(sv, info)
+			res = sv[1]
+			res.choice = names[info.choice]
+			return res
+		end
+	end,
+
+	-- same as above but the field will be called subchoice so it can be one level deeper without being overwritten
+	subchoice = function(...)
+		local names = {...}
+		return function(sv, info)
+			res = sv[1]
+			res.subchoice = names[info.choice]
+			return res
+		end
 	end
 }
 
@@ -90,7 +97,7 @@ transpiler.rule = function(definition, action, comment)
 	if ruleList[name] == nil then
 		ruleList[#ruleList+1] = name
 	else
-		print('warning: rule "' .. name .. '" will be overwritten')
+		print(col('warning: rule "' .. name .. '" will be overwritten', 'brightred'))
 	end
 
 	-- create action
@@ -127,22 +134,18 @@ transpiler.rule = function(definition, action, comment)
 			definition = definition .. "; " .. comment
 		end
 
-		actionList[name] = function(arg)
+		actionList[name] = function(sv, info)
 			result = action
-			for i, v in ipairs(arg.values) do
-				result = result:gsub("{" .. i .. "}", v[1])
+			for i, v in ipairs(sv) do
+				result = result:gsub("{" .. i .. "}", v.txt)
 			end
-			result = result:gsub("{match}", transpiler.match(arg))
-			return {result}
+			result = result:gsub("{match}", transpiler.match(info))
+			return {txt=result}
 		end
 
 	else
-
 		definition = definition .. "  # (no action)"
-
-		actionList[name] = function(arg)
-			return {col(arg.rule, "brightmagenta")}
-		end
+		actionList[name] = function() return {} end
 	end
 
 	-- create/update rule
@@ -161,18 +164,33 @@ end
 
 
 -- do transpilation
-transpiler.transpile = function(code)
+transpiler.transpile = function(code, debug)
 
 	parsingText = code
+
+	if debug then -- wrap all rule calls
+		for name,fn in pairs(actionList) do
+			actionList[name] = function(sv, info)
+				print("Rule " .. name .. ":")
+				print("sv=")
+				dump(sv)
+				print("info=")
+				dump(info)
+				res = fn(sv, info)
+				print("returning:")
+				dump(res)
+				return res
+			end
+		end
+	end
 
 	local pp = pegparser{
 		grammar = transpiler.grammar(),
 		actions = actionList,
-		default = function(arg) return nil end
+		default = function(sv, info) return {} end
 	}
 
 	return pp:parse(code)
-
 end
 
 return transpiler

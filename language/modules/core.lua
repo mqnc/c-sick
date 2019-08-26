@@ -23,7 +23,7 @@ rule([[ WhiteSpace <- [ \t]+ ]], " " )
 rule([[ Space <- (WhiteSpace / InlineComment / LineContinue)+ ]], basic.concat ) -- definite space
 rule([[ _ <- Space? ]], basic.concat ) -- optional space
 rule([[ Semicolon <- ';' ]], '')
-rule([[ SilentTerminal <- LineBreak / Semicolon ]], basic.first)
+rule([[ SilentTerminal <- LineBreak / Semicolon ]], basic.forward(1))
 rule([[ Terminal <- SilentTerminal ]], ";{1}")
 
 rule([[ Skip <- _ (LineBreak _)* ]], basic.concat ) -- consume all new lines and whitespaces (and comments)
@@ -33,8 +33,8 @@ rule([[ LineEndComment <- '//' (!NewLine .)* ]], basic.match) -- does not includ
 rule([[ InlineComment <- MultiLineComment / NestableComment ]], basic.concat)
 rule([[ MultiLineComment <- '/*' (!'*/' .)* '*/' ]], basic.match)
 rule([[ NestableComment <- '(*' <(!'*)' (NestableComment / .))*> '*)' ]],
-    function(arg)
-		return {"/*" .. arg.tokens[1]:gsub("/[*]", "(*"):gsub("[*]/", "*)") .. "*/"}
+    function(sv, info)
+		return {"/*" .. info.tokens[1]:gsub("/[*]", "(*"):gsub("[*]/", "*)") .. "*/"}
     end
 )
 
@@ -45,21 +45,15 @@ rule([[ WordEnd <- !WordMid ]], "")
 
 rule([[ Identifier <- !Keyword Word ]], basic.match )
 rule([[ IdentifierList <- Identifier (_ Comma _ Identifier)* ]], basic.concat )
-rule([[ IdentifierListMulti <- Identifier _ Comma _ Identifier (_ Comma _ Identifier)* ]], function(arg)
-	local buf = {}
-	for i = 1, #arg.values do
-		buf[#buf+1] = arg.values[i][1]
-	end
+rule([[ IdentifierListMulti <- Identifier _ Comma _ Identifier (_ Comma _ Identifier)* ]], function(sv, info)
+	local res = basic.concat(sv)
 	local idents = {}
-	for i = 1, #arg.values, 4 do
-		idents[#idents+1] = arg.values[i][1]
+	for i = 1, #sv, 4 do
+		idents[#idents+1] = sv[i].txt
 	end
-	return {[1]=table.concat(buf), idents=idents}
+	res.idents = idents
+	return res
 end )
-
--- this solution does not work with multiple cpp files yet but baby steps
-rule([[ CinnamonFooter <- '' ]], 'int main(){return start();}' )
-
 
 rule([[ Comma <- ',' ]], ',' )
 rule([[ LParen <- '(' ]], '(' )
@@ -84,3 +78,6 @@ rule([[ InsertLBracket <- '' ]], '[' )
 rule([[ InsertRBracket <- '' ]], ']' )
 rule([[ InsertLBrace <- '' ]], '{' )
 rule([[ InsertRBrace <- '' ]], '}' )
+
+-- this solution does not work with multiple cpp files yet but baby steps
+rule([[ CinnamonFooter <- '' ]], 'int main(){return start();}' )

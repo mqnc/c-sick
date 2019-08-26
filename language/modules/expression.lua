@@ -130,10 +130,10 @@ opparser = pegparser{
 	]],
 	actions = {
 		lref = function() return -1 end,
-		mref = function(arg) return tonumber(arg.tokens[1]) end,
+		mref = function(sv, info) return tonumber(info.tokens[1]) end,
 		rref = function() return -2 end,
-		other = function(arg) return arg.tokens[1] end,
-		snippet = function(arg) return arg.values end
+		other = function(sv, info) return info.tokens[1] end,
+		snippet = function(sv, info) return sv end
 	},
 	default = function() return nil end
 }
@@ -174,72 +174,72 @@ function choice(tbl)
 end
 
 -- the action for operations with left to right associativity
-function ltrOperation(arg)
-	local resultTbl = {arg.values[1][1]}
+function ltrOperation(sv, info)
+	local resultTbl = {txt=sv[1].txt}
 
 	local i = 2
-	while i <= #arg.values do
+	while i <= #sv do
 
 		local raw = ""
 
-		for is, snippet in ipairs(arg.values[i].cpp) do
+		for is, snippet in ipairs(sv[i].cpp) do
 			if type(snippet) == "number" then
 				if snippet == -1 then
-					raw = raw .. resultTbl[1]
+					raw = raw .. resultTbl.txt
 				elseif snippet == -2 then
-					raw = raw .. arg.values[i+1][1]
+					raw = raw .. sv[i+1].txt
 				else
-					raw = raw .. arg.values[i].args[snippet][1]
+					raw = raw .. sv[i].args[snippet].txt
 				end
 			else
 				raw = raw .. snippet
 			end
 		end
-		if arg.values[i].typ == "u" then
+		if sv[i].typ == "u" then
 			i = i+1
-		elseif arg.values[i].typ == "b" then
+		elseif sv[i].typ == "b" then
 			i = i+2
 		else
 			error("invalid operator type")
 		end
 
-		resultTbl[1] = raw
+		resultTbl.txt = raw
 	end
 
 	return resultTbl
 end
 
 -- the action for operations with right to left associativity
-function rtlOperation(arg)
-	local resultTbl = {arg.values[#arg.values][1]}
+function rtlOperation(sv, info)
+	local resultTbl = {txt=sv[#sv].txt}
 
-	local i = #arg.values-1
+	local i = #sv-1
 	while i >= 1 do
 
 		local raw = ""
 
-		for is, snippet in ipairs(arg.values[i].cpp) do
+		for is, snippet in ipairs(sv[i].cpp) do
 			if type(snippet) == "number" then
 				if snippet == -2 then
-					raw = raw .. resultTbl[1]
+					raw = raw .. resultTbl.txt
 				elseif snippet == -1 then
-					raw = raw .. arg.values[i-1][1]
+					raw = raw .. sv[i-1].txt
 				else
-					raw = raw .. arg.values[i].args[snippet][1]
+					raw = raw .. sv[i].args[snippet].txt
 				end
 			else
 				raw = raw .. snippet
 			end
 		end
-		if arg.values[i].typ == "u" then
+		if sv[i].typ == "u" then
 			i = i-1
-		elseif arg.values[i].typ == "b" then
+		elseif sv[i].typ == "b" then
 			i = i-2
 		else
 			error("invalid operator type")
 		end
 
-		resultTbl[1] = raw
+		resultTbl.txt = raw
 	end
 
 	return resultTbl
@@ -282,15 +282,15 @@ for i, v in ipairs(OperatorClasses) do
 
 	if unaries ~= "" then
 		rule(unaries,
-			function(arg)
-				return {typ='u', cpp=class.unaries[arg.choice].snippet, args=arg.values}
+			function(sv, info)
+				return {typ='u', cpp=class.unaries[info.choice].snippet, args=sv}
 			end, "unary"
 		)
 	end
 	if binaries ~= "" then
 	 	rule(binaries,
-			function(arg)
-				return {typ='b', cpp=class.binaries[arg.choice].snippet, args=arg.values}
+			function(sv, info)
+				return {typ='b', cpp=class.binaries[info.choice].snippet, args=sv}
 			end, "binary"
 		)
 	end

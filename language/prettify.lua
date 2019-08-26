@@ -24,33 +24,33 @@ rule([[ Anything <- . ]], basic.match)
 
 rule([[ WhiteSpace <- [ \t]+ ]], " " )
 rule([[ NewLine <- ~WhiteSpace* (('\r\n' / '\n' / !.) ~WhiteSpace*)+ IndentDec?]],
-	function(arg)
+	function(sv, info)
 		local result = "\n" .. string.rep("\t", indent)
-		if arg.values[1] then
-			result = result .. arg.values[1][1]
+		if sv[1] then
+			result = result .. sv[1].txt
 		end
-		return {result}
+		return {txt=result}
 	end
 )
 rule([[ IndentInc <- "(" / "{" ]],
-	function(arg)
+	function(sv, info)
 		indent = indent + 1
-		return {match(arg)}
+		return {txt=match(info)}
 	end
 )
 rule([[ IndentDec <- ')' / '}' ]],
-	function(arg)
+	function(sv, info)
 		indent = indent - 1
 		if indent<0 then indent=0 end
-		if match(arg) == "}" then
-			return {"}"}
+		if match(info) == "}" then
+			return {txt="}"}
 		else
-			return {")"}
+			return {txt=")"}
 		end
 	end
 )
 
 return function(uglycode)
 	indent = 0
-	return transpiler.transpile(uglycode)[1]
+	return transpiler.transpile(uglycode).txt
 end
