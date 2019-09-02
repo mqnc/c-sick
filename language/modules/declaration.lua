@@ -5,7 +5,7 @@ rule([[ StructuredBinding <- InsertLBracket _ IdentifierListMulti _ InsertRBrack
 
 rule([[ Assignment <- TieToValues / AssignToValue ]], basic.concat )
 
-rule([[ AssignToValue <- Identifier _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
+rule([[ AssignToValue <- Expression _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
 
 rule([[ TieToValues <- IdentifierListMulti _ AssignOperator _ Assigned _ Terminal ]], function(sv, info)
 	return {txt ="std::tie(" .. sv[1].txt .. ") " .. sv[2].txt .. " = " ..

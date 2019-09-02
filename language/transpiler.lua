@@ -70,7 +70,12 @@ transpiler.basicActions = {
 	choice = function(...)
 		local names = {...}
 		return function(sv, info)
-			res = sv[1]
+			local res
+			if #sv>0 then
+				res = sv[1]
+			else
+				res = {}
+			end
 			res.choice = names[info.choice]
 			return res
 		end

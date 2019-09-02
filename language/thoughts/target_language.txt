@@ -22,7 +22,7 @@ julia:
 - garbage collected
 
 D:
-- garbage collected
+- garbage collected (although: https://dlang.org/blog/2019/07/15/ownership-and-borrowing-in-d/ )
 
 Rust:
 

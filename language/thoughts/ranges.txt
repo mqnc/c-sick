@@ -1,0 +1,89 @@
+
+our cutting edge language needs cutting edge ranges
+
+http://www.informit.com/articles/printerfriendly/1407357
+
+the range interface:
+
+popFront
+front
+empty
+
+save (copy without reset)
+popBack
+back
+
+copying resets the range
+
+all well and nice.
+However, how do we note a range?
+
+Python uses range(start, afterend, interval) or list[start:afterend:interval] when indexing
+
+Matlab uses start:interval:end
+
+both sucks.
+
+suggestion:
+
+in Math, intervals are written
+[a, b] for endpoint-including and (a, b) or ]a, b[ for endpoint-excluding intervals
+
+]a, b[ is out of the question because is b[ the end or are we starting an access-thingy?
+
+so (a, b] it is for the ends
+
+I was also thinking about something like
+
+for 0<x<=7
+
+which is super short and nice but it does not go well with using x with a function
+
+I always dispose Pythons verbose
+
+for i in range(len(array)) in comparison to luas but maybe we can have # as a .length and then its fewer parens
+
+
+ok here we go:
+
+for x in range[5]           0 1 2 3 4 5
+for x in range(5)           1 2 3 4
+for x in range(5..7]        6 7
+for x in range(0..10)|+2    2 4 6 8
+for x in range(1..10)|*2    2 4 8
+
+the | looks like the line that you draw behind an equation in maths which is kewl
+
+or maybe x in range [0..+2..5] ? it's pretty long and ugly...
+
+it would be nice to be able to omit the "range" in for loops
+
+for x in [1..5] but then can we always decide:
+
+for x in (r)
+
+is r a range object or a number?
+
+I think we have to bite the bullet and go with the range keyword
+
+then comes the special range notation with a | which allows +, -, * and / to follow
+
+if you need more specialized stuff you have to construct your own range object which provides front, popFront and empty
+
+uuuuuh... if we use .. only inside ranges, we don't need a range keyword. It will be a bit hard on the compiler and could cause a lot of backtracking but well...
+
+however, if we have a range accessor, it can look pretty shitty:
+
+array[(1..5]] although that's actually ok
+
+ok we leave out the range keyword! we have packrat parsing, it's gonna be fine.
+
+for x in (5..7]        6 7
+for x in (0..10)|+2    2 4 6 8
+for x in (1..10)|*2    2 4 8
+
+Joachim suggests +=2 instead so (0..2)|+2 doesn't look like (2..4)
+
+I think I'll do
+
+[0..+=2..10)

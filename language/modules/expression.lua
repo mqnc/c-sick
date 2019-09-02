@@ -161,7 +161,7 @@ end
 rule(" Expression <- " .. OperatorClasses[#OperatorClasses].name, basic.concat )
 rule([[ ExpressionList <- Expression (_ Comma _ Expression)* ]], basic.concat )
 rule([[ ExpressionListMulti <- Expression _ Comma _ Expression (_ Comma _ Expression)* ]], basic.concat )
-rule([[ Atomic <- LParen _ Expression _ RParen / Identifier / Literal ]], basic.concat )
+rule([[ Atomic <- LParen _ Expression _ RParen / Identifier / Literal / Range ]], basic.concat )
 
 -- helper function: turn {{peg='a'}, {peg='b'}, {peg='c'}} into "a / b / c"
 function choice(tbl)
