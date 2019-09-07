@@ -8,7 +8,7 @@ function start
 	var A, B := ab
 	A, B := ab
 	a, B := A, b
-	print(A, B)
+	println(A, B)
 
 	return 0
 end

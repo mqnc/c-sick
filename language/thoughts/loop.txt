@@ -1,0 +1,73 @@
+
+
+while i < 50
+	print(i)
+	i += 1
+between
+	print(", ")
+end
+
+if(i < 50){
+	while(true){
+		print(i);
+		i += 1;
+		if(!(i < 50)){break;}
+		print(", ");
+	}
+}
+
+#############################
+
+repeat
+	print(i)
+	i += 1
+between
+	print(", ")
+until i >= 50
+
+while(true){
+	print(i);
+	i += 1;
+	if(i >= 50){break;}
+	print(", ");
+}
+
+#############################
+
+repeat
+	print(i)
+	i += 1
+between
+	print(", ")
+whilst i < 50
+
+while(true){
+	print(i);
+	i += 1;
+	if(!(i < 50)){break;}
+	print(", ");
+}
+
+#############################
+
+for i in rng
+	print(i)
+between
+	print(", ")
+end
+
+{
+	auto& m0n_range = rng;
+	if(!m0n_range.empty()){
+		while(true){
+			i = m0n_range.front();
+			print(i);
+			m0n_range.popFront();
+			if(m0n_range.empty()){break;}
+			print(", ");
+		}
+	}
+}
+
+for var i in rng -->
+auto i = rng.front();

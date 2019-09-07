@@ -1,0 +1,48 @@
+function start
+
+	var i := 0
+
+	while i < 5
+		print(i, "; ")
+		i := i + 1
+	end
+	println()
+
+	while i < 10
+		print(i)
+		i := i + 1
+	between
+		print(", ")
+	end
+	println()
+
+	repeat
+		print(i, "; ")
+		i := i + 1
+	until i >= 15
+	println()
+
+	repeat
+		print(i)
+		i := i + 1
+	between
+		print(", ")
+	until i >= 20
+	println()
+
+	repeat
+		print(i, "; ")
+		i := i + 1
+	whilst i < 25
+	println()
+
+	repeat
+		print(i)
+		i := i + 1
+	between
+		print(", ")
+	whilst i < 30
+	println()
+
+	return 0
+end

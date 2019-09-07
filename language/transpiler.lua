@@ -142,7 +142,9 @@ transpiler.rule = function(definition, action, comment)
 		actionList[name] = function(sv, info)
 			result = action
 			for i, v in ipairs(sv) do
-				result = result:gsub("{" .. i .. "}", v.txt)
+				if v.txt ~= nil then
+					result = result:gsub("{" .. i .. "}", v.txt)
+				end
 			end
 			result = result:gsub("{match}", transpiler.match(info))
 			return {txt=result}

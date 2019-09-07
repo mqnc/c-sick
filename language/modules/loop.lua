@@ -1,68 +1,71 @@
 
-rule([[ WhileStatement <- ~WhileKeyword _ Expression _ SilentTerminal WhileBody ~EndWhileKeyword ]], 'while( {1}{2}{3} ){4}{\n{5}\n}\n' )
-rule([[ WhileKeyword <- 'while' ]])
-table.insert(keywords, "WhileKeyword")
-rule([[ WhileBody <- Skip (!EndWhileKeyword LocalStatement Skip)* ]], basic.concat )
-rule([[ EndWhileKeyword <- 'end' ]])
-table.insert(keywords, "EndWhileKeyword")
+rule([[ WhileStatement <- WhileKeyword _ Expression _ SilentTerminal LoopBody EndKeyword ]], function(sv, info)
+	local condition = sv[3].txt
+	local body = sv[6]
+	local betweenbody = "\n"
+	if #body == 3 then
+		betweenbody = body[3].txt
+	end
 
+	local result = "if(" .. condition .. "){\nwhile(true){\n" .. body[1].txt ..
+			"\nif(!(" .. condition .. ")){break;}\n" .. betweenbody .. "}\n}\n"
+
+	return {txt=result}
+end )
 table.insert(localStatements, "WhileStatement")
 
+rule([[ RepeatStatement <- RepeatKeyword _ SilentTerminal LoopBody RepeatCondition ]], function(sv, info)
+	local body = sv[4]
+	local condition = sv[5][1].txt
+	local betweenbody = "\n"
+	if #body == 3 then
+		betweenbody = body[3].txt
+	end
 
-rule([[ RepeatStatement <- ~RepeatKeyword _ SilentTerminal RepeatBody RepeatCondition ]], 'do{1}{2}{\n{3}\n}\n{4}' )
-rule([[ RepeatKeyword <- 'repeat' ]])
-table.insert(keywords, "RepeatKeyword")
-rule([[ RepeatBody <- Skip (!RepWhileKeyword !UntilKeyword LocalStatement Skip)* ]], basic.concat )
-rule([[ RepeatCondition <- RepWhileCondition / UntilCondition ]], basic.first )
-rule([[ RepWhileCondition <- ~RepWhileKeyword _ Expression _ SilentTerminal ]], 'while( {1}{2}{3} ){4}' )
-rule([[ RepWhileKeyword <- 'whilst' ]])
-table.insert(keywords, "RepWhileKeyword")
-rule([[ UntilCondition <- ~UntilKeyword _ Expression _ SilentTerminal ]], 'while(!( {1}{2}{3} )){4}' )
-rule([[ UntilKeyword <- 'until' ]])
-table.insert(keywords, "UntilKeyword")
+	local result = "while(true){\n" .. body[1].txt ..
+			"\nif(" .. condition .. "){break;}\n" .. betweenbody .. "}\n"
 
+	return {txt=result}
+end )
 table.insert(localStatements, "RepeatStatement")
 
+rule([[ ForStatement <- ForKeyword _ Expression _ InKeyword _ Expression _ SilentTerminal LoopBody EndKeyword ]], function(sv, info)
+	local iterator = sv[3].txt
+	local range = sv[7].txt
+	local body = sv[10]
+	local betweenbody = "\n"
+	if #body == 3 then
+		betweenbody = body[3].txt
+	end
+	local rangeref = mark .. "range"
 
---rule([[ ForStatement <- CountingForLoop / IteratorLoop ]], basic.subs )
-rule([[ ForStatement <- CountingForLoop ]], basic.first )
-rule([[ CountingForLoop <- ~ForKeyword _ CountingRange _ SilentTerminal ForBody ~EndForKeyword ]], 'for {1}{2}{3}{4}{\n{5}\n}\n' )
+	local result = "{\nauto " .. rangeref .. " = " .. range .. ".save();\nif(!" .. rangeref .. ".empty()){\nwhile(true){\n" ..
+			iterator .. " = " .. rangeref .. ".front();\n" .. body[1].txt .. "\n" .. rangeref .. ".popFront();\n" ..
+			"if(" .. rangeref .. ".empty()){break;}\n" .. betweenbody .. "\n}\n}\n}\n"
+
+	return {txt=result}
+end )
+table.insert(localStatements, "ForStatement")
+
+
+rule([[ LoopBody <- IterationBody (BetweenKeyword IterationBody)? ]], basic.tree )
+rule([[ IterationBody <- Skip (!BetweenKeyword !EndKeyword !RepWhileKeyword !UntilKeyword LocalStatement Skip)* ]], basic.concat )
+
+rule([[ RepeatCondition <- RepWhileCondition / UntilCondition ]], basic.tree)
+rule([[ RepWhileCondition <- RepWhileKeyword _ Expression _ SilentTerminal ]], "!({3})")
+rule([[ UntilCondition <- UntilKeyword _ Expression _ SilentTerminal ]], "{3}")
+
+rule([[ WhileKeyword <- 'while' ]])
+table.insert(keywords, "WhileKeyword")
+rule([[ BetweenKeyword <- 'between' ]])
+table.insert(keywords, "BetweenKeyword")
+rule([[ RepeatKeyword <- 'repeat' ]])
+table.insert(keywords, "RepeatKeyword")
+rule([[ RepWhileKeyword <- 'whilst' ]])
+table.insert(keywords, "RepWhileKeyword")
+rule([[ UntilKeyword <- 'until' ]])
+table.insert(keywords, "UntilKeyword")
 rule([[ ForKeyword <- 'for' ]])
 table.insert(keywords, "ForKeyword")
-rule([[ CountingRange <- DoubleComparison (~_ ',' ~_ Expression)? ]],
-	function(arg)
-
-		local result = ""
-		local dblcmp = arg.values[1].values
-		local lim1 = dblcmp[1][1]
-		local rel1 = dblcmp[2][1]
-		local var = dblcmp[3][1]
-		local rel2 = dblcmp[4][1]
-		local lim2 = dblcmp[5][1]
-
-		result = "(auto " .. var .. "=" .. lim1
-		if rel1 == "<" then
-			result = result .. "+1"
-		elseif rel1 == ">" then
-			result = result .. "-1"
-		end
-		result = result .. "; " .. var .. rel2 .. lim2 .. "; "
-
-		if arg.values[2] then
-			result = result .. var .. "=" .. arg.values[2][1] .. ")"
-		elseif rel2 == "<" or rel2 == "<=" then
-			result = result .. var .. "++)"
-		else
-			result = result .. var .. "--)"
-		end
-
-		return {result}
-	end
-)
-rule([[ DoubleComparison <- Atomic ~_ Relation ~_ Identifier ~_ Relation ~_ Atomic ]], basic.tree )
-rule([[ Relation <- "<=" / "<" / ">=" / ">" ]], basic.match )
-rule([[ ForBody <- Skip (!EndForKeyword LocalStatement Skip)* ]], basic.concat )
-rule([[ EndForKeyword <- 'end' ]])
-table.insert(keywords, "EndForKeyword")
-
-table.insert(localStatements, "ForStatement")
+rule([[ InKeyword <- 'in' ]])
+table.insert(keywords, "InKeyword")

@@ -6,11 +6,11 @@ function nothing_with_parens()
 end
 
 function param_one_param(var a:int)
-	print(a)
+	println(a)
 end
 
 function param_one_const_param(c:int)
-	print(c)
+	println(c)
 end
 
 function template_var(var t)
@@ -61,7 +61,7 @@ end
 function start
 	const p := twicen(5)
 	const q := tricen(5.2)
-	print(p, " ", q)
+	println(p, " ", q)
 
 	var s := return_struct()
 	var s1, s2 := return_struct()

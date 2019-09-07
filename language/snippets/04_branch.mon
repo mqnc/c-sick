@@ -3,11 +3,11 @@ function start
 	const x := 0
 
 	if x < 0
-		print("x < 0")
+		println("x < 0")
 	elseif x > 0
-		print("x > 0")
+		println("x > 0")
 	else
-		print("x = 0")
+		println("x = 0")
 	end
 
 
@@ -15,14 +15,14 @@ function start
 
 	switch c
 		case 1
-			print("c = 1")
+			println("c = 1")
 		case 2
-			print("c = 2")
+			println("c = 2")
 			fall
 		case 3, 4, 5
-			print("c = 2/3/4/5")
+			println("c = 2/3/4/5")
 		default
-			print("c != 1/2/3/4/5")
+			println("c != 1/2/3/4/5")
 	end
 
 
@@ -30,9 +30,9 @@ function start
 
 	switch v
 		case 1, default, 2
-			print("v might be 1 or 2 but it's definitely not 3")
+			println("v might be 1 or 2 but it's definitely not 3")
 		case 3
-			print("v = 3")
+			println("v = 3")
 	end
 
 

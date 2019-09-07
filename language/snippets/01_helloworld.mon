@@ -1,4 +1,4 @@
 function start
-	print("Hello ", "World!")
+	println("Hello ", "World!")
 	return 0
 end

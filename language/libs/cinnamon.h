@@ -3,6 +3,11 @@
 #include <string>
 #include <sstream>
 
+// feed no arguments to a stream
+void feed__(std::ostream& os){
+	(void) os;
+}
+
 // feed one argument to a stream using <<
 template<typename T, typename... Args>
 void feed__(std::ostream& os, const T &arg){
@@ -24,10 +29,16 @@ std::string concat(const Args... args){
 	return ss.str();
 }
 
-// print to cout and break line
+// print to cout
 template<typename... Args>
 void print(const Args... args){
 	feed__(std::cout, args...);
+}
+
+// print to cout and break line
+template<typename... Args>
+void println(const Args... args){
+	print(args...);
 	std::cout << std::endl;
 }
 

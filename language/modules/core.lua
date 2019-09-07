@@ -79,5 +79,8 @@ rule([[ InsertRBracket <- '' ]], ']' )
 rule([[ InsertLBrace <- '' ]], '{' )
 rule([[ InsertRBrace <- '' ]], '}' )
 
+rule([[ EndKeyword <- 'end' ]], '' )
+table.insert(keywords, "EndKeyword")
+
 -- this solution does not work with multiple cpp files yet but baby steps
 rule([[ CinnamonFooter <- '' ]], 'int main(){return start();}' )
