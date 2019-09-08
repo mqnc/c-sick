@@ -1,5 +1,11 @@
 
-rule([[ SimpleDeclaration <- SimpleDeclaree _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
+rule([[ SimpleDeclaration <- AssigningDeclaration / Construction ]], basic.concat )
+
+rule([[ Construction <- ConstSpecifier _ Identifier _ TypeDeclareOperator _ Type _ LParen _ ExpressionList _ RParen ]], function(sv, info)
+	return {txt = sv[1].txt .. " " .. sv[7].txt .. " " .. sv[3].txt .. "(" .. sv[11].txt .. ");"}
+end )
+
+rule([[ AssigningDeclaration <- SimpleDeclaree _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
 rule([[ SimpleDeclaree <- ConstSpecifier InsertAuto _ (StructuredBinding / Identifier) ]], basic.concat )
 rule([[ StructuredBinding <- InsertLBracket _ IdentifierListMulti _ InsertRBracket ]], basic.concat )
 

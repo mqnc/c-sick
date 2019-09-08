@@ -249,7 +249,7 @@ std::tie(a, b) = static_cast<std::tuple<decltype(a), decltype(b)>(std::make_tupl
 
 
 
-we might need an explicit constructor call:
+in contrast to what I wrote above, we might need an explicit constructor call:
 
 // var a := MyClass(5)
 auto a = MyClass(5)
