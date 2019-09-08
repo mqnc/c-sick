@@ -1,6 +1,6 @@
 
-rule([[ SimpleDeclaration <- ConstSpecifier InsertAuto _ SimpleDeclaree _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
-rule([[ SimpleDeclaree <- StructuredBinding / Identifier ]], basic.concat )
+rule([[ SimpleDeclaration <- SimpleDeclaree _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
+rule([[ SimpleDeclaree <- ConstSpecifier InsertAuto _ (StructuredBinding / Identifier) ]], basic.concat )
 rule([[ StructuredBinding <- InsertLBracket _ IdentifierListMulti _ InsertRBracket ]], basic.concat )
 
 rule([[ Assignment <- TieToValues / AssignToValue ]], basic.concat )

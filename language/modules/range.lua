@@ -1,38 +1,26 @@
 
-rule([[ Range <- RangeL _ Expression _ RangeOperator _ (IncrementOperator _ Expression _ RangeOperator _ )? RangeEnd _ RangeR ]], function(sv, info)
+rule([[ Range <- RangeL _ Expression _ RangeOperator _ (Expression _ RangeOperator _ )? Expression? _ RangeR ]], function(sv, info)
 
-	local openStart = sv[1].choice
-	local initialValue = sv[3].txt
-
-	local incrementOperator
-	local increment
-
-	local finalValue = sv[#sv-2]
-	local openEnd = sv[#sv].choice
-
-	if #sv == 9 then -- inc by 1
-		incrementOperator = "ADD"
-		increment = "1"
-	else -- custom increment
-		incrementOperator = sv[7].choice
-		increment = sv[9].txt
+	local inclStart = sv[1].choice
+	local startValue = sv[3].txt
+	local finalValue = nil
+	if #sv == 13 or #sv == 9 then
+		finalValue = sv[#sv-2].txt
 	end
+	local increment = "1"
+	if #sv == 13 or #sv == 12 then
+		increment = sv[7].txt
+	end
+	local inclEnd = sv[#sv].choice
 
-	local result = "Range(RangeOpenness::" .. openStart .. ", " .. initialValue .. ", RangeIncOp::" .. incrementOperator .. ", " .. increment
-
-	if finalValue.choice == "inf" then
-		result = result .. ")"
+	if finalValue == nil then
+		return {txt = "Range(" .. inclStart .. ", " .. startValue .. ", " .. increment .. ")"}
 	else
-		result = result .. ", RangeOpenness::" .. openEnd .. ", " .. finalValue.txt .. ")"
+		return {txt = "Range(" .. inclStart .. ", " .. startValue .. ", " .. increment .. ", " .. finalValue .. ", " .. inclEnd .. ")"}
 	end
-
-	return {txt=result}
 end)
 
-rule([[ RangeL <- LBracket / LParen ]], basic.choice("CLOSED", "OPEN"))
-rule([[ RangeR <- RBracket / RParen ]], basic.choice("CLOSED", "OPEN"))
+rule([[ RangeL <- LBracket / LParen ]], basic.choice("true", "false"))
+rule([[ RangeR <- RBracket / RParen ]], basic.choice("true", "false"))
 
-rule([[ IncrementOperator <- "+=" / "-=" / "*=" / "/=" ]], basic.choice("ADD", "SUB", "MUL", "DIV"))
 rule([[ RangeOperator <- ".." ]])
-
-rule([[ RangeEnd <- Expression / '' ]], basic.choice("fin", "inf"))

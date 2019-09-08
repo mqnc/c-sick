@@ -44,5 +44,46 @@ function start
 	whilst i < 30
 	println()
 
+	for i in [30..34]
+		print(i, "; ")
+	end
+	println()
+
+	for i in [35..40)
+		print(i, "; ")
+	end
+	println()
+
+	for i in (39..44]
+		print(i, "; ")
+	end
+	println()
+
+	for i in (44..50)
+		print(i, "; ")
+	end
+	println()
+
+	for i in [50..]
+		print(i, "; ")
+		if i >= 54
+			break
+		end
+	end
+	println()
+
+	for var d in [3.0..-1.0/3.0..1.0]
+		print(d)
+	between
+		print(", ")
+	end
+	println()
+
+	for var d in (3.0..-1.0/3.0..1.0)
+		print(d)
+	between
+		print(", ")
+	end
+
 	return 0
 end

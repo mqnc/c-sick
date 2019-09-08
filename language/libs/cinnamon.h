@@ -3,6 +3,8 @@
 #include <string>
 #include <sstream>
 
+#include "range.hpp"
+
 // feed no arguments to a stream
 void feed__(std::ostream& os){
 	(void) os;
@@ -42,28 +44,4 @@ void println(const Args... args){
 	std::cout << std::endl;
 }
 
-// range placeholders
-enum class RangeOpenness{CLOSED, OPEN};
-enum class RangeIncOp{ADD, SUB, MUL, DIV};
-
-template<typename T, typename TS>
-class Range{
-public:
-	Range(RangeOpenness openStart, T start, RangeIncOp op, TS step, RangeOpenness openEnd, T end):m_start(start){
-		(void) openStart; (void) op; (void) step; (void) openEnd; (void) end;
-	}
-	Range(RangeOpenness openStart, T start, RangeIncOp op, TS step):m_start(start){ // infinite range
-		(void) openStart; (void) op; (void) step;
-	}
-	void popFront(){}
-	T& front(){return m_start;}
-	bool empty(){return true;}
-private:
-	T m_start;
-};
-
 const double inf = std::numeric_limits<double>::infinity();
-
-int Int(){return 0;}
-
-std::string String(){return "";}

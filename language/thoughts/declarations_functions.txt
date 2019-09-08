@@ -246,3 +246,17 @@ then we do no longer need this mess:
 
 std::tie(a, b) = static_cast<std::tuple<decltype(a), decltype(b)>(std::make_tuple(c, d));
 (which we need if we want to assign a struct providing an implicit tuple conversion to a tie)
+
+
+
+we might need an explicit constructor call:
+
+// var a := MyClass(5)
+auto a = MyClass(5)
+
+which is only possible if MyClass defines assignment, so we can't have constant members. I suggest:
+
+//var a:MyClass(5)
+MyClass a(5);
+
+and I approve. It goes well in line with function parameters

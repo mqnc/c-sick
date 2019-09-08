@@ -29,7 +29,7 @@ rule([[ RepeatStatement <- RepeatKeyword _ SilentTerminal LoopBody RepeatConditi
 end )
 table.insert(localStatements, "RepeatStatement")
 
-rule([[ ForStatement <- ForKeyword _ Expression _ InKeyword _ Expression _ SilentTerminal LoopBody EndKeyword ]], function(sv, info)
+rule([[ ForStatement <- ForKeyword _ (SimpleDeclaree / Expression) _ InKeyword _ Expression _ SilentTerminal LoopBody EndKeyword ]], function(sv, info)
 	local iterator = sv[3].txt
 	local range = sv[7].txt
 	local body = sv[10]

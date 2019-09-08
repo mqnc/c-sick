@@ -5,16 +5,14 @@ function start
 	rng := (0..10]
 	rng := [0..10]
 
-	rng := [0..+=2..10)
-	rng := [10..-=2..0)
-	rng := [1..*=2..10)
-	rng := [10../=2..1)
+	rng := [0..+2..10)
+	rng := [10..-2..0)
 
 	rng := [0..)
-	rng := [1..*=2..)
+	rng := [1..+2..)
 
 	rng.popFront()
-	rng.front() := rng.front()
+	println(rng.front())
 	rng.empty()
 
 	return 0

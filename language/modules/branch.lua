@@ -37,8 +37,8 @@ rule([[ FallKeyword <- 'fall' ]])
 table.insert(keywords, "FallKeyword")
 rule([[ OptionalFallStatement <- (FallKeyword _ SilentTerminal)? ]],
 	function(sv, info)
-		if #sv > 0 then -- fall is present, don't return "break;", just possible comments
-			return {txt=sv[2].txt .. sv[3].txt}
+		if #sv > 0 then -- fall is present
+			return {txt="[[fallthrough]];" .. sv[2].txt .. sv[3].txt}
 		else
 			return {txt="break;\n"} -- no fall -> break
 		end

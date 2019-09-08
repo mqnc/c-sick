@@ -87,3 +87,51 @@ Joachim suggests +=2 instead so (0..2)|+2 doesn't look like (2..4)
 I think I'll do
 
 [0..+=2..10)
+
+
+
+
+
+
+the implementation... I started with template jizz like this:
+
+// basic range implementation
+struct RngLimit{struct Closed{}; struct Open{};};
+struct RngAdvance{struct Add{}; struct Sub{}; struct Mul{}; struct Div{};};
+
+template<typename T> inline void advance(RngAdvance::Add, T& value, const T& increment){value += increment;};
+template<typename T> inline void advance(RngAdvance::Sub, T& value, const T& increment){value -= increment;};
+template<typename T> inline void advance(RngAdvance::Mul, T& value, const T& increment){value *= increment;};
+template<typename T> inline void advance(RngAdvance::Div, T& value, const T& increment){value /= increment;};
+
+template<typename T, typename T_ADV>
+inline void advanceIfOpen(RngLimit::Closed, T& value, const T& increment){}
+template<typename T, typename T_ADV>
+inline void advanceIfOpen(RngLimit::Open, T& value, const T& increment){
+	advance(T_ADV(), value, increment);
+}
+
+template<typename T, RngLimit T_START, RngAdvance T_INC, RngLimit T_END>
+class Range{
+public:
+	Range(T start, T inc, T end):
+		m_start(start),
+		m_inc(inc),
+		m_end(end)
+	{
+		advanceIfOpen()
+	}
+
+	void popFront(){}
+
+	T& front(){return m_start;}
+	bool empty(){return true;}
+private:
+	T m_start;
+	T m_end;
+	T m_inc;
+};
+
+functions can't be partially specialized why I went through this type fuss
+
+I decided to make it runtimey first and optimize it later
