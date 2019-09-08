@@ -93,3 +93,66 @@ namespace isn't cluttered since there can be
 and
 
 method .call
+
+
+
+-----------------------------
+
+I'm now against the . thing.
+1) on linux, hidden files start with . so that might look more like it's the private members
+2) I personally actually find public members more useful and frequent so the private ones should be marked
+3) it looks shit
+4) the whole point of the language is to be a bit more explicit
+
+so here is the new suggestion:
+
+class myclass{T1, T2} inherits parent, secretclass[private]
+
+	ctor
+		init
+			var[private] mu := 5 // member declaration
+			const mv := 7
+		end
+
+		// do stuff
+	end
+
+	ctor(u:int, v:int)
+		init
+			var[private] mu := u // all constructors must have the same variables in the init block (or delegate)
+			const mv := v
+		end
+
+		// do different stuff
+	end
+
+	ctor(u:int)
+		delegate(u, 15)
+
+	end
+
+	copy // parameter is called other
+	end
+
+	assign // copy assignment, parameter is called other
+	end
+
+	assign:int // parameter is called other
+	end
+
+	call(x:int, y:int) // () operator
+	end
+
+	access(x:int, y:int) // [] operator ([x, y] translates to access(x, y) in order to allow multiple parameters)
+	end
+
+	method[const] hustle(x:int, y:int) -> int
+	end
+
+	method[private] secret(x:int, y:int) -> int
+	end
+
+	dtor
+	end
+
+end

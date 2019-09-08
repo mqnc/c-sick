@@ -41,6 +41,7 @@ dofile(scriptPath .. "modules" .. sep .. "function.lua")
 dofile(scriptPath .. "modules" .. sep .. "branch.lua")
 dofile(scriptPath .. "modules" .. sep .. "range.lua")
 dofile(scriptPath .. "modules" .. sep .. "loop.lua")
+dofile(scriptPath .. "modules" .. sep .. "class.lua")
 
 print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
 table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!

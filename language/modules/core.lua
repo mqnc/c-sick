@@ -44,7 +44,7 @@ rule([[ WordMid <- [a-zA-Z_0-9] ]], basic.match)
 rule([[ WordEnd <- !WordMid ]], "")
 
 rule([[ Identifier <- !Keyword Word ]], basic.match )
-rule([[ IdentifierList <- Identifier (_ Comma _ Identifier)* ]], basic.concat )
+rule([[ IdentifierList <- Identifier (_ Comma _ Identifier)* ]], basic.listFilter )
 rule([[ IdentifierListMulti <- Identifier _ Comma _ Identifier (_ Comma _ Identifier)* ]], function(sv, info)
 	local res = basic.concat(sv)
 	local idents = {}

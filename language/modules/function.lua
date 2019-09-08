@@ -5,15 +5,6 @@ rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier
 
 table.insert(globalStatements, "FunctionDeclaration")
 
--- return the first and then every fourth value (often needed for lists)
-function listFilter(sv, info)
-	resultTbl = {}
-	for i=1, #sv, 4 do
-		table.insert(resultTbl, sv[i])
-	end
-	return resultTbl
-end
-
 rule([[ FunctionKeyword <- 'function' ]], function()
 	-- push an empty slot to the function stack for the return statement to store its info in
 	table.insert(functionStack, {})
@@ -24,7 +15,7 @@ table.insert(keywords, "FunctionKeyword")
 rule([[ FunctionSpecifiers <- FunctionSpecifierList / NoFunctionSpecifiers ]], basic.choice("list", "none") )
 rule([[ NoFunctionSpecifiers <- "" ]])
 rule([[ FunctionSpecifierList <- LBracket _ SpecifierList _ RBracket ]], basic.forward(3) )
-rule([[ SpecifierList <- FunctionSpecifier (_ Comma _ FunctionSpecifier)* ]], listFilter)
+rule([[ SpecifierList <- FunctionSpecifier (_ Comma _ FunctionSpecifier)* ]], basic.listFilter)
 rule([[ FunctionSpecifier <- FunctionInline / FunctionKwargs ]], basic.match )
 rule([[ FunctionInline <- "inline" ]])
 rule([[ FunctionKwargs <- "kwargs" ]])
@@ -43,7 +34,7 @@ rule([[ DefaultParameter <- AssignOperator _ Expression ]], basic.forward(3) )
 rule([[ RequiredParameter <- TypeDeclareOperator _ Identifier ]], basic.forward(3) )
 rule([[ TemplatedParameter <- '' ]])
 
-rule([[ ParameterDeclarationList <- ParameterDeclaration (_ Comma _ ParameterDeclaration)* ]], listFilter)
+rule([[ ParameterDeclarationList <- ParameterDeclaration (_ Comma _ ParameterDeclaration)* ]], basic.listFilter)
 
 rule([[ ParameterSpecifier <- VariableParameterSpecifier / ConstantParameterSpecifier  ]], basic.choice("variable", "constant") )
 rule([[ ConstantParameterSpecifier <- '' ]], 'const' )
@@ -57,10 +48,10 @@ rule([[ ReturnOperator <- '->' ]])
 rule([[ ReturnType <- ReturnTuple / ReturnStruct / Type]], basic.subchoice("tuple", "struct", "single") )
 
 -- tuple when two or more return values
-rule([[ ReturnTuple <- SpecifiedType _ Comma _ SpecifiedType (_ Comma _ SpecifiedType)* ]], listFilter )
+rule([[ ReturnTuple <- SpecifiedType _ Comma _ SpecifiedType (_ Comma _ SpecifiedType)* ]], basic.listFilter )
 rule([[ SpecifiedType <- ParameterSpecifier _ Type ]], function(sv, info) return {spec=sv[1].txt, name=sv[3].txt} end )
 
-rule([[ ReturnStruct <- ReturnStructField _ Comma _ ReturnStructField (_ Comma _  ReturnStructField)* ]], listFilter )
+rule([[ ReturnStruct <- ReturnStructField _ Comma _ ReturnStructField (_ Comma _  ReturnStructField)* ]], basic.listFilter )
 
 rule([[ ReturnStructField <- ParameterSpecifier _ Identifier _ TypeDeclareOperator _ Type ]],
 	function(sv, info) return {spec=sv[1].txt, name=sv[3].txt, type=sv[7].txt} end )

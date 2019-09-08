@@ -89,6 +89,16 @@ transpiler.basicActions = {
 			res.subchoice = names[info.choice]
 			return res
 		end
+	end,
+
+	-- return the first and then every fourth value (often needed for lists)
+	listFilter = function(sv, info)
+		resultTbl = {}
+		for i=1, #sv, 4 do
+			table.insert(resultTbl, sv[i])
+		end
+		resultTbl.txt = table.concat(fields(resultTbl, "txt"), ", ")
+		return resultTbl
 	end
 }
 
