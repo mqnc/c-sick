@@ -1,5 +1,7 @@
 
 function functionGenerator(sv, info)
+-- used for functions and class members
+
 	local specs = sv[3]
 	local name = sv[5]
 	local params = sv[7]
@@ -14,16 +16,30 @@ function functionGenerator(sv, info)
 	----------------------
 	-- check specifiers --
 	----------------------
+ 	local const = false
+	local privacy = 0
+	local virtual = false
+	local override = false
 	local inline = false
+	local static = false
 	local kwargs = false
 	if specs.choice == "list" then
 		for i=1, #specs do
-				if specs[i].txt == "inline" then
-				inline = true
-			elseif specs[i].txt == "kwargs" then
-				kwargs = true
-			end
+			if     specs[i].txt == "const" then const = true
+			elseif specs[i].txt == "private" then privacy = 2
+			elseif specs[i].txt == "protected" then privacy = 1
+			elseif specs[i].txt == "virtual" then virtual = true
+			elseif specs[i].txt == "override" then override = true
+			elseif specs[i].txt == "inline" then inline = true
+			elseif specs[i].txt == "static" then static = true
+			elseif specs[i].txt == "kwargs" then kwargs = true end
 		end
+	end
+
+	if info.rule=="MethodDeclaration" then
+		if privacy == 0 then result = result ..  "public: "
+		elseif privacy == 1 then result = result ..  "protected: "
+		else result = result ..  "private: " end
 	end
 
 	------------------------
@@ -35,19 +51,25 @@ function functionGenerator(sv, info)
 	for i=1, #params do
 		if params[i].decl.choice == "templated" then
 			itparam = itparam+1
-			table.insert(templates, "typename T" .. itparam)
+			table.insert(templates, "typename " .. mark .. "T" .. itparam)
 		end
 	end
 	if #templates > 0 then
 		result = result .. "template<" ..table.concat(templates, ", ") .. ">\n"
 	end
 
+	----------------
+	-- specifiers --
+	----------------
+
+	if inline then result = result .. "inline " end
+	if static then result = result .. "static " end
+	if virtual then result = result .. "virtual " end
+	if override then result = result .. "override " end
+
 	------------------------
 	-- check return types --
 	------------------------
-	if inline then
-		result = result .. "inline "
-	end
 
 	local arrowReturn = false
 	if retn.choice == "explicit" then
@@ -84,7 +106,7 @@ function functionGenerator(sv, info)
 
 		if params[i].decl.choice == "templated" then
 			itparam = itparam+1
-			result = result .. "T" .. itparam .. ref .. " " .. params[i].name.txt
+			result = result .. mark .. "T" .. itparam .. ref .. " " .. params[i].name.txt
 		elseif params[i].decl.choice == "required" then
 			result = result .. params[i].decl.txt .. ref .. " " .. params[i].name.txt
 		elseif params[i].decl.choice == "default" then
@@ -92,6 +114,10 @@ function functionGenerator(sv, info)
 		end
 	end
 	result = result .. ")"
+
+	if const then
+		result = result .. " const "
+	end
 
 	------------------
 	-- arrow return --

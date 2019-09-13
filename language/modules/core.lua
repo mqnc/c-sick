@@ -79,6 +79,8 @@ rule([[ InsertRBracket <- '' ]], ']' )
 rule([[ InsertLBrace <- '' ]], '{' )
 rule([[ InsertRBrace <- '' ]], '}' )
 
+rule([[ Empty <- '' ]], '' )
+
 rule([[ EndKeyword <- 'end' ]], '' )
 table.insert(keywords, "EndKeyword")
 

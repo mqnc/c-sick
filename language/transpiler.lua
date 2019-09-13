@@ -39,7 +39,16 @@ transpiler.basicActions = {
 
 	-- concat all txt fields of captured semantic values
 	concat = function(sv)
-		return {txt=table.concat(fields(sv, "txt"))}
+		result = ""
+		for i=1, #sv do
+			if sv[i].txt == nil then
+				result = result .. col("nil", "brightred")
+			else
+				result = result .. sv[i].txt
+			end
+		end
+		return {txt=result}
+		--return {txt=table.concat(fields(sv, "txt"))}
 	end,
 
 	-- concat all txt fields of captured semantic values with a comma in between

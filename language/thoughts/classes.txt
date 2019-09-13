@@ -106,7 +106,7 @@ I'm now against the . thing.
 
 so here is the new suggestion:
 
-class myclass{T1, T2} inherits parent, secretclass[private]
+class myclass{T1, T2} inherits parent, [private] secretclass
 
 	var[private] mu := 5 // member declaration
 	const mv := 7
