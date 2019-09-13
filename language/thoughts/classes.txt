@@ -108,26 +108,31 @@ so here is the new suggestion:
 
 class myclass{T1, T2} inherits parent, secretclass[private]
 
+	var[private] mu := 5 // member declaration
+	const mv := 7
+	var[static] mw := 17
+
 	ctor
-		init
-			var[private] mu := 5 // member declaration
-			const mv := 7
+		init // colon initializer list
+			mu := 5
+			mv := 7
+			mw := 17
 		end
 
 		// do stuff
 	end
 
-	ctor(u:int, v:int)
+	ctor[private](u:int, v:int)
 		init
-			var[private] mu := u // all constructors must have the same variables in the init block (or delegate)
-			const mv := v
+			mu := u
+			mv := v
 		end
 
 		// do different stuff
 	end
 
 	ctor(u:int)
-		delegate(u, 15)
+		ctor(u, 15) // delegate
 
 	end
 
@@ -152,7 +157,35 @@ class myclass{T1, T2} inherits parent, secretclass[private]
 	method[private] secret(x:int, y:int) -> int
 	end
 
+	method[protected] semisecret(x:int, y:int) -> int
+	end
+
 	dtor
 	end
 
 end
+
+
+
+python does some sweet name mangling with class members in order to do private stuff. maybe we can use that somehow to enforce self.member
+
+// class MyClass
+class MyClass{
+
+	// var x := 5
+	decltype(5) MyClass__x = 5;
+
+	// ctor()
+	MyClass(){
+
+		// self.x := 7
+		MyClass__x = 7;
+
+	// end
+	}
+
+// end
+}
+
+but then that's difficult to be accessed from the outside...
+nah it doesn't work like this.

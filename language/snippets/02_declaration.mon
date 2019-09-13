@@ -3,9 +3,10 @@ function start
 	var a := 1000
 	const b := " mal berührt"
 
-	var d : double(1000)
-	const c : char('x')
-	println(d, c)
+	// this turned out to be unnecessary
+	// var d : double(1000)
+	// const c : char('x')
+	// println(d, c)
 
 	// tuples
 	var ab := a, b

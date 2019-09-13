@@ -41,7 +41,12 @@ dofile(scriptPath .. "modules" .. sep .. "function.lua")
 dofile(scriptPath .. "modules" .. sep .. "branch.lua")
 dofile(scriptPath .. "modules" .. sep .. "range.lua")
 dofile(scriptPath .. "modules" .. sep .. "loop.lua")
+dofile(scriptPath .. "modules" .. sep .. "field_generator.lua")
+dofile(scriptPath .. "modules" .. sep .. "ctor_generator.lua")
+dofile(scriptPath .. "modules" .. sep .. "class_generator.lua")
 dofile(scriptPath .. "modules" .. sep .. "class.lua")
+
+print(col("go through keywords and decide which can be context-dependent", "brightred"))
 
 print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
 table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
@@ -78,6 +83,7 @@ else
 
 	-- transpile
 	functionStack = {}
+	classStack = {}
 	local t0 = os.clock()
 	local result = transpiler.transpile(input, debug).txt
 	local t1 = os.clock()

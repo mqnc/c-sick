@@ -75,17 +75,20 @@ function functionGenerator(sv, info)
 	for i=1, #params do
 		if i>1 then result = result .. ", " end
 
+		ref = ""
+
 		if params[i].specs.choice == "constant" then
 			result = result .. "const "
+			--ref = "&" -- const params are automatically handed by reference -- caused issues, see the thoughts.txt
 		end
 
 		if params[i].decl.choice == "templated" then
 			itparam = itparam+1
-			result = result .. "T" .. itparam .. " " .. params[i].name.txt
+			result = result .. "T" .. itparam .. ref .. " " .. params[i].name.txt
 		elseif params[i].decl.choice == "required" then
-			result = result .. params[i].decl.txt .. " " .. params[i].name.txt
+			result = result .. params[i].decl.txt .. ref .. " " .. params[i].name.txt
 		elseif params[i].decl.choice == "default" then
-			result = result .. "decltype(" .. params[i].decl.txt .. ") " .. params[i].name.txt .. " = " .. params[i].decl.txt
+			result = result .. "remRefDecltype(" .. params[i].decl.txt .. ") " .. ref .. params[i].name.txt .. " = " .. params[i].decl.txt
 		end
 	end
 	result = result .. ")"

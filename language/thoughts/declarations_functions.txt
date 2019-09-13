@@ -260,3 +260,24 @@ which is only possible if MyClass defines assignment, so we can't have constant 
 MyClass a(5);
 
 and I approve. It goes well in line with function parameters
+
+aaaand I disapprove again since it turns out that
+auto a = MyClass(5)
+doesn't need assignment and also just calls the int-constructor without copy or assignment or anything
+
+
+
+I was thinking I could hand const parameters always by reference.
+The tests immediately broke because of this:
+
+auto f(const int& x) -> decltype(x) {
+	auto y = x;
+	return y;
+}
+
+#define valTypeOf(X) typename std::remove_reference<decltype(X)>::type
+would be an option, then valTypeOf(X) can be used instead of decltype
+
+nah the whole idea has to be abandoned.
+
+the referenced values of reference parameters can change through actions performed by the called function, by calling other functions that also have access to the variable not through parameters

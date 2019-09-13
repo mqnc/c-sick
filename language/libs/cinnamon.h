@@ -45,3 +45,5 @@ void println(const Args... args){
 }
 
 const double inf = std::numeric_limits<double>::infinity();
+
+#define remRefDecltype(X) typename std::remove_reference<decltype(X)>::type

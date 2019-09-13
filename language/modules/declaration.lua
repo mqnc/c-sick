@@ -1,11 +1,15 @@
 
-rule([[ SimpleDeclaration <- AssigningDeclaration / Construction ]], basic.concat )
+--rule([[ SimpleDeclaration <- AssigningDeclaration / Construction ]], basic.concat )
 
+--[=[
 rule([[ Construction <- ConstSpecifier _ Identifier _ TypeDeclareOperator _ Type _ LParen _ ExpressionList _ RParen ]], function(sv, info)
 	return {txt = sv[1].txt .. " " .. sv[7].txt .. " " .. sv[3].txt .. "(" .. sv[11].txt .. ");"}
 end )
+]=]
 
-rule([[ AssigningDeclaration <- SimpleDeclaree _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
+--rule([[ AssigningDeclaration <- SimpleDeclaree _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
+
+rule([[ SimpleDeclaration <- SimpleDeclaree _ AssignOperator _ Assigned _ Terminal ]], basic.concat )
 rule([[ SimpleDeclaree <- ConstSpecifier InsertAuto _ (StructuredBinding / Identifier) ]], basic.concat )
 rule([[ StructuredBinding <- InsertLBracket _ IdentifierListMulti _ InsertRBracket ]], basic.concat )
 
@@ -15,7 +19,7 @@ rule([[ AssignToValue <- Expression _ AssignOperator _ Assigned _ Terminal ]], b
 
 rule([[ TieToValues <- IdentifierListMulti _ AssignOperator _ Assigned _ Terminal ]], function(sv, info)
 	return {txt ="std::tie(" .. sv[1].txt .. ") " .. sv[2].txt .. " = " ..
-			sv[4].txt .. "static_cast<std::tuple<decltype(" .. table.concat(sv[1].idents, "), decltype(") ..
+			sv[4].txt .. "static_cast<std::tuple<remRefDecltype(" .. table.concat(sv[1].idents, "), remRefDecltype(") ..
  			")>>(" .. sv[5].txt .. ")" .. sv[6].txt .. sv[7].txt}
 end )
 
