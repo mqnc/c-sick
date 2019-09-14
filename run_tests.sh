@@ -3,7 +3,7 @@
 
 cp -f language/libs/* test/
 
-FILES=language/snippets/*
+FILES=language/tests/*
 
 echo $FILES
 
@@ -11,7 +11,7 @@ for INFILE in $FILES
 do
 	echo "\n- - - - - - - - - -8< - - - - - - - - -\n"
 
-	FILEMON=`echo $INFILE | sed 's/language\/snippets\///'`
+	FILEMON=`echo $INFILE | sed 's/language\/tests\///'`
 	FILE=`echo $FILEMON | sed 's/.mon//'`
 
 	cp -f $INFILE test/

@@ -47,7 +47,7 @@ rule([[ CloseBracket <- ')' / '}' / ']' ]],
 	end
 )
 
-rule([[ CloseBraceFreeLine <- BraceWithOptionalSemicolon ('\r\n' / '\n' / !. / WhiteSpace)* !'}' ]],
+rule([[ CloseBraceFreeLine <- BraceWithOptionalSemicolon ~WhiteSpace* (('\r\n' / '\n' / !.) ~WhiteSpace*)+ !'}' !'{' !"else"]],
 	function(sv, info)
 		indent = indent - 1
 		if indent<0 then indent=0 end

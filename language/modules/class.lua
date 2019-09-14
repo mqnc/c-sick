@@ -1,6 +1,4 @@
 
-print(col("TODO: (Thingy / Empty) is a nice way to do optional things instead of Thingy? as it doesnt change the number of sv", "brightred"))
-
 rule([[ ClassDeclaration <- ClassKeyword _ ParametrizedClassName _ OptionalInheritance _ SilentTerminal ClassBody EndClassKeyword ]], classGenerator )
 
 table.insert(globalStatements, "ClassDeclaration")
@@ -30,8 +28,7 @@ rule([[ ClassBody <- Skip (!EndKeyword ClassMemberDeclaration Skip)* ]], basic.c
 
 rule([[ ClassMemberDeclaration <- FieldDeclaration / MethodDeclaration / OperatorDeclaration ]], basic.concat )
 
---rule([[ OperatorDeclaration <- CtorDeclaration / DtorDeclaration / CopyDeclaration / AssignDeclaration / CallDeclaration / AccessDeclaration ]], basic.concat )
-rule([[ OperatorDeclaration <- CtorDeclaration / DtorDeclaration ]], basic.concat )
+rule([[ OperatorDeclaration <- CtorDeclaration / DtorDeclaration / CallDeclaration / AccessDeclaration ]], basic.concat )
 
 rule([[ MemberSpecifiers <- SomeMemberSpecifiers / NoMemberSpecifiers ]], basic.choice("list", "none") )
 rule([[ SomeMemberSpecifiers <- LBracket _ MemberSpecifierList _ RBracket ]], basic.forward(3) )
@@ -48,34 +45,46 @@ rule([[ MemberInline <- "inline" ]])
 rule([[ MemberStatic <- "static" ]])
 rule([[ MemberKwargs <- "kwargs" ]])
 
--- METHOD
+-- METHOD / CALL / ACCESS
 
 rule([[ MethodDeclaration <- MethodKeyword _ MemberSpecifiers _ Identifier _ Parameters _ ReturnDeclaration _ Terminal FunctionBody EndFunctionKeyword ]], functionGenerator )
 
 rule([[ MethodKeyword <- 'method' ]], function()
-	-- push an empty slot to the function stack for the return statement to store its info in
 	table.insert(functionStack, {})
 	return {}
 end )
 
---method[const] hustle(x:int, y:int) -> int
+rule([[ CallDeclaration <- CallKeyword _ MemberSpecifiers _ Empty _ Parameters _ ReturnDeclaration _ Terminal FunctionBody EndFunctionKeyword ]], functionGenerator )
 
+rule([[ CallKeyword <- 'call' ]], function()
+	table.insert(functionStack, {})
+	return {}
+end )
+
+rule([[ AccessDeclaration <- AccessKeyword _ MemberSpecifiers _ Empty _ Parameters _ ReturnDeclaration _ Terminal FunctionBody EndFunctionKeyword ]], functionGenerator )
+
+rule([[ AccessKeyword <- 'access' ]], function()
+	table.insert(functionStack, {})
+	return {}
+end )
 
 -- CONSTRUCTOR
 
-rule([[ CtorDeclaration <- CtorKeyword _ MemberSpecifiers _ Parameters _ Terminal Skip Inits CtorDtorBody EndKeyword ]], ctorDtorGenerator )
+rule([[ CtorDeclaration <- CtorKeyword _ MemberSpecifiers _ Parameters _ Terminal Skip Inits CtorDtorBody EndKeyword ]], ctorGenerator )
 
 rule([[ Inits <- InitList / Delegation / NoInits ]], basic.choice("init", "delegate", "none") )
 rule([[ NoInits <- "" ]])
 
-rule([[ CtorKeyword <- "ctor" ]])
+rule([[ CtorKeyword <- "ctor" ]], function(sv, info)
+	return {txt=classStack[#classStack].name}
+end )
 
 rule([[ InitList <- InitKeyword _ Terminal _ FieldAssignmentList _ EndKeyword ]], basic.forward(5))
 rule([[ InitKeyword <- "init" ]])
 rule([[ FieldAssignmentList <- FieldAssignment _ Terminal (_ FieldAssignment _ Terminal)* ]], basic.listFilter)
 rule([[ FieldAssignment <- Identifier _ AssignOperator _ Assigned ]], "{1}{{5}}" )
 
-rule([[ Delegation <- CtorKeyword _ Parameters _ Terminal ]], basic.concat )
+rule([[ Delegation <- CtorKeyword _ LParen _ ExpressionList _ RParen _ SilentTerminal ]], basic.concat )
 
 rule([[ CtorDtorBody <- Skip (!EndKeyword LocalStatement Skip)* ]], basic.concat )
 

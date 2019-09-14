@@ -1,0 +1,19 @@
+
+
+class empty
+end
+
+class fields
+	const c := 5
+	var x := 1.7
+end
+
+
+
+
+
+
+
+function start
+	return 0
+end

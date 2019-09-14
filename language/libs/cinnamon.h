@@ -46,4 +46,24 @@ void println(const Args... args){
 
 const double inf = std::numeric_limits<double>::infinity();
 
-#define remRefDecltype(X) typename std::remove_reference<decltype(X)>::type
+#define remRefDecltype(X) std::remove_reference_t<decltype(X)>
+#define addRefDecltype(X) std::add_lvalue_reference_t<decltype(X)>
+
+
+// access(obj) calls obj.access()
+template <typename T>
+auto access(T& accessed) -> decltype(accessed.access()){
+	return accessed.access();
+}
+
+// access(obj, arg1) calls obj[arg1]
+template <typename T, typename Arg>
+auto access(T& accessed, Arg&& arg) -> decltype(accessed[std::forward<Arg>(arg)]){
+	return accessed[std::forward<Arg>(arg)];
+}
+
+// access(obj, arg1, arg2, ...) calls obj.access(arg1, arg2, ...)
+template <typename T, typename ... Args>
+auto access(T& accessed, Args&& ... args) -> decltype(accessed.access(std::forward<Args>(args)...)){
+	return accessed.access(std::forward<Args>(args)...);
+}

@@ -1,0 +1,18 @@
+
+is it safe to modify the input sv table? what if we modify in a misparsed branch and then modify again?
+
+KWARGS
+
+deal with ISO C++ forbids in-class initialization of non-const static member
+
+consider specifiers ctor (maybe do the whole thing as part of function_generator)
+
+(Thingy / Empty) is a nice way to do optional things instead of Thingy? as it doesnt change the number of sv
+
+go through keywords and decide which can be context-dependent
+
+(T)() <- that does not call the constructor with types so we can't always translate f() into (f)() so we might mess up custom precedence
+
+friends
+
+rawcpp

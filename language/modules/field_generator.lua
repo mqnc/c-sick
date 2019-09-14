@@ -1,9 +1,9 @@
 
-print(col("TODO: deal with ISO C++ forbids in-class initialization of non-const static member", "brightred"))
-
 -- rule([[ FieldDeclaration <- ConstSpecifier _ FieldSpecifiers _ Identifier _ AssignOperator _ Assigned _ Terminal ]], fieldGenerator )
 function fieldGenerator(sv, info)
 		-- pun intended
+
+	local const = sv[1]
 
 	local privacy = 0 -- 0=pbulic, 1=protected, 2=private
 	local specs = sv[3]
@@ -32,6 +32,8 @@ function fieldGenerator(sv, info)
 	else
 		table.insert(result, "private: ")
 	end
+
+	table.insert(result, const.txt .. " ")
 
 	if static then
 		-- ISO C++ forbids in-class initialization of non-const static member

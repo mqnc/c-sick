@@ -17,8 +17,6 @@ stringify = utils.stringify
 dump = function(arg) print(stringify(arg)) end
 fields = utils.fields
 
-print(col("is it safe to modify the input sv table? what if we modify in a misparsed branch and then modify again?", "brightred"))
-
 local transpiler = require (scriptPath .. "transpiler")
 rule = transpiler.rule
 basic = transpiler.basicActions
@@ -46,10 +44,8 @@ dofile(scriptPath .. "modules" .. sep .. "ctor_generator.lua")
 dofile(scriptPath .. "modules" .. sep .. "class_generator.lua")
 dofile(scriptPath .. "modules" .. sep .. "class.lua")
 
-print(col("go through keywords and decide which can be context-dependent", "brightred"))
-
-print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
-table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
+--print(col("REMOVE LOCALSTATEMENT = GLOBALSTATEMENT", "brightred"))
+--table.insert(globalStatements, "LocalStatement") -- TODO: THIS IS FOR DEBUGGING REASONS, REMOVE THIS!!!
 
 -- these elements need to be the last ones that are tested
 table.insert(localStatements, "Expression _ Terminal")
@@ -76,7 +72,7 @@ if inputfile == nil then
 	print(transpiler.grammar())
 
 	-- store grammar
-	utils.writeToFile(scriptPath .. "/../test/testgrammar.peg", transpiler.grammar())
+	utils.writeToFile(scriptPath .. "/../test/grammar.peg", transpiler.grammar())
 
 else
 	local input = string.rep(utils.readAll(inputfile), 1)

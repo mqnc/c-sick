@@ -1,6 +1,4 @@
 
-print(col("TODO: KWARGS", "brightred"))
-
 rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier _ Parameters _ ReturnDeclaration _ Terminal FunctionBody EndFunctionKeyword ]], functionGenerator )
 
 table.insert(globalStatements, "FunctionDeclaration")

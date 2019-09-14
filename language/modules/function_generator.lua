@@ -1,4 +1,6 @@
 
+-- rule([[ FunctionDeclaration <- FunctionKeyword _ FunctionSpecifiers _ Identifier _ Parameters _ ReturnDeclaration _ Terminal FunctionBody EndFunctionKeyword ]], functionGenerator )
+
 function functionGenerator(sv, info)
 -- used for functions and class members
 
@@ -8,6 +10,16 @@ function functionGenerator(sv, info)
 	local retn = sv[9]
 	local body = sv[12]
 	local lastretn = sv[13]
+
+	if info.rule == "AccessDeclaration" then
+		if #params == 1 then
+			name = {txt="operator[]"}
+		else
+			name = {txt="access"}
+		end
+	elseif info.rule == "CallDeclaration" then
+		name = {txt="operator()"}
+	end
 
 	--dump({specs=specs, name=name, params=params, retn=retn, body=body, lastretn=lastretn})
 
@@ -36,7 +48,7 @@ function functionGenerator(sv, info)
 		end
 	end
 
-	if info.rule=="MethodDeclaration" then
+	if info.rule=="MethodDeclaration" or info.rule=="AccessDeclaration" or info.rule=="CallDeclaration" then
 		if privacy == 0 then result = result ..  "public: "
 		elseif privacy == 1 then result = result ..  "protected: "
 		else result = result ..  "private: " end

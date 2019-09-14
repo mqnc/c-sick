@@ -60,6 +60,8 @@ function ctorGenerator(sv, info)
 
 	if init.choice == "init" then
 		result = result .. ":" .. init.txt
+	elseif init.choice == "delegate" then
+		result = result .. ":" .. init.txt
 	end
 
 	----------
